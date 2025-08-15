@@ -1,49 +1,33 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const UserContext = createContext(null);
+const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [usuario, setUsuario] = useState(null);
+  const storedUser = localStorage.getItem('usuario');
+  const [usuario, setUsuario] = useState(
+    storedUser ? JSON.parse(storedUser) : null
+  );
 
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('usuario');
-      if (storedUser) {
-        setUsuario(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error('Error parsing user data from localStorage:', error);
-      setUsuario(null);
-    }
-  }, []);
+  // Cerrar sesión
+  const logout = () => {
+    setUsuario(null);
+    localStorage.removeItem('usuario');
+  };
 
   useEffect(() => {
     const handleStorageChange = () => {
-      try {
-        const updated = localStorage.getItem('usuario');
-        setUsuario(updated ? JSON.parse(updated) : null);
-      } catch (error) {
-        console.error('Error parsing updated user data:', error);
-        setUsuario(null);
-      }
+      const updated = localStorage.getItem('usuario');
+      setUsuario(updated ? JSON.parse(updated) : null);
     };
-
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   return (
-    <UserContext.Provider value={{ usuario, setUsuario }}>
+    <UserContext.Provider value={{ usuario, setUsuario, logout }}>
       {children}
     </UserContext.Provider>
   );
 };
 
-export const useUsuario = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error('useUsuario must be used within a UserProvider');
-  }
-  return context;
-};
-
+export const useUsuario = () => useContext(UserContext);

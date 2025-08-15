@@ -23,13 +23,30 @@ import Cursos from './pages/cursos/Cursos.js';
 import Detallecursos from './pages/cursos/DetalleCurso.js';
 //import DetalleGuias from './pages/cursos/componentes/DetalleGuias.jsx';
 import ParticipantesGuias from './pages/cursos/componentes/ParticipantesGuias';
+import { useState } from 'react';
+import initializeAxios from './interceptor.js';
+import useInactividad from './hooks/useInactividad.js';
+import Imprimirdocentesemestrecarga from './pages/reportes/componentes/Imprimirdocentesemestrecarga.jsx';
 
 
 function AppRoutes() {
-  const { usuario } = useUsuario();
+ const { usuario, logout } = useUsuario();
+   const [showAlert, setShowAlert] = useState(false);
+  initializeAxios();
+  useInactividad(() => {
+    if (usuario) {
+      setShowAlert(true); 
+      logout();// Mostrar alerta
+      /*setTimeout(() => {
+        setShowAlert(false); // Ocultar después de 3 segundos
+        logout();
+      }, 3000);*/
+    }
+  }, 200000000);
 
   return (
-    <Routes>
+    <>
+      <Routes>
 
       {!usuario ? (
         <>
@@ -64,6 +81,7 @@ function AppRoutes() {
 
           {/* Ruta que no usa Layout */}
           <Route path="/apps" element={<Apps />} />
+          <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
           
           {/* Ruta por defecto para no encontradas */}
           <Route path="*" element={<Error404 />} />
@@ -72,6 +90,42 @@ function AppRoutes() {
 
       
     </Routes>
+
+    {showAlert && (
+      <div
+        className="modal fade show"
+        tabIndex="-1"
+        style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
+        aria-modal="true"
+        role="dialog"
+      >
+        <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-content">
+            <div className="modal-header ">
+              <h5 className="modal-title" style={{color:'white'}}> Atención</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setShowAlert(false)}
+              ></button>
+            </div>
+            <div className="modal-body">
+              <p>Sesión cerrada por inactividad.</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowAlert(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );    
 }
 

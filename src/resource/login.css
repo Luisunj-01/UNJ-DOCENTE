@@ -45,7 +45,7 @@ body {
     justify-content: center;
     justify-items: center;
     padding-top: 35px;
-    padding-bottom: 30px;
+    padding-bottom: 8px;
 }
 
 .logo img {
@@ -291,3 +291,67 @@ body {
     border-radius: 10px;
 }
 
+
+
+
+/* Contenedor centrado de los botones de rol */
+.tabs-rol-group.centered {
+  display: flex;
+  justify-content: center;   /* Centra horizontalmente */
+  align-items: center;
+  margin: .5rem auto 1rem; /* margen inferior y centrado */
+  width: 100%;               /* ocupar todo el ancho */
+  gap: 0;                     /* sin espacios entre botones */
+}
+
+/* Botones estilo pill */
+.tab-rol {
+  border: 1px solid #d6d9e0;
+  background: #fff;
+  padding: .5rem 1rem;
+  font-size: .92rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+  font-weight: 600;
+  /* Quita el doble borde entre cada segmento */
+  margin-left: -1px;
+}
+
+.tab-rol:hover {
+  background-color: #f5f5f5;
+}
+
+.tab-rol.active {
+    background: #014a8b;
+    color: #fff;
+    border-color: #014988;
+}
+
+.left-pill  { border-top-left-radius: 22px;  border-bottom-left-radius: 22px; }
+
+.middle-pill {
+  border-radius: 0;
+}
+
+.right-pill { border-top-right-radius: 22px; border-bottom-right-radius: 22px; }
+
+/* Estado de foco accesible */
+.tab-rol:focus-visible {
+  outline: 3px solid rgba(13,110,253,.35);
+  outline-offset: 2px;
+}
+/* ====== Título ====== */
+.bienvenidos {
+  margin: .7rem 0 1rem;
+  font-weight: 600;
+}
+/* ====== Acciones (Acceder / Google) ====== */
+.acciones-login {
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+/* Si usas el botón Acceder FUERA del form, usa esta clase.
+   Si está dentro del form, dale esta clase a ese botón. */

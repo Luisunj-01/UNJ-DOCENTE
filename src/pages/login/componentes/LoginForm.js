@@ -2,11 +2,13 @@
 
 import { useFormik } from "formik";
 import * as Yup from 'yup';
-import axios from "axios";
+import Swal from 'sweetalert2'
 import { iniciarSesion } from "../logica/LoginLogica";
-import Swal from "sweetalert2";
 
 function Formulario() {
+
+  //const [swalShown, setSwalShown] = useState(false)
+  
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -30,7 +32,7 @@ function Formulario() {
         if (userData) {
           localStorage.setItem('usuario', JSON.stringify(userData));
           
-          //window.location.reload();
+          window.location.reload();
         } else {
           Swal.fire({
             icon: 'error',
@@ -63,7 +65,7 @@ function Formulario() {
             className="correo"
             type="email"
             name="email"
-            placeholder="Docente@unj.edu.pe"
+            placeholder="estudiante@unj.edu.pe"
             value={formik.values.email}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -92,7 +94,7 @@ function Formulario() {
           )}
         </div>
 
-        <div className="recordar-recuperar">
+        {/*<div className="recordar-recuperar">
           <div className="recordar">
             <input type="checkbox" id="recordar" />
             <label htmlFor="recordar">Recordar</label>
@@ -100,7 +102,7 @@ function Formulario() {
           <div className="recuperar">
             <a href="#">¿Olvidaste tu contraseña?</a>
           </div>
-        </div>
+        </div> */}
 
         <div className="btn-acceder">
           <button type="submit" className="btn-con-imagen">

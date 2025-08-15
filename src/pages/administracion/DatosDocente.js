@@ -6,6 +6,7 @@ import Datospersonales from './componentes/Datospersonales';
 import { obtenerdatosreu } from '../reutilizables/logica/docente';
 import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 import { FaAddressCard, FaBookReader } from 'react-icons/fa';
+import { AcordionSkeleton } from '../reutilizables/componentes/TablaSkeleton';
 
 function DatosDocente() {
   const [datos, setDatos] = useState(null);
@@ -36,8 +37,7 @@ useEffect(() => {
       docente,
       nivel,
       tipo,
-      accion,
-      token
+      accion
     );
     const datosDocente = Array.isArray(datosDocenteArray) ? datosDocenteArray[0] : null;
     console.log(datosDocente);
@@ -76,12 +76,7 @@ useEffect(() => {
   cargarDatosCompletos();
 }, []);
 
-  if (loading) {
-    return <div className="alert alert-info text-center mt-4">Cargando...</div>;
-  }
-  if (!datos && !loading) {
-    return <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>;
-  }
+  
 
   return (
     <>
@@ -115,7 +110,7 @@ useEffect(() => {
             </ul>
 
             {loading ? (
-              <div className="alert alert-warning text-center mt-4">cargando..</div>
+              <AcordionSkeleton items={6} />
             ) : datos.length === 0 ? (
               <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
             ) : (

@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 import SemestreSelect from '../reutilizables/componentes/SemestreSelect';
 import ListCursos from './componentes/ListCursos';
+import { CardSkeleton } from '../reutilizables/componentes/TablaSkeleton';
 
 const colores = [
   ['#1FA2FF', '#12D8FA'],
@@ -76,7 +77,7 @@ function Cursos() {
           </form>
 
           {loading ? (
-            <div className="alert alert-info text-center mt-4">Cargando...</div>
+            <CardSkeleton cards={6} />
           ) : cursos.length === 0 ? (
             <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
           ) : (

@@ -4,7 +4,7 @@ import config from '../../../config';
 
 
 // Función para obtener información del Docente
-export const obtenerdatdocente = async (persona, docente, nivel, tipo, accion, token) => {
+export const obtenerdatdocente = async (persona, docente, nivel, tipo, accion) => {
   try {
     const res = await axios.get(`${config.apiUrl}api/admin/docente/${persona}/${docente}/${nivel}/${tipo}/${accion}`);
 
