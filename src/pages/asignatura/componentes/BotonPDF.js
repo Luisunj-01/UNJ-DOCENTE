@@ -23,12 +23,12 @@ const BotonPDF = ({ fila, semestre, escuela, token, titulo, semana, ruta, tipo }
   const [mostrarModal, setMostrarModal] = useState(false);
   const [renderKey, setRenderKey] = useState(Date.now());
 
-  return (
+  return ( 
     <>
       <BotonSubirPDF onClick={() => setMostrarModal(true)} titulo={titulo} />
 
       <ModalPDF
-        show={mostrarModal}
+        show={mostrarModal} 
         onHide={() => setMostrarModal(false)}
         componente={
           <Docentesilabo
