@@ -164,7 +164,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
 
 
 
-console.log(datos);
+//console.log(datos);
 
   const columnas = [
   { clave: 'alumno', titulo: 'Código' },

@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from 'react';
 import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 import { useParams } from 'react-router-dom';
-import { obtenerparticipantes } from '../logica/Curso';
+import { obtenerDatosAsistencia } from '../logica/Curso';
 import { Form } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ToastContext } from '../../../cuerpos/Layout';
 
-function ParticipantesTrabajo({ datoscurso }) {
+function ParticipantesCurso({ datoscurso }) {
   const [datos, setDatos] = useState([]);
   const [asistencias, setAsistencias] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ function ParticipantesTrabajo({ datoscurso }) {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const respuestaAsistencia = await obtenerparticipantes(
+      const respuestaAsistencia = await obtenerDatosAsistencia(
         sede,
         semestre,
         escuela,
@@ -205,5 +205,5 @@ function ParticipantesTrabajo({ datoscurso }) {
   );
 }
 
-export default ParticipantesTrabajo;
+export default ParticipantesCurso;
 

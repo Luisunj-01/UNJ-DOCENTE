@@ -22,6 +22,7 @@ import RecursosModal from '../../reutilizables/componentes/RucrusosModal';
 import TrabajosCurso from './TrabajosCurso';
 import ParticipantesGuias from './ParticipantesGuias';
 import { Modal, Button } from 'react-bootstrap';
+import RevisionTraPart from './ParticipantesTrabajo';
 
 function DetalleGuias({ datoscurso = [] }) {
   const { usuario } = useUsuario();
@@ -37,6 +38,9 @@ function DetalleGuias({ datoscurso = [] }) {
 
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [filaParticipantes, setFilaParticipantes] = useState(null);
+  const [mostrarDetalles, setMostrarDetalles] = useState(false);
+  const [filaDetalles, setFilaDetalles] = useState(null);
+
 
   const [mostrarRecursos, setMostrarRecursos] = useState(false);
   const [filaSeleccionada, setFilaSeleccionada] = useState(null);
@@ -98,16 +102,19 @@ function DetalleGuias({ datoscurso = [] }) {
   };
 
   const handleClick = (tipo, fila) => {
-    if (tipo === 'materiales' || tipo === 'trabajos') {
-      setFilaSeleccionada(fila);
-      setTipoRecursoSeleccionado(tipo);
-      setMostrarRecursos(true);
-    } else if (tipo === 'participantes') {
-      setFilaParticipantes(fila);
-      setMostrarParticipantes(true);
-    }
-    // otros tipos...
-  };
+  if (tipo === 'materiales' || tipo === 'trabajos') {
+    setFilaSeleccionada(fila);
+    setTipoRecursoSeleccionado(tipo);
+    setMostrarRecursos(true);
+  } else if (tipo === 'participantes') {
+    setFilaParticipantes(fila);
+    setMostrarParticipantes(true);
+  } else if (tipo === 'detalles') {
+    setFilaDetalles(fila);
+    setMostrarDetalles(true);
+  }
+};
+
 
   const columnas = [
     { clave: 'semana', titulo: 'Semana' },
@@ -238,6 +245,27 @@ function DetalleGuias({ datoscurso = [] }) {
             </Button>
           </Modal.Footer>
         </Modal>
+
+        {/* Modal Detalles */}
+        <Modal show={mostrarDetalles} onHide={() => setMostrarDetalles(false)} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>Revisión de Trabajos</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {filaDetalles && <RevisionTraPart datoscurso={filaDetalles} semana={filaDetalles.semana}  />}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setMostrarDetalles(false)}>
+              Cerrar
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+
+
+
+
+
       </div>
     </>
   );

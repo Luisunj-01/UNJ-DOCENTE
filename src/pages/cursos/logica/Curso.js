@@ -41,6 +41,55 @@ export const obtenerparticipantes = async (sede, semestre, escuela, curricula, c
   }
 };
 
+export const obtenerRevisionTrabajo = async (sede, semestre, escuela, curricula, curso, seccion, semana) => {
+  
+  try {
+    //const usuario = JSON.parse(localStorage.getItem('usuario'));
+    //const token = usuario?.token;
+
+    const res = await axios.get(`${config.apiUrl}api/curso/RevisionTrabajo/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+    
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (error) {
+    console.error('Error al obtener cursos:', error);
+    return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
+  }
+};
+
+
+
+
+
+
+export const obtenerDatosAsistencia= async (sede, semestre, escuela, curricula, curso, seccion) => {
+  
+  try {
+    //const usuario = JSON.parse(localStorage.getItem('usuario'));
+    //const token = usuario?.token;
+
+    const res = await axios.get(`${config.apiUrl}api/curso/partcipantes/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+
+    
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (error) {
+    console.error('Error al obtener cursos:', error);
+    return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
+  }
+};
+
+
+
+
+
 export const obtenerdatosasistencia = async (sede, semestre, escuela, curricula, curso, seccion) => {
   
   try {
