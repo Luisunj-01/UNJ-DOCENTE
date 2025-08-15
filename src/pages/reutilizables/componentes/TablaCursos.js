@@ -1,14 +1,19 @@
 import React, { useState, useMemo } from "react";
 import DataTable from "react-data-table-component";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { FaFileExcel, FaFileCsv, FaFilePdf } from "react-icons/fa";
 
 const TablaCursos = ({
+  tituloArchivo,
   columnas,
   datos,
   usarDataTable = true,
   paginacion = true,
   mostrarBuscador = true,
-  colorFondoEncabezado = "", // <- opcional
-  colorTextoEncabezado = "", // <- opcional
+  colorFondoEncabezado = "",
+  colorTextoEncabezado = "",
 }) => {
   const [busqueda, setBusqueda] = useState("");
 
@@ -37,7 +42,6 @@ const TablaCursos = ({
 
   const datosFiltrados = useMemo(() => {
     if (!mostrarBuscador || !busqueda.trim()) return datosConContador;
-
     return datosConContador.filter((item) =>
       columnas.some((columna) => {
         const valor = item[columna.clave];
@@ -49,12 +53,56 @@ const TablaCursos = ({
     );
   }, [busqueda, datosConContador, columnas, mostrarBuscador]);
 
+  const exportToExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      datosFiltrados.map((item) => {
+        let fila = {};
+        columnas.forEach((col) => {
+          fila[col.titulo] = col.render ? col.render(item) : item[col.clave];
+        });
+        return fila;
+      })
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Datos");
+    XLSX.writeFile(wb, `${tituloArchivo}.xlsx`);
+  };
+
+  const exportToCSV = () => {
+    const ws = XLSX.utils.json_to_sheet(
+      datosFiltrados.map((item) => {
+        let fila = {};
+        columnas.forEach((col) => {
+          fila[col.titulo] = col.render ? col.render(item) : item[col.clave];
+        });
+        return fila;
+      })
+    );
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${tituloArchivo}.csv`;
+    link.click();
+  };
+
+  const exportToPDF = () => {
+  const doc = new jsPDF();
+
+  const tableColumn = columnas.map((col) => col.titulo);
+  const tableRows = datosFiltrados.map((item) =>
+    columnas.map((col) => (col.render ? col.render(item) : item[col.clave]))
+  );
+
+  autoTable(doc, {
+    head: [tableColumn],
+    body: tableRows,
+  });
+
+  doc.save(`${tituloArchivo}.pdf`);
+};
+
   const customStyles = {
-    table: {
-      style: {
-        border: "1px solid #0000002d",
-      },
-    },
     headCells: {
       style: {
         justifyContent: "center",
@@ -72,24 +120,42 @@ const TablaCursos = ({
     },
   };
 
-  const paginationComponentOptions = {
-    rowsPerPageText: "Filas por página",
-    rangeSeparatorText: "de",
-    selectAllRowsItem: true,
-    selectAllRowsItemText: "Todos",
-  };
-
   return (
     <div>
-      {mostrarBuscador && (
-        <input
-          type="text"
-          className="form-control mb-3"
-          placeholder="Buscar..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-      )}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        {mostrarBuscador && (
+          <input
+            type="text"
+            className="form-control w-50"
+            placeholder="Buscar..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        )}
+        <div>
+          <button
+            className="btn btn-success btn-sm me-2"
+            onClick={exportToExcel}
+            title="Exportar a Excel"
+          >
+            <FaFileExcel size={18} />
+          </button>
+          <button
+            className="btn btn-primary btn-sm me-2"
+            onClick={exportToCSV}
+            title="Exportar a CSV"
+          >
+            <FaFileCsv size={18} />
+          </button>
+          <button
+            className="btn btn-danger btn-sm"
+            onClick={exportToPDF}
+            title="Exportar a PDF"
+          >
+            <FaFilePdf size={18} />
+          </button>
+        </div>
+      </div>
 
       {usarDataTable ? (
         <DataTable
@@ -97,20 +163,14 @@ const TablaCursos = ({
           data={datosFiltrados}
           customStyles={customStyles}
           pagination={paginacion}
-          paginationComponentOptions={paginationComponentOptions}
           noDataComponent={<span>No hay información por mostrar</span>}
           persistTableHead
           responsive
         />
       ) : (
         <table className="table table-hover">
-          <thead
-            style={{
-              backgroundColor: colorFondoEncabezado || undefined,
-              color: colorTextoEncabezado || undefined,
-            }}
-          >
-            <tr >
+          <thead>
+            <tr>
               <th style={{ width: "60px" }}>N°</th>
               {columnas.map((columna, idx) => (
                 <th key={idx} style={{ width: columna.ancho || "auto" }}>
@@ -138,7 +198,3 @@ const TablaCursos = ({
 };
 
 export default TablaCursos;
-
-
-
-

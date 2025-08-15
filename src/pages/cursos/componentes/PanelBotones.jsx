@@ -69,7 +69,7 @@ const PanelBotones = ({ dniusuario, persona, semestre, sede }) => {
     },
     {
       texto: 'Avance académico',
-      url: `Imprimiravanceacademico?codigo=${code_zet}`,
+      url: `Imprimirhorariodocente?codigo=${code_zet}`,
     },
     {
       texto: 'Constancia de Notas',

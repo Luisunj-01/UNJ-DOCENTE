@@ -27,6 +27,7 @@ import { useState } from 'react';
 import initializeAxios from './interceptor.js';
 import useInactividad from './hooks/useInactividad.js';
 import Imprimirdocentesemestrecarga from './pages/reportes/componentes/Imprimirdocentesemestrecarga.jsx';
+import Imprimirhorariodocente from './pages/reportes/componentes/Imprimirhorariodocente.jsx';
 
 
 function AppRoutes() {
@@ -82,6 +83,7 @@ function AppRoutes() {
           {/* Ruta que no usa Layout */}
           <Route path="/apps" element={<Apps />} />
           <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
+          <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
           
           {/* Ruta por defecto para no encontradas */}
           <Route path="*" element={<Error404 />} />

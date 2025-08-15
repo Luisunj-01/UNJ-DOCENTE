@@ -235,7 +235,7 @@ const TrabajosCurso = ({ fila }) => {
       {loading ? (
         <div>Cargando...</div>
       ) : (
-        <TablaCursos datos={datos} columnas={columnas} />
+        <TablaCursos tituloArchivo={'Trabajos'} datos={datos} columnas={columnas} />
       )}
 
       <ModalNuevoTrabajo

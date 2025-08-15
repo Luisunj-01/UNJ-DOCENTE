@@ -17,6 +17,8 @@
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
     "formik": "^2.4.6",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "react": "^19.1.0",
     "react-bootstrap": "^2.10.10",
     "react-data-table-component": "^7.7.0",
@@ -28,6 +30,7 @@
     "react-scripts": "5.0.1",
     "sweetalert2": "^11.22.2",
     "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
   "scripts": {
