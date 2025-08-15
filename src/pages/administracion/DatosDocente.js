@@ -14,7 +14,7 @@ function DatosDocente() {
   const [mensajeApi, setMensajeApi] = useState('');
   const { usuario } = useUsuario();
    
-
+ //hola para ver los cambios
   const token = usuario?.codigotokenautenticadorunj;
 
   console.log(usuario?.docente.persona);
