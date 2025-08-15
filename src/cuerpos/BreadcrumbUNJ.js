@@ -12,6 +12,7 @@ const nombresPersonalizados = {
   detalle_guias: 'Detalle Guías',
   curso: 'Mis Cursos',
   detalle_curso: 'Detalle Curso',
+  ReporteDoc: 'Reportes docente',
 };
 
 const capitalizar = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();

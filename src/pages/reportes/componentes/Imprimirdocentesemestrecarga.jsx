@@ -58,7 +58,7 @@ const Imprimirdocentesemestrecarga = () => {
   const [infoAlumno, setInfoAlumno] = useState(null);
   const { usuario } = useUsuario();
   const { state, search } = useLocation();
-  const [titulomat, setTitulomat] = useState('PRE - MATRICULA');
+  const [titulomat, setTitulomat] = useState('REPORTE CARGA ACADÉMICA');
   const [pre, setPre] = useState(0);
   const [nombreescuela, setNombreescuela] = useState('No Definida');
   

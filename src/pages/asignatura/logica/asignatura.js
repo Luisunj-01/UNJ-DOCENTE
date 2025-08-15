@@ -22,7 +22,7 @@ export const obtenermaterialguias = async (sede, semestre, escuela, curricula, c
 
 };
 
-export const eliminarMaterialAlumno = async (cod, sede, semestre, escuela, curricula, curso, seccion, semana, token) => {
+export const eliminarMaterialAlumno = async (cod, sede, semestre, escuela, curricula, curso, seccion, semana) => {
   try {
     const res = await axios.post(`${config.apiUrl}api/curso/eliminarMaterial`, {
       cod,
@@ -33,8 +33,6 @@ export const eliminarMaterialAlumno = async (cod, sede, semestre, escuela, curri
       curso,
       seccion,
       semana
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
     });
 
     return res.data;
@@ -45,7 +43,7 @@ export const eliminarMaterialAlumno = async (cod, sede, semestre, escuela, curri
 
 };
 
-export const eliminarTrabajoAlumno = async (cod, sede, semestre, escuela, curricula, curso, seccion, semana, token) => {
+export const eliminarTrabajoAlumno = async (cod, sede, semestre, escuela, curricula, curso, seccion, semana) => {
   try {
     const res = await axios.post(`${config.apiUrl}api/curso/eliminarTrabajo`, {
       cod,
@@ -56,8 +54,6 @@ export const eliminarTrabajoAlumno = async (cod, sede, semestre, escuela, curric
       curso,
       seccion,
       semana
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
     });
 
     return res.data;
