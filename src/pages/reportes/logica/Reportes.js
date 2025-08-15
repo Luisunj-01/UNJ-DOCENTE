@@ -15,3 +15,19 @@ export const obtenercargadocente = async (sede, semestre, personazet) => {
     return null;
   }
 };
+
+export const obtenerNombreConfiguracion = async (tipo, parametros = {}) => {
+  try {
+    const response = await axios.get(`${config.apiUrl}api/configuraciones`, {
+      params: {
+        tipo,
+        ...parametros  // extiende cualquier parámetro adicional
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`Error al obtener nombre para tipo "${tipo}" con parámetros:`, parametros, error);
+    return null; // o podrías devolver un valor predeterminado como ""
+  }
+};

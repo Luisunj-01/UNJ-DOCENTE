@@ -7,187 +7,159 @@ import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenercargadocente } from '../logica/Reportes';
-//mport '../../../resource/reportes.css'; //
+import { obtenercargadocente, obtenerNombreConfiguracion } from '../logica/Reportes';
 
-const CabeceraMatricula = ({ titulomat, nombreAlumno, pre, nombreEscuela, alumno, escuela, semestre }) => {
+const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, semestre }) => {
     const fecha = new Date();
     const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
     
-  return (
-    <>
-        <Cabecerareporte titulomat={titulomat} />
-
-
-        <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
-
-        <table className="table ">
-            <tbody>
-                
-
-                {/* Datos del alumno */}
-                <tr>
-                <td><strong>Carrera:</strong></td>
-                <td colSpan="3"><strong>{escuela}</strong></td>
-                </tr>
-                <tr>
-                <td><strong>Código:</strong></td>
-                <td>{alumno}</td>
-                <td><strong>Alumno:</strong></td>
-                <td>{nombreAlumno}</td>
-                </tr>
-                <tr>
-                <td><strong>Semestre:</strong></td>
-                <td>{semestre}</td>
-                <td><strong>Fecha:</strong></td>
-                <td>{fechaFormateada}</td>
-                </tr>
-            </tbody>
-        </table>
-
-
-    </>
-  );
-};
-
-
-const Imprimirdocentesemestrecarga = () => {
-  const [datos, setDatos] = useState([]);
-  const [creditos, setCreditos] = useState({ obligatorios: 0, electivos: 0 });
-  const [loading, setLoading] = useState(true);
-  const [infoAlumno, setInfoAlumno] = useState(null);
-  const { usuario } = useUsuario();
-  const { state, search } = useLocation();
-  const [titulomat, setTitulomat] = useState('REPORTE CARGA ACADÉMICA');
-  const [pre, setPre] = useState(0);
-  const [nombreescuela, setNombreescuela] = useState('No Definida');
-  
-  const queryParams = new URLSearchParams(search);
-  const codigo = queryParams.get('codigo');
-  const decoded = atob(atob(codigo));
-  const [sede, semestre, persona, dniusuario] = decoded.split('|');
-  
-
-
- 
-  useEffect(() => {
-    const fetchDatos = async () => {
-      try {
-        const resultadomatricula = await obtenercargadocente(sede, semestre, persona);
-       // const nombreescuela = await obtenerNombreConfiguracion('nombreescuela', {escuela: escuela});
-        const datos = resultadomatricula.datos;
-
-        let saltoboleta = 20;
-        let saltomatricula = 20;
-        let pre = 0;
-        
-
-        if (datos && datos.length > 0) {
-            const row = datos[0];
-            const preValue = row.pre ?? 0;
-
-            setPre(preValue);
-            setTitulomat(preValue === 1 ? "REPORTE CARGA ACADÉMICA" : "REPORTE CARGA ACADÉMICA");
-        }
-
-        setDatos(datos); // Opcional: guarda datos si los necesitas
-        setNombreescuela(nombreescuela);
-
-      } catch (err) {
-        console.error('Error al cargar matrícula:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDatos();
-  }, []);
-
-  console.log(datos);
-
-    const creditooselectivos = '';
-    const columnas = [
-        {
-            clave: 'curso',
-            titulo: 'Curso',
-            render: (fila) => `${fila.curricula} ${fila.curso}` // <-- Cambia por las claves reales
-        },
-        {
-            clave: 'session',
-            titulo: 'Sec.',
-            render: (fila) => `${fila.seccion} ${fila.practica}`, // <-- Cambia por las claves reales
-        },
-        { clave: 'nombrecurso', titulo: 'Nombre del Curso'},
-        { clave: 'ciclo', titulo: 'Cic.'},
-        { 
-            clave: 'nrocreditos', 
-            titulo: 'Cré.', 
-            render: (fila) => fila.nrocreditos
-        },
-        { clave: 'tipocurso', titulo: 'Tip.'},
-        { clave: 'vez', titulo: 'Vez'},
-    ];
-
-    const totalCreditos = datos.reduce((sum, fila) => sum + parseInt(fila.nrocreditos), 0);
-
-  return (
-    <>
-        <button className="print-button" onClick={() => window.print()}>
-            <FaPrint />
-        </button>
-        {/* <CabeceraMatricula titulomat={titulomat}  />*/}
-      
-        <Cabecerareporte titulomat={titulomat} />
-        <div className="container mt-4">
-            
+    return (
+        <>
+            <Cabecerareporte titulomat={titulomat} />
 
             <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
-            
 
-            <div className="row mt-3">
-                <div className="col-12">
-                {loading ? (
-                    <TablaSkeleton filas={6} columnas={8} />
-                ) : datos.length === 0 ? (
-                    <TablaCursos datos={datos} columnas={columnas} />
-                ) : (
-                    <>
-                    <TablaCursos
-                        datos={datos}
-                        columnas={columnas}
-                        usarDataTable={true}
-                        mostrarBuscador={false}
-                        paginacion={false}
-                        colorFondoEncabezado="#004080"
-                         colorTextoEncabezado="#ffffff"
-                    />
+            <table className="table ">
+                <tbody>
+                    
+                    <tr>
+                        <td><strong>Sede:</strong></td>
+                        <td>{sede}</td>
+                        <td><strong>Docente:</strong></td>
+                        <td>{nombredocente}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Semestre:</strong></td>
+                        <td>{semestre}</td>
+                        <td><strong>Fecha:</strong></td>
+                        <td>{fechaFormateada}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </>
+    );
+};
 
-                    <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
+const Imprimirdocentesemestrecarga = () => {
+    const [datos, setDatos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [nombresede, setNombresede] = useState('No Definida');
+    const [nombreescuela, setNombreescuela] = useState('No Definida');
+    const { usuario } = useUsuario();
+    const { search } = useLocation();
+    const [titulomat] = useState('REPORTE CARGA ACADÉMICA');
+  
+    const queryParams = new URLSearchParams(search);
+    const codigo = queryParams.get('codigo');
+    const decoded = atob(atob(codigo));
+    const [sede, semestre, persona, dniusuario] = decoded.split('|');
 
-                    <div className="row">
-                        <div className="col-md-6">
-                        <table class="table w-50">
-                            <tbody>
-                            <tr>
-                                <td><strong>Créditos Obligatorios:</strong></td>
-                                <td className="text-end"><strong>{datos.length}</strong></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Créditos Electivos mínimos:</strong></td>
-                                <td className="text-end"><strong>{totalCreditos}</strong></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                        </div>
+    const nombredocente = usuario?.docente?.nombrecompleto || '';
+    const departamentoacademico = usuario?.docente?.departamentoacademico || '';
+
+    useEffect(() => {
+        const fetchDatos = async () => {
+            try {
+                const resultadomatricula = await obtenercargadocente(sede, semestre, persona);
+                const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede: sede });
+                const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico });
+
+                setDatos(resultadomatricula?.datos || []);
+
+                // Si la API devuelve un objeto, accedemos a su propiedad de texto
+                setNombresede(
+                    typeof nombresedeResp === 'object' ? nombresedeResp?.valor || JSON.stringify(nombresedeResp) : nombresedeResp
+                );
+                setNombreescuela(
+                    typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || JSON.stringify(nombreescuelaResp) : nombreescuelaResp
+                );
+            } catch (err) {
+                console.error('Error al cargar datos:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDatos();
+    }, [sede, semestre, persona, departamentoacademico]);
+
+    const columnas = [
+        { clave: 'curso', titulo: 'Curso', render: (fila) => String(fila.curso || '') },
+        { clave: 'nombrecurso', titulo: 'Nombre del Curso' },
+        { clave: 'session', titulo: 'Sec.', render: (fila) => `${fila.seccion || ''} ${fila.practica || ''}` },
+        { clave: 'nombreescuela', titulo: 'Escuela' },
+        { clave: 'tipo', titulo: 'Tipo' },
+        { clave: 'practica', titulo: 'Gru' },
+        { clave: 'horasteoria', titulo: 'Ht' },
+        { clave: 'horaspractica', titulo: 'Hp' },
+        { clave: 'horasteoria', titulo: 'HT' }
+    ];
+
+    const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteoria || 0), 0);
+    const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
+
+    return (
+        <>
+            <button className="print-button" onClick={() => window.print()}>
+                <FaPrint />
+            </button>
+
+            <div className="container mt-4">
+                <div className="row">
+                    <div className="col-12">
+                        {loading ? (
+                            <TablaSkeleton filas={3} columnas={5} />
+                        ) : (
+                            <CabeceraMatricula
+                                titulomat={titulomat}
+                                sede={nombresede}
+                                nombredocente={nombredocente}
+                                nombreEscuela={nombreescuela}
+                                semestre={semestre}
+                            />
+                        )}
                     </div>
-                    </>
-                )}
+                </div>
+
+                <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
+
+                <div className="row mt-3">
+                    <div className="col-12">
+                        {loading ? (
+                            <TablaSkeleton filas={6} columnas={8} />
+                        ) : (
+                            <>
+                                <TablaCursos
+                                    datos={datos}
+                                    columnas={columnas}
+                                    usarDataTable={true}
+                                    mostrarBuscador={false}
+                                    paginacion={false}
+                                    colorFondoEncabezado="#004080"
+                                    colorTextoEncabezado="#ffffff"
+                                />
+                                <div className="row">
+                                    <div className="col-md-7"></div>
+                                    <div className="col-md-5">
+                                        <table className="table">
+                                            <tbody>
+                                                <tr>
+                                                    <td></td><td></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasPractica}</strong></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-
-    </>
-  );
+        </>
+    );
 };
 
 export default Imprimirdocentesemestrecarga;
