@@ -13,7 +13,7 @@ function DatosDocente() {
   const [activeTab, setActiveTab] = useState('academicos');
   const [mensajeApi, setMensajeApi] = useState('');
   const { usuario } = useUsuario();
-  
+   
 
   const token = usuario?.codigotokenautenticadorunj;
 
