@@ -15,7 +15,7 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
   const persona = usuario.docente.persona;
   const semana = usuario.docente.semana
 
-  console.log(persona);
+
   useEffect(() => {
     if (name === "cboSemestre") {
       cargarsemestre();

@@ -24,6 +24,7 @@ import { Modal, Button } from 'react-bootstrap';
 import RevisionTraPart from './ParticipantesTrabajo';
 import RecursosModal from '../../reutilizables/componentes/RecursosModal';
 import NuevoGuia from './Nuevoguia';
+import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 
 function DetalleGuias({ datoscurso = [] }) {
 
@@ -234,7 +235,7 @@ function DetalleGuias({ datoscurso = [] }) {
         </div>
 
         {loading ? (
-          <div className="alert alert-warning text-center mt-4">cargando..</div>
+          <TablaSkeleton filas={9} columnas={6} />
         ) : datos.length === 0 ? (
           <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
         ) : (

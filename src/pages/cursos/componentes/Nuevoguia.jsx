@@ -76,11 +76,14 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         tipo: "I", // 👈 backend espera "tipo"
       };
 
-      const response = await fetch(`${config.apiUrl}api/GrabarGuia`, {
+       console.log(payload);
+      const response = await fetch(`${config.apiUrl}api/curso/GrabarGuia`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
+      console.log(payload);
 
       const data = await response.json();
 
@@ -101,7 +104,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         <Form.Group className="mb-3">
           <Form.Label>Semana</Form.Label>
           <SemestreSelect
-            value={semestre}
+            value={formulario.semana}
             onChange={(e) => setSemestre(e.target.value)}
             name="cboSemana"
             parametros={datoscurso}

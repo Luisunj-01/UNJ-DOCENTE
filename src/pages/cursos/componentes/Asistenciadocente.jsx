@@ -12,6 +12,7 @@ import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import ParticipantesCurso from './Participantesasistencia';
 import { IconButton } from '@mui/material';
 import { ToastContext } from '../../../cuerpos/Layout';
+import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 
 function Asistenciadocente({ datoscurso }) {
   const [datos, setDatos] = useState([]);
@@ -163,7 +164,7 @@ function Asistenciadocente({ datoscurso }) {
       </div>
 
       {loading ? (
-        <div className="alert alert-warning text-center mt-4">Cargando...</div>
+        <TablaSkeleton filas={9} columnas={4} />
       ) : datos.length === 0 ? (
         <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
       ) : (

@@ -66,13 +66,13 @@ export const obtenerRevisionTrabajo = async (sede, semestre, escuela, curricula,
 
 
 
-export const obtenerDatosAsistencia= async (sede, semestre, escuela, curricula, curso, seccion) => {
+export const obtenerDatosAsistencia= async (sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave, usuario, tipozet) => {
   
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));
     //const token = usuario?.token;
 
-    const res = await axios.get(`${config.apiUrl}api/curso/partcipantes/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+    const res = await axios.get(`${config.apiUrl}api/curso/partcipantesAsistencia/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}/${grupo}/${sesion}/${clave}/${usuario}/${tipozet}`);
 
     
     if (Array.isArray(res.data) && res.data.length > 0) {
