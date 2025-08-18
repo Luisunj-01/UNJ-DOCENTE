@@ -71,7 +71,7 @@ function Cursos() {
                 <label className="form-label"><strong>Semestre:</strong></label>
               </div>
               <div className="col-md-3">
-                <SemestreSelect value={semestre} onChange={(e) => setSemestre(e.target.value)} />
+                <SemestreSelect value={semestre} onChange={(e) => setSemestre(e.target.value)} name="cboSemestre" />
               </div>
             </div>
           </form>

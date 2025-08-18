@@ -173,9 +173,7 @@ const TrabajosCurso = ({ fila }) => {
             item.seccion === seccion &&
             item.curricula === curricula
         );
-        if (!cursoItem) {
-          return <span className="text-danger">Trabajo no encontrado</span>;
-        }
+        
         return (
           <BotonPDF
             fila={cursoItem}
@@ -242,7 +240,7 @@ const TrabajosCurso = ({ fila }) => {
       </div>
 
       {loading ? (
-        <div>Cargando...</div>
+        <TablaCursos tituloArchivo={'Trabajos'} datos={datos} columnas={columnas} />
       ) : (
         <TablaCursos tituloArchivo={'Trabajos'} datos={datos} columnas={columnas} />
       )}

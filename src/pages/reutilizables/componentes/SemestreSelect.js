@@ -1,31 +1,52 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useUsuario } from '../../../context/UserContext';
-import { obtenersemestre } from '../logica/docente';
+import { obtenersemestre, obtenersemana } from '../logica/docente';
 
-function SemestreSelect({ value, onChange, name = 'cboSemestre', className = 'form-select' }) {
+function SemestreSelect({ value, onChange, name, className = 'form-select', parametros }) {
+
   const [semestres, setSemestres] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mensaje, setMensaje] = useState();
   const { usuario } = useUsuario();
   const token = usuario?.codigotokenautenticadorunj;
   
 
   const persona = usuario.docente.persona;
+  const semana = usuario.docente.semana
 
   console.log(persona);
   useEffect(() => {
-    async function cargarsemestre() {
+    if (name === "cboSemestre") {
+      cargarsemestre();
+    } else if (name === "cboSemana") {
+      cargarsemana();
+    }
+  }, [name]); 
+
+  async function cargarsemestre() {
       const resultado = await obtenersemestre(persona);
+      if (resultado && resultado.datos) {
+        setSemestres(resultado.datos); // ✅ Aquí usamos solo los datos
+        
+      } else {
+        setSemestres([]); // o podrías manejar un error
+        setMensaje("No hay semestres");
+      }
+      setLoading(false); // ✅ Asegúrate de que el loading se desactive
+  }
+
+
+  async function cargarsemana() {
+      const resultado = await obtenersemana(parametros.sede, parametros.semestre, parametros.escuela, parametros.curricula, parametros.curso, parametros.seccion);
       if (resultado && resultado.datos) {
         setSemestres(resultado.datos); // ✅ Aquí usamos solo los datos
       } else {
         setSemestres([]); // o podrías manejar un error
+        setMensaje("No hay semana");
       }
       setLoading(false); // ✅ Asegúrate de que el loading se desactive
-    }
-
-    cargarsemestre();
-  }, []);
+  }
 
   /*useEffect(() => {
     axios.get('http://127.0.0.1:8000/api/semestre/202002') // ✅ este endpoint devuelve TODOS
@@ -52,9 +73,12 @@ function SemestreSelect({ value, onChange, name = 'cboSemestre', className = 'fo
       disabled={loading}
     >
       {loading && <option>Cargando...</option>}
-      {!loading && semestres.length === 0 && <option>No hay semestres</option>}
+      {!loading && semestres.length === 0 && <option>{mensaje}</option>}
       {!loading && semestres.map((s, i) => (
-        <option key={i} value={s.semestre}>{s.semestre}</option>
+       
+        <option key={i} value={name === "cboSemestre" ? s.semestre : s.semana}>
+          {name === "cboSemestre" ? s.semestre : s.semana}
+        </option>
       ))}
     </select>
   );

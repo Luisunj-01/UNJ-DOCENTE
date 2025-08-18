@@ -26,6 +26,7 @@ import RecursosModal from '../../reutilizables/componentes/RecursosModal';
 import NuevoGuia from './Nuevoguia';
 
 function DetalleGuias({ datoscurso = [] }) {
+
   const { usuario } = useUsuario();
   const [datos, setDatos] = useState([]);
   const [datos2, setDatos2] = useState([]);
@@ -36,7 +37,9 @@ function DetalleGuias({ datoscurso = [] }) {
   const location = useLocation();
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded.split('|');
-
+  const datoscursos = {
+    sede, semestre, escuela, curricula, curso, seccion
+  }
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [filaParticipantes, setFilaParticipantes] = useState(null);
   const [filanuevoguia, setFilanuevoguia] = useState(null);
@@ -71,7 +74,9 @@ function DetalleGuias({ datoscurso = [] }) {
   ];
 
   useEffect(() => {
+    let interval;
     cargarDatos();
+
     setDatos2({
       escuela,
       curso,
@@ -79,10 +84,13 @@ function DetalleGuias({ datoscurso = [] }) {
       nombre,
       nombredocente,
     });
+    interval = setInterval(cargarDatos, 2000);
+    return () => clearInterval(interval);
+
   }, []);
 
   const cargarDatos = async () => {
-    setLoading(true);
+    //setLoading(true);
     try {
       const respuestguias = await obtenerDatosguias(sede, semestre, escuela, curricula, curso, seccion);
 
@@ -273,12 +281,17 @@ function DetalleGuias({ datoscurso = [] }) {
         </Modal>
 
         {/* Modal Nuevo Guía */}
-        <Modal  show={mostrarnuevoguia} onHide={() => setMostrarnuevoguia(false)} size="xl">
+        <Modal show={mostrarnuevoguia} onHide={() => setMostrarnuevoguia(false)} size="lg">
           <Modal.Header closeButton>
             <Modal.Title>Nuevo Guía</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {filanuevoguia && <NuevoGuia datoscurso={filanuevoguia} semana={filanuevoguia.semana}  />}
+            {filanuevoguia && (
+              <NuevoGuia 
+                datoscurso={datoscursos} 
+                semana={filanuevoguia.semana} 
+              />
+            )}
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setMostrarnuevoguia(false)}>
@@ -286,6 +299,7 @@ function DetalleGuias({ datoscurso = [] }) {
             </Button>
           </Modal.Footer>
         </Modal>
+
       </div>
     </>
   );

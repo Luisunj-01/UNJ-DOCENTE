@@ -176,9 +176,7 @@ const handleGuardarMaterial = async (formData) => {
           item.curricula === curricula
         );
 
-        if (!cursoItem) {
-          return <span className="text-danger">Material no encontrado</span>;
-        }
+       
 
         return (
           <BotonPDF
@@ -219,7 +217,7 @@ const handleGuardarMaterial = async (formData) => {
             + Nuevo
           </button>
       {loading ? (
-        <div>Cargando materiales...</div>
+        <TablaCursos datos={datos} columnas={columnas} />
       ) : datos.length === 0 ? (
         <TablaCursos datos={datos} columnas={columnas} />
       ) : (

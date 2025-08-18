@@ -19,6 +19,24 @@ export const obtenersemestre = async (codigo) => {
   }
 };
 
+export const obtenersemana = async (sede, semestre, escuela, curricula, curso, seccion) => {
+  try {
+    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
+    const res = await axios.get(`${config.apiUrl}api/Reportedoc/semana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos del Docente:', err);
+    return null;
+  }
+};
+
+
+
+
 // Función para obtener los cursos de prematrícula
 export const obtenerCursosPrematricula = async (semestre, persona, usuario, tipo) => {
   
