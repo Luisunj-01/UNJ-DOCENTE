@@ -133,7 +133,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
     }))
   };
 
-  console.log(payload);
+  //console.log(payload);
   const response = await fetch(`${config.apiUrl}api/curso/GrabarParticipantes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

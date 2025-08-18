@@ -6,7 +6,7 @@ const RecursosModal = ({ fila, items, tipoRecurso: tipoRecursoProp, onClose }) =
   const [tipoRecurso, setTipoRecurso] = useState(tipoRecursoProp || (items[0]?.valor || null));
 
   // Sincronizar estado interno con la prop tipoRecursoProp cuando cambia
-  useEffect(() => {
+  useEffect(() => { 
     setTipoRecurso(tipoRecursoProp);
   }, [tipoRecursoProp]);
 

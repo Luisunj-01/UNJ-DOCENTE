@@ -158,9 +158,6 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
   
     
     
-  
-  
-    
 ];
 
   return (

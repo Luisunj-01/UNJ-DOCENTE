@@ -18,11 +18,12 @@ import { obtenerDatosguias } from '../logica/Curso';
 import { useUsuario } from '../../../context/UserContext';
 import { obtenerCursosPrematricula } from '../../reutilizables/logica/docente';
 import MaterialesCurso from './MaterialesCurso';
-import RecursosModal from '../../reutilizables/componentes/RucrusosModal';
 import TrabajosCurso from './TrabajosCurso';
 import ParticipantesGuias from './ParticipantesGuias';
 import { Modal, Button } from 'react-bootstrap';
 import RevisionTraPart from './ParticipantesTrabajo';
+import RecursosModal from '../../reutilizables/componentes/RecursosModal';
+import NuevoGuia from './Nuevoguia';
 
 function DetalleGuias({ datoscurso = [] }) {
   const { usuario } = useUsuario();
@@ -38,9 +39,10 @@ function DetalleGuias({ datoscurso = [] }) {
 
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [filaParticipantes, setFilaParticipantes] = useState(null);
+  const [filanuevoguia, setFilanuevoguia] = useState(null);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
   const [filaDetalles, setFilaDetalles] = useState(null);
-
+  const [mostrarnuevoguia, setMostrarnuevoguia] = useState(false);
 
   const [mostrarRecursos, setMostrarRecursos] = useState(false);
   const [filaSeleccionada, setFilaSeleccionada] = useState(null);
@@ -102,19 +104,21 @@ function DetalleGuias({ datoscurso = [] }) {
   };
 
   const handleClick = (tipo, fila) => {
-  if (tipo === 'materiales' || tipo === 'trabajos') {
-    setFilaSeleccionada(fila);
-    setTipoRecursoSeleccionado(tipo);
-    setMostrarRecursos(true);
-  } else if (tipo === 'participantes') {
-    setFilaParticipantes(fila);
-    setMostrarParticipantes(true);
-  } else if (tipo === 'detalles') {
-    setFilaDetalles(fila);
-    setMostrarDetalles(true);
-  }
-};
-
+    if (tipo === 'materiales' || tipo === 'trabajos') {
+      setFilaSeleccionada(fila);
+      setTipoRecursoSeleccionado(tipo);
+      setMostrarRecursos(true);
+    } else if (tipo === 'participantes') {
+      setFilaParticipantes(fila);
+      setMostrarParticipantes(true);
+    } else if (tipo === 'nuevoguia') {
+      setFilanuevoguia(fila);
+      setMostrarnuevoguia(true);
+    } else if (tipo === 'detalles') {
+      setFilaDetalles(fila);
+      setMostrarDetalles(true);
+    }
+  };
 
   const columnas = [
     { clave: 'semana', titulo: 'Semana' },
@@ -173,14 +177,11 @@ function DetalleGuias({ datoscurso = [] }) {
           <IconButton title="Eliminar" onClick={() => handleClick('material', fila)} color="error" size="small">
             <BlockIcon />
           </IconButton>
-          <IconButton title="Nuevo Guia" color="info" size="small">
-            <NoteAddIcon />
-          </IconButton>
+          {/* 🔴 SE ELIMINÓ el botón "Nuevo Guía" de aquí */}
         </div>
       ),
     }
   ];
-  
 
   return (
     <>
@@ -213,6 +214,17 @@ function DetalleGuias({ datoscurso = [] }) {
           </div>
         </div>
 
+        {/* 🔵 BOTÓN NUEVO GUÍA ARRIBA A LA DERECHA */}
+        <div className="d-flex justify-content-end mb-3">
+          <Button 
+            variant="info" 
+            className="d-flex align-items-center gap-2"
+            onClick={() => handleClick('nuevoguia', {})}
+          >
+            <NoteAddIcon /> Nuevo Guía
+          </Button>
+        </div>
+
         {loading ? (
           <div className="alert alert-warning text-center mt-4">cargando..</div>
         ) : datos.length === 0 ? (
@@ -236,7 +248,6 @@ function DetalleGuias({ datoscurso = [] }) {
             <Modal.Title>Participantes</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            
             {filaParticipantes && <ParticipantesGuias datoscurso={filaParticipantes} semana={filaParticipantes.semana}  />}
           </Modal.Body>
           <Modal.Footer>
@@ -261,11 +272,20 @@ function DetalleGuias({ datoscurso = [] }) {
           </Modal.Footer>
         </Modal>
 
-
-
-
-
-
+        {/* Modal Nuevo Guía */}
+        <Modal  show={mostrarnuevoguia} onHide={() => setMostrarnuevoguia(false)} size="xl">
+          <Modal.Header closeButton>
+            <Modal.Title>Nuevo Guía</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {filanuevoguia && <NuevoGuia datoscurso={filanuevoguia} semana={filanuevoguia.semana}  />}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setMostrarnuevoguia(false)}>
+              Cerrar
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </>
   );
