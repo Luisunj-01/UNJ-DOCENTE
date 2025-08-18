@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import config from "../../../config"; // Ajusta la ruta a tu config
 import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
 
 const NuevoGuia = ({ datoscurso, semana }) => {
-
-     const [semestre, setSemestre] = useState();
+  const [semestre, setSemestre] = useState();
   const [formulario, setFormulario] = useState({
     sede: "",
     semestre: "",
@@ -14,6 +13,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     curso: "",
     seccion: "",
     semana: "",
+    observacion: "", // 👈 agregado porque backend lo requiere
     contenido: "",
     claseSincrona: "",
     claseGrabada: "",
@@ -23,27 +23,29 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     concluida: false,
   });
 
-  // Cargar datos iniciales cuando cambia datoscurso o semana
+  // Cargar datos iniciales cuando cambia datoscurso o semana (sin sobrescribir lo escrito)
   useEffect(() => {
     if (datoscurso) {
-      setFormulario({
-        sede: datoscurso.sede || "",
-        semestre: datoscurso.semestre || "",
-        escuela: datoscurso.escuela || "",
-        curricula: datoscurso.curricula || "",
-        curso: datoscurso.curso || "",
-        seccion: datoscurso.seccion || "",
-        semana: semana || "",
-        contenido: datoscurso.contenido || "",
-        claseSincrona: datoscurso.claseSincrona || "",
-        claseGrabada: datoscurso.claseGrabada || "",
+      setFormulario((prev) => ({
+        ...prev, // mantiene lo que ya escribió el usuario
+        sede: datoscurso.sede || prev.sede,
+        semestre: datoscurso.semestre || prev.semestre,
+        escuela: datoscurso.escuela || prev.escuela,
+        curricula: datoscurso.curricula || prev.curricula,
+        curso: datoscurso.curso || prev.curso,
+        seccion: datoscurso.seccion || prev.seccion,
+        semana: semana || prev.semana,
+        contenido: datoscurso.contenido || prev.contenido,
+        claseSincrona: datoscurso.claseSincrona || prev.claseSincrona,
+        claseGrabada: datoscurso.claseGrabada || prev.claseGrabada,
         fecha: datoscurso.fecha
           ? datoscurso.fecha.split("T")[0]
-          : new Date().toISOString().split("T")[0],
-        horaEntrada: datoscurso.horaEntrada || "",
-        horaSalida: datoscurso.horaSalida || "",
-        concluida: datoscurso.concluida === 1 ? true : false,
-      });
+          : prev.fecha,
+        horaEntrada: datoscurso.horaEntrada || prev.horaEntrada,
+        horaSalida: datoscurso.horaSalida || prev.horaSalida,
+        concluida:
+          datoscurso.concluida === 1 ? true : prev.concluida,
+      }));
     }
   }, [datoscurso, semana]);
 
@@ -67,17 +69,14 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         curso: formulario.curso,
         seccion: formulario.seccion,
         semana: formulario.semana,
+        observacion: formulario.observacion,
         contenido: formulario.contenido,
-        claseSincrona: formulario.claseSincrona,
-        claseGrabada: formulario.claseGrabada,
+        concluido: formulario.concluida ? "1" : "0", // 👈 backend pide string
         fecha: formulario.fecha,
-        horaEntrada: formulario.horaEntrada,
-        horaSalida: formulario.horaSalida,
-        concluida: formulario.concluida ? 1 : 0,
-        txtTipo: "I", // 'I' insertar, 'U' actualizar
+        tipo: "I", // 👈 backend espera "tipo"
       };
 
-      const response = await fetch(`${config.apiUrl}api/curso/NuevoGuia`, {
+      const response = await fetch(`${config.apiUrl}api/GrabarGuia`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -101,12 +100,12 @@ const NuevoGuia = ({ datoscurso, semana }) => {
       <Form>
         <Form.Group className="mb-3">
           <Form.Label>Semana</Form.Label>
-          <SemestreSelect 
-            value={semestre} 
-            onChange={(e) => setSemestre(e.target.value)}  
+          <SemestreSelect
+            value={semestre}
+            onChange={(e) => setSemestre(e.target.value)}
             name="cboSemana"
             parametros={datoscurso}
-            />
+          />
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -115,6 +114,16 @@ const NuevoGuia = ({ datoscurso, semana }) => {
             type="text"
             name="contenido"
             value={formulario.contenido}
+            onChange={handleChange}
+          />
+        </Form.Group>
+
+        <Form.Group className="mb-3">
+          <Form.Label>Observación</Form.Label>
+          <Form.Control
+            type="text"
+            name="observacion"
+            value={formulario.observacion}
             onChange={handleChange}
           />
         </Form.Group>
@@ -188,5 +197,3 @@ const NuevoGuia = ({ datoscurso, semana }) => {
 };
 
 export default NuevoGuia;
-
-
