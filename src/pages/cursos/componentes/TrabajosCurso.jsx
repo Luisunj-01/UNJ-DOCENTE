@@ -216,20 +216,29 @@ const TrabajosCurso = ({ fila }) => {
       ),
     },
   ];
+  
 
   return (
     <div>
-      <div style={{ marginBottom: '15px' }}>
-        <button
-          className="btn btn-success"
-          onClick={() => {
-            setModoEdicion(false);
-            setTrabajoEditando(null);
-            setMostrarModalNuevo(true);
-          }}
-        >
-          +Nuevo 
+      <div className='row mb-3'>
+        <div className='col-lg-6'>
+
+        </div>
+        <div className='col-lg-6'>
+          <div style={{ marginBottom: '15px', float: 'right' }}>
+            <button
+              className="btn btn-success"
+              onClick={() => {
+                setModoEdicion(false);
+                setTrabajoEditando(null);
+                setMostrarModalNuevo(true);
+              }}
+            >
+          + Nuevo Trabajo
         </button>
+      </div>
+        </div>
+
       </div>
 
       {loading ? (

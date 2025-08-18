@@ -10,6 +10,37 @@ import {
 } from '../logica/Reportes';
 import { useUsuario } from '../../../context/UserContext';
 
+const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, semestre }) => {
+    const fecha = new Date();
+    const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
+    
+    return (
+        <>
+            <Cabecerareporte titulomat={titulomat} />
+
+            <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
+
+            <table className="table ">
+                <tbody>
+                    
+                    <tr>
+                        <td><strong>Sede:</strong></td>
+                        <td>{sede}</td>
+                        <td><strong>Docente:</strong></td>
+                        <td>{nombredocente}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Semestre:</strong></td>
+                        <td>{semestre}</td>
+                        <td><strong>Fecha:</strong></td>
+                        <td>{fechaFormateada}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </>
+    );
+};
+
 const Imprimirhorariodocente = () => {
   const [datos, setDatos] = useState([]);
   const [datoscalendario, setDatoscalendario] = useState([]);
@@ -26,19 +57,24 @@ const Imprimirhorariodocente = () => {
 
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
-  const titulomat = 'REPORTE CARGA ACADÉMICA';
+  const [titulomat] = useState('REPORTE DE HORARIOS X DOCENTE');
 
   useEffect(() => {
     const fetchDatos = async () => {
       try {
         const alumno = await obtenerDatoshorariodocente(sede, semestre, persona);
 
-        const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
-        const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico });
+        const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede: sede });
+        const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico });
+
 
         setDatos(alumno.datos || []);
-        setNombresede(typeof nombresedeResp === 'object' ? nombresedeResp?.valor || '' : nombresedeResp);
-        setNombreescuela(typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || '' : nombreescuelaResp);
+        setNombresede(
+                    typeof nombresedeResp === 'object' ? nombresedeResp?.valor || JSON.stringify(nombresedeResp) : nombresedeResp
+                );
+                setNombreescuela(
+                    typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || JSON.stringify(nombreescuelaResp) : nombreescuelaResp
+                );
 
         const calendario = await obtenerDatoshorariodocentecalendario(persona, semestre);
         setDatoscalendario(calendario.datos || []);
@@ -54,35 +90,7 @@ const Imprimirhorariodocente = () => {
     }
   }, [sede, semestre, persona, departamentoacademico]);
 
-  const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, semestre }) => {
-    const fecha = new Date().toLocaleDateString('es-PE');
-    return (
-      <>
-        <Cabecerareporte titulomat={titulomat} />
-        <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
-        <table className="table">
-          <tbody>
-            <tr>
-              <td><strong>Sede:</strong></td>
-              <td>{sede}</td>
-              <td><strong>Docente:</strong></td>
-              <td>{nombredocente}</td>
-            </tr>
-            <tr>
-              <td><strong>Escuela:</strong></td>
-              <td colSpan="3"><strong>{nombreEscuela}</strong></td>
-            </tr>
-            <tr>
-              <td><strong>Semestre:</strong></td>
-              <td>{semestre}</td>
-              <td><strong>Fecha:</strong></td>
-              <td>{fecha}</td>
-            </tr>
-          </tbody>
-        </table>
-      </>
-    );
-  };
+  
 
   const renderFilas = () =>
     datos.map((curso, index) => (
@@ -94,11 +102,14 @@ const Imprimirhorariodocente = () => {
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.seccion}</td>
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.nombreescuela}</td>
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.tipo}</td>
+        <td tyle={{textAlign: 'center'}} className="text-center">{curso.practica}</td>
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.horasteoria}</td>
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.horaspractica}</td>
+        <td tyle={{textAlign: 'center'}} className="text-center">{curso.horasteoria}</td>
       </tr>
     ));
-
+const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteoria || 0), 0);
+    const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
   if (loading) return <TablaSkeleton filas={15} columnas={8} />;
 
   return (
@@ -122,23 +133,40 @@ const Imprimirhorariodocente = () => {
         <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
 
         <table className="table table-bordered">
-          <thead>
-            <tr>
-                <th style={{ background: "#004080", color: 'white' }}></th>
-              <th style={{ background: "#004080", color: 'white' }}>Curso</th>
-              
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }}>Nombre del Curso</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Sec.</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Escuela</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Tipo</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Gru</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Ht</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Hp</th>
-              <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Ht</th>
-            </tr>
-          </thead>
-          <tbody>{renderFilas()}</tbody>
-        </table>
+  <thead>
+    <tr>
+      <th style={{ background: "#004080", color: 'white' }}></th>
+      <th style={{ background: "#004080", color: 'white' }}>Curso</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }}>Nombre del Curso</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Sec.</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Escuela</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Tipo</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Gru</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Ht</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Hp</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Ht</th>
+    </tr>
+  </thead>
+  <tbody>
+    {renderFilas()}
+    <tr>
+      <td colSpan="7" style={{ textAlign: "right" }}>
+        <strong>TOTAL</strong>
+      </td>
+      <td style={{ textAlign: "center" }}>
+        <strong>{totalHorasTeoria}</strong>
+      </td>
+      <td style={{ textAlign: "center" }}>
+        <strong>{totalHorasPractica}</strong>
+      </td>
+      <td style={{ textAlign: "center" }}>
+        <strong>{totalHorasTeoria}</strong>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+        
 
         <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
 
