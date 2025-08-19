@@ -28,6 +28,7 @@ function ReporteDoc(){
                 <SemestreSelect 
                   value={semestre} 
                   onChange={(e) => setSemestre(e.target.value)} 
+                  name="cboSemestre"
                 />
               </div>
             </div>

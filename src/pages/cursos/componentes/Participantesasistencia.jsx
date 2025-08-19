@@ -6,6 +6,8 @@ import { Form, Modal, Button } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ToastContext } from "../../../cuerpos/Layout";
+import { useUsuario } from "../../../context/UserContext";
+import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 
 function ParticipantesCurso({ datoscurso }) {
   const [datos, setDatos] = useState([]);
@@ -15,7 +17,8 @@ function ParticipantesCurso({ datoscurso }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
   const [fechasDisponibles, setFechasDisponibles] = useState([]);
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
-  
+  const { usuario } = useUsuario();
+
   // Modal de justificación
   const [showModalJustificacion, setShowModalJustificacion] = useState(false);
   const [justificacion, setJustificacion] = useState({
@@ -26,11 +29,11 @@ function ParticipantesCurso({ datoscurso }) {
   });
 
   const formatearFecha = (fecha) => {
-  const yyyy = fecha.getFullYear();
-  const mm = String(fecha.getMonth() + 1).padStart(2, "0");
-  const dd = String(fecha.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-};
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dd = String(fecha.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   // Modal de validación de fecha
   const [showModalFecha, setShowModalFecha] = useState(false);
@@ -39,7 +42,19 @@ function ParticipantesCurso({ datoscurso }) {
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion] =
     decoded.split("|");
+
   const { mostrarToast } = useContext(ToastContext);
+
+  const parametrosaenviar = {
+    sede: sede,
+    semestre: semestre,
+    escuela: escuela,
+    curricula: curricula,
+    curso: curso,
+    seccion: seccion,
+    sesion: datoscurso.sesion,
+    usuario: usuario.docente.numerodocumento,
+  };
 
   useEffect(() => {
     if (!datoscurso?.modoEdicion) {
@@ -49,7 +64,7 @@ function ParticipantesCurso({ datoscurso }) {
     // Validar fecha contra la guía
     if (datoscurso?.fecha) {
       const [dia, mes, anio] = datoscurso.fecha.split("/").map(Number);
-      const fechaGuia = new Date(anio, mes - 1, dia); // fecha local correcta
+      const fechaGuia = new Date(anio, mes - 1, dia);
       const hoy = new Date();
 
       if (fechaGuia.toDateString() !== hoy.toDateString()) {
@@ -61,61 +76,58 @@ function ParticipantesCurso({ datoscurso }) {
   }, []);
 
   const handleGuardarClick = () => {
-  const claveStorage = "asistenciasSeleccionadas";
-  const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
+    const claveStorage = "asistenciasSeleccionadas";
+    const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
 
-  if (asistencias.length === 0) {
-    mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
-    return; // 🚨 No abre modal si no hay nada
-  }
-
-  setShowModalConfirmar(true); // ✅ Solo abre si hay asistencias
-};
-
-  const cargarDatos = async (fecha = null) => {
-  setLoading(true);
-  try {
-    const respuestaAsistencia = await obtenerDatosAsistencia(
-      sede,
-      semestre,
-      escuela,
-      curricula,
-      curso,
-      seccion,
-      fecha // ✅ pasamos la fecha al SP si se quiere editar
-    );
-
-    if (!respuestaAsistencia || !respuestaAsistencia.datos) {
-      setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
-      setDatos([]);
-      setLoading(false);
+    if (asistencias.length === 0) {
+      mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
       return;
     }
 
-    // Extraemos fechas únicas del resultado
-    const fechasUnicas = [
-      ...new Set(respuestaAsistencia.datos.map((item) => item.fecha)),
-    ];
+    setShowModalConfirmar(true);
+  };
 
-    setFechasDisponibles(fechasUnicas);
+  const cargarDatos = async (fecha = null) => {
+    setLoading(true);
+    try {
+      const respuestaAsistencia = await obtenerDatosAsistencia(
+        parametrosaenviar,
+        fecha
+      );
 
-    // Si se mandó fecha, cargamos esa asistencia
-    if (fecha) {
-      setDatos(respuestaAsistencia.datos);
-    } else {
-      setDatos([]);
+      if (!respuestaAsistencia || !respuestaAsistencia.datos) {
+        setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
+        setDatos([]);
+        setLoading(false);
+        return;
+      }
+
+      // Extraemos fechas únicas del resultado
+      const fechasUnicas = [
+        ...new Set(respuestaAsistencia.datos.map((item) => item.fecha)),
+      ];
+
+      setFechasDisponibles(fechasUnicas);
+
+      if (fecha) {
+        // 🔥 aquí precargamos asistencia desde "condicion"
+        const datosConAsistencia = respuestaAsistencia.datos.map((item) => ({
+          ...item,
+          asistencia: item.condicion || "0",
+        }));
+        setDatos(datosConAsistencia);
+      } else {
+        setDatos([]);
+      }
+
+      setMensajeApi(respuestaAsistencia.mensaje);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      setMensajeApi("Ocurrió un error al obtener los datos.");
     }
 
-    setMensajeApi(respuestaAsistencia.mensaje);
-  } catch (error) {
-    console.error("Error al cargar datos:", error);
-    setMensajeApi("Ocurrió un error al obtener los datos.");
-  }
-
-  setLoading(false);
-};
-
-
+    setLoading(false);
+  };
 
   const actualizarAsistenciaLocal = (
     alumno,
@@ -156,39 +168,36 @@ function ParticipantesCurso({ datoscurso }) {
   };
 
   const guardarAsistenciaFinal = () => {
-  const claveStorage = "asistenciasSeleccionadas";
-  const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
+    const claveStorage = "asistenciasSeleccionadas";
+    const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
 
-  if (asistencias.length === 0) {
-    mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
-    return;
-  }
+    if (asistencias.length === 0) {
+      mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
+      return;
+    }
 
-  let fechaFormateada = fechaSeleccionada;
-  if (!fechaFormateada) {
-    // Si no se escogió, tomamos la fecha actual
-    const yyyy = new Date().getFullYear();
-    const mm = String(new Date().getMonth() + 1).padStart(2, "0");
-    const dd = String(new Date().getDate()).padStart(2, "0");
-    fechaFormateada = `${yyyy}-${mm}-${dd}`;
-  }
+    let fechaFormateada = fechaSeleccionada;
+    if (!fechaFormateada) {
+      const yyyy = new Date().getFullYear();
+      const mm = String(new Date().getMonth() + 1).padStart(2, "0");
+      const dd = String(new Date().getDate()).padStart(2, "0");
+      fechaFormateada = `${yyyy}-${mm}-${dd}`;
+    }
 
-  console.log("📅 Fecha seleccionada:", fechaFormateada);
-  console.log("📤 Asistencias a guardar/modificar:", asistencias);
+    console.log("📅 Fecha seleccionada:", fechaFormateada);
+    console.log("📤 Asistencias a guardar/modificar:", asistencias);
 
-  mostrarToast(
-    fechaSeleccionada
-      ? "Asistencias modificadas correctamente."
-      : "Asistencias guardadas correctamente.",
-    "success"
-  );
+    mostrarToast(
+      fechaSeleccionada
+        ? "Asistencias modificadas correctamente."
+        : "Asistencias guardadas correctamente.",
+      "success"
+    );
 
-  localStorage.removeItem(claveStorage);
-  setAsistencias(asistencias);
-};
+    localStorage.removeItem(claveStorage);
+    setAsistencias(asistencias);
+  };
 
-
-  // 🔹 Abrir modal justificación
   const handleAbrirModal = (alumno, nombrecompleto) => {
     setJustificacion({
       archivo: null,
@@ -199,7 +208,6 @@ function ParticipantesCurso({ datoscurso }) {
     setShowModalJustificacion(true);
   };
 
-  // 🔹 Guardar justificación
   const handleGuardarJustificacion = () => {
     if (!justificacion.archivo && !justificacion.observacion) {
       mostrarToast(
@@ -243,6 +251,7 @@ function ParticipantesCurso({ datoscurso }) {
               }
             }}
           >
+            <option value="0">-- Seleccione --</option>
             <option value="A">Asistencia</option>
             <option value="F">Falta Just.</option>
             <option value="I">Falta</option>
@@ -262,26 +271,23 @@ function ParticipantesCurso({ datoscurso }) {
 
       <div className="row mb-3">
         <div className="col-lg-6">
-        <label>
-          <strong>Seleccionar fecha:</strong>
-        </label>
-        <Form.Control
-          type="date"
-          value={fechaSeleccionada || ""}
-          onChange={(e) => {
-            const nuevaFecha = e.target.value; // YYYY-MM-DD
-            setFechaSeleccionada(nuevaFecha);
-            cargarDatos(nuevaFecha); // 🔥 carga asistencias de esa fecha
-          }}
-        />
-      </div>
+          <label>
+            <strong>Seleccionar fecha:</strong>
+          </label>
+          <Form.Control
+            type="date"
+            value={fechaSeleccionada || ""}
+            onChange={(e) => {
+              const nuevaFecha = e.target.value;
+              setFechaSeleccionada(nuevaFecha);
+              cargarDatos(nuevaFecha);
+            }}
+          />
+        </div>
 
         <div className="col-lg-6">
           <div style={{ float: "right" }}>
-            <button
-              className="btn btn-success"
-              onClick={handleGuardarClick}
-            >
+            <button className="btn btn-success" onClick={handleGuardarClick}>
               Guardar Asistencia
             </button>
           </div>
@@ -289,9 +295,9 @@ function ParticipantesCurso({ datoscurso }) {
       </div>
 
       {loading ? (
-        <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
+        <TablaSkeleton filas={9} columnas={4} />
       ) : datos.length === 0 ? (
-        <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
+        <TablaSkeleton filas={9} columnas={4} />
       ) : (
         <TablaCursos datos={datos} columnas={columnas} />
       )}
@@ -346,7 +352,6 @@ function ParticipantesCurso({ datoscurso }) {
       </Modal>
 
       {/* Modal Fecha */}
-      {/* Modal Fecha */}
       <Modal show={showModalFecha} onHide={() => setShowModalFecha(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Fecha distinta a la guía</Modal.Title>
@@ -362,9 +367,9 @@ function ParticipantesCurso({ datoscurso }) {
             variant="secondary"
             onClick={() => {
               setShowModalFecha(false);
-              const hoy = formatearFecha(new Date()); // Fecha actual
+              const hoy = formatearFecha(new Date());
               setFechaSeleccionada(hoy);
-              cargarDatos(hoy);   // 🔥 Recargar datos con fecha actual
+              cargarDatos(hoy);
             }}
           >
             No
@@ -377,7 +382,7 @@ function ParticipantesCurso({ datoscurso }) {
                 const [dia, mes, anio] = datoscurso.fecha.split("/").map(Number);
                 const fechaGuia = formatearFecha(new Date(anio, mes - 1, dia));
                 setFechaSeleccionada(fechaGuia);
-                cargarDatos(fechaGuia);  // 🔥 Recargar datos con fecha de la guía
+                cargarDatos(fechaGuia);
               }
             }}
           >
@@ -386,9 +391,11 @@ function ParticipantesCurso({ datoscurso }) {
         </Modal.Footer>
       </Modal>
 
-
       {/* Modal Confirmación */}
-      <Modal show={showModalConfirmar} onHide={() => setShowModalConfirmar(false)}>
+      <Modal
+        show={showModalConfirmar}
+        onHide={() => setShowModalConfirmar(false)}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Confirmar guardado</Modal.Title>
         </Modal.Header>
@@ -396,14 +403,14 @@ function ParticipantesCurso({ datoscurso }) {
           <p>
             Se guardarán las asistencias del día{" "}
             <b>
-        {fechaSeleccionada
-          ? new Date(fechaSeleccionada).toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
-          : "Sin fecha"}
-      </b>
+              {fechaSeleccionada
+                ? new Date(fechaSeleccionada).toLocaleDateString("es-ES", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                : "Sin fecha"}
+            </b>
             .
           </p>
           <p>¿Deseas continuar?</p>
