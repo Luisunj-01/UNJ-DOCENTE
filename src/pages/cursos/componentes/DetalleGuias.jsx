@@ -55,7 +55,7 @@ function DetalleGuias({ datoscurso = [] }) {
   const [filanuevoguia, setFilanuevoguia] = useState(null);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
   const [filaDetalles, setFilaDetalles] = useState(null);
-  const [mostrarnuevoguia, setMostrarnuevoguia] = useState(false);
+  const [mostrarnuevoguia, setMostrarnuevoguia] = useState(false); 
 
   const [mostrarRecursos, setMostrarRecursos] = useState(false);
   const [filaSeleccionada, setFilaSeleccionada] = useState(null);
@@ -138,7 +138,7 @@ function DetalleGuias({ datoscurso = [] }) {
             sede,
             semestre,
             escuela,
-            curricula,
+            curricula, 
             curso,
             seccion,
             semana: fila.semana
