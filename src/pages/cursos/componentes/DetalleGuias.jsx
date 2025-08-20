@@ -169,7 +169,7 @@ function DetalleGuias({ datoscurso = [] }) {
     } else if (tipo === 'nuevoguia') {
       setFilanuevoguia(fila);
       setMostrarnuevoguia(true);
-    } else if (tipo === 'detalles') {
+    } else if (tipo === 'detalles') { 
       setFilaDetalles(fila);
       setMostrarDetalles(true);
     }
