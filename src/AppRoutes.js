@@ -85,7 +85,7 @@ function AppRoutes() {
           <Route path="/apps" element={<Apps />} />
           <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
           <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
-          <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}  />
+          <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}   />
           
           {/* Ruta por defecto para no encontradas */}
           <Route path="*" element={<Error404 />} />

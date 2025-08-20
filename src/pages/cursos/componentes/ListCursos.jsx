@@ -15,7 +15,7 @@ const ListCursos = ({ cursos, nombredocente }) => {
     <div className="row">
       {cursos.map((curso, index) => {
         const color = colores[index % colores.length];
-        const cursoData = `${curso.sede}|${curso.semestre}|${curso.estructura}|${curso.curricula}|${curso.curso}|${curso.seccion}|${curso.nombre}|${nombredocente   }`;
+        const cursoData = `${curso.sede}|${curso.semestre}|${curso.estructura}|${curso.curricula}|${curso.curso}|${curso.seccion}|${curso.nombre}|${nombredocente}`;
         const idBase64 = btoa(btoa(cursoData));
 
         return ( 

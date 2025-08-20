@@ -64,10 +64,11 @@ export const obtenerDatoshorariodocentecalendario = async (persona, semestre) =>
 };
 
 
-export const obtenerguiasemana= async (sede, semestre, escuela, curricula, curso, seccion, semana) => {
+export const obtenerguiasemana = async (sede, semestre, escuela, curricula, curso, seccion, semana) => {
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+      console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {

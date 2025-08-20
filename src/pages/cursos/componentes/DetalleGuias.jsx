@@ -39,8 +39,8 @@ function DetalleGuias({ datoscurso = [] }) {
   const [mensajeApi, setMensajeApi] = useState('');
   const { id } = useParams();
   const location = useLocation();
-  const decoded2 = atob(atob(id));
-  const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded2.split('|');
+  const decoded = atob(atob(id));
+  const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded.split('|');
   const datoscursos = { sede, semestre, escuela, curricula, curso, seccion };
 
   
@@ -223,7 +223,7 @@ function DetalleGuias({ datoscurso = [] }) {
           <IconButton title="Ver Materiales" onClick={() => handleClick('materiales', fila)} color="inherit" size="small">
             <FolderOpenIcon />
           </IconButton>
-          <IconButton title="Imprimir" onClick={() => ventanaSecundaria(`Imprimirguiasemana?codigo=${code_zet}&semana=${fila.semana}`)}color="primary" size="small">
+          <IconButton title="Imprimir" onClick={() => ventanaSecundaria(`../../Imprimirguiasemana?codigo=${code_zet}&semana=${fila.semana}`)}color="primary" size="small">
             <PrintIcon />
           </IconButton>
           <IconButton title="Modificar Guia" color="success" size="small">
