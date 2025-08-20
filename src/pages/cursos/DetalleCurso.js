@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useLocation, Link} from 'react-router-dom';
+import { useLocation, Link, useParams} from 'react-router-dom';
 import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 import { useUsuario } from '../../context/UserContext';
 import { FaBookReader, FaAddressCard, FaUsers, FaStar, FaBookOpen } from 'react-icons/fa';
@@ -26,7 +26,7 @@ function Detallecursos() {
   
 
   const { id } = useParams();
-  const decoded = atob(atob(id)); 
+  const decoded = atob(atob(id));
   
   const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] = decoded.split('|');
   

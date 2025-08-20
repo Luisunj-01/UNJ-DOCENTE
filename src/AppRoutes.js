@@ -28,6 +28,7 @@ import initializeAxios from './interceptor.js';
 import useInactividad from './hooks/useInactividad.js';
 import Imprimirdocentesemestrecarga from './pages/reportes/componentes/Imprimirdocentesemestrecarga.jsx';
 import Imprimirhorariodocente from './pages/reportes/componentes/Imprimirhorariodocente.jsx';
+import Imprimirguiasemana from './pages/reportes/componentes/Imprimirguiasemana.jsx';
 
 
 function AppRoutes() {
@@ -84,6 +85,7 @@ function AppRoutes() {
           <Route path="/apps" element={<Apps />} />
           <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
           <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
+          <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}  />
           
           {/* Ruta por defecto para no encontradas */}
           <Route path="*" element={<Error404 />} />

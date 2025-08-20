@@ -2,8 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Button, Form } from "react-bootstrap";
 import config from "../../../config"; // Ajusta la ruta a tu config
 import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
+import { useUsuario } from "../../../context/UserContext";
+import Swal from "sweetalert2";
 
 const NuevoGuia = ({ datoscurso, semana }) => {
+  const { usuario } = useUsuario();
+
+  const token = usuario?.codigotokenautenticadorunj;
+
+
   const [formulario, setFormulario] = useState({
     sede: "",
     semestre: "",
@@ -33,7 +40,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         curricula: datoscurso.curricula || prev.curricula,
         curso: datoscurso.curso || prev.curso,
         seccion: datoscurso.seccion || prev.seccion,
-        semana: semana || prev.semana,
+        semana: datoscurso.semana || prev.semana,
         contenido: datoscurso.contenido || prev.contenido,
         claseSincrona: datoscurso.claseSincrona || prev.claseSincrona,
         claseGrabada: datoscurso.claseGrabada || prev.claseGrabada,
@@ -65,7 +72,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         curricula: formulario.curricula,
         curso: formulario.curso,
         seccion: formulario.seccion,
-        semana: 17,
+        semana: formulario.semana,
         observacion: formulario.observacion,
         contenido: formulario.contenido,
         clasegrabada: formulario.claseGrabada, // ✅ coincide con backend
@@ -78,21 +85,24 @@ const NuevoGuia = ({ datoscurso, semana }) => {
       console.log("📤 Enviando payload:", payload);
 
       const response = await fetch(`${config.apiUrl}api/curso/GrabarGuia`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        alert("✅ Guía guardada correctamente");
+      if (response.ok && !data.error) {
+        Swal.fire("✅ Guía guardada correctamente", data.mensaje, "success");
       } else {
-        alert("⚠️ Error: " + data.mensaje);
+        Swal.fire("Error Falta datos por completar", data.mensaje, "error");
       }
     } catch (error) {
       console.error("Error al guardar guía:", error);
-      alert("❌ Error en el servidor");
+      //alert("❌ Error en el servidor");
     }
   };
 

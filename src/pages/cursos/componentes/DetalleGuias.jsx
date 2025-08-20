@@ -39,9 +39,16 @@ function DetalleGuias({ datoscurso = [] }) {
   const [mensajeApi, setMensajeApi] = useState('');
   const { id } = useParams();
   const location = useLocation();
-  const decoded = atob(atob(id));
-  const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded.split('|');
+  const decoded2 = atob(atob(id));
+  const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded2.split('|');
   const datoscursos = { sede, semestre, escuela, curricula, curso, seccion };
+
+  
+  const codex = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+  //$cod = $alumno.$sede.$escuela.$curricula;
+  //const codex = alumno + escuela + curricula + semestre;
+  //const cod =  alumno + sede + escuela + curricula;	
+  const code_zet = btoa(btoa(codex));
 
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [filaParticipantes, setFilaParticipantes] = useState(null);
@@ -85,8 +92,12 @@ function DetalleGuias({ datoscurso = [] }) {
     });
 
     interval = setInterval(cargarDatos, 2000);
-    return () => clearInterval(interval);
-  }, []);
+      return () => clearInterval(interval);
+    }, []);
+
+    const ventanaSecundaria = (url) => {
+    window.open(url, 'Certificado', 'width=1200,height=700,scrollbars=yes');
+  };
 
   const cargarDatos = async () => {
     try {
@@ -212,7 +223,7 @@ function DetalleGuias({ datoscurso = [] }) {
           <IconButton title="Ver Materiales" onClick={() => handleClick('materiales', fila)} color="inherit" size="small">
             <FolderOpenIcon />
           </IconButton>
-          <IconButton title="Imprimir" onClick={() => handleClick('guia', fila)} color="primary" size="small">
+          <IconButton title="Imprimir" onClick={() => ventanaSecundaria(`Imprimirguiasemana?codigo=${code_zet}&semana=${fila.semana}`)}color="primary" size="small">
             <PrintIcon />
           </IconButton>
           <IconButton title="Modificar Guia" color="success" size="small">
