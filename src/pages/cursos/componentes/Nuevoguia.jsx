@@ -4,7 +4,6 @@ import config from "../../../config"; // Ajusta la ruta a tu config
 import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
 
 const NuevoGuia = ({ datoscurso, semana }) => {
-  const [semestre, setSemestre] = useState();
   const [formulario, setFormulario] = useState({
     sede: "",
     semestre: "",
@@ -13,7 +12,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     curso: "",
     seccion: "",
     semana: "",
-    observacion: "", // 👈 agregado porque backend lo requiere
+    observacion: "",
     contenido: "",
     claseSincrona: "",
     claseGrabada: "",
@@ -23,11 +22,11 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     concluida: false,
   });
 
-  // Cargar datos iniciales cuando cambia datoscurso o semana (sin sobrescribir lo escrito)
+  // Cargar datos iniciales cuando cambia datoscurso o semana
   useEffect(() => {
     if (datoscurso) {
       setFormulario((prev) => ({
-        ...prev, // mantiene lo que ya escribió el usuario
+        ...prev,
         sede: datoscurso.sede || prev.sede,
         semestre: datoscurso.semestre || prev.semestre,
         escuela: datoscurso.escuela || prev.escuela,
@@ -38,13 +37,10 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         contenido: datoscurso.contenido || prev.contenido,
         claseSincrona: datoscurso.claseSincrona || prev.claseSincrona,
         claseGrabada: datoscurso.claseGrabada || prev.claseGrabada,
-        fecha: datoscurso.fecha
-          ? datoscurso.fecha.split("T")[0]
-          : prev.fecha,
+        fecha: datoscurso.fecha ? datoscurso.fecha.split("T")[0] : prev.fecha,
         horaEntrada: datoscurso.horaEntrada || prev.horaEntrada,
         horaSalida: datoscurso.horaSalida || prev.horaSalida,
-        concluida:
-          datoscurso.concluida === 1 ? true : prev.concluida,
+        concluida: datoscurso.concluida === 1 ? true : prev.concluida,
       }));
     }
   }, [datoscurso, semana]);
@@ -60,6 +56,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
 
   // Guardar guía (POST a API Laravel)
   const guardarGuia = async () => {
+    
     try {
       const payload = {
         sede: formulario.sede,
@@ -68,25 +65,26 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         curricula: formulario.curricula,
         curso: formulario.curso,
         seccion: formulario.seccion,
-        semana: formulario.semana,
+        semana: 17,
         observacion: formulario.observacion,
         contenido: formulario.contenido,
-        concluido: formulario.concluida ? "1" : "0", // 👈 backend pide string
-        fecha: formulario.fecha,
-        tipo: "I", // 👈 backend espera "tipo"
+        clasegrabada: formulario.claseGrabada, // ✅ coincide con backend
+        horaentrada: formulario.horaEntrada,
+        horasalida: formulario.horaSalida,
+        concluido: formulario.concluida ? "1" : "0", // ✅ string para que pase la validación
+        fecha: formulario.fecha
       };
 
-       console.log(payload);
+      console.log("📤 Enviando payload:", payload);
+
       const response = await fetch(`${config.apiUrl}api/curso/GrabarGuia`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      console.log(payload);
-
       const data = await response.json();
-
+      console.log(data);
       if (response.ok) {
         alert("✅ Guía guardada correctamente");
       } else {
@@ -103,12 +101,20 @@ const NuevoGuia = ({ datoscurso, semana }) => {
       <Form>
         <Form.Group className="mb-3">
           <Form.Label>Semana</Form.Label>
+
           <SemestreSelect
             value={formulario.semana}
-            onChange={(e) => setSemestre(e.target.value)}
-            name="cboSemana"
+            onChange={(valor) => {
+              setFormulario((prev) => ({
+                ...prev,
+                semana: valor,
+              }));
+            }}
+            name="semana"
             parametros={datoscurso}
           />
+
+
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -192,7 +198,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         </Form.Group>
 
         <Button variant="primary" onClick={guardarGuia}>
-          Grabar
+          Guardar
         </Button>
       </Form>
     </div>
@@ -200,3 +206,4 @@ const NuevoGuia = ({ datoscurso, semana }) => {
 };
 
 export default NuevoGuia;
+

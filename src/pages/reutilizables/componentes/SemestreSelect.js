@@ -13,13 +13,13 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
   
 
   const persona = usuario.docente.persona;
-  const semana = usuario.docente.semana
+  //const semana = usuario.docente.semana;
 
 
   useEffect(() => {
     if (name === "cboSemestre") {
       cargarsemestre();
-    } else if (name === "cboSemana") {
+    } else if (name === "semana") {
       cargarsemana();
     }
   }, [name]); 
@@ -65,17 +65,17 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
   }, []);*/
 
   return (
-    <select
-      name={name}
-      className={className}
-      value={value}
-      onChange={onChange}
-      disabled={loading}
-    >
+      <select
+        name={name}
+        className={className}
+        value={value}
+        onChange={(e) => onChange(e.target.value)} // 👈 aquí
+        disabled={loading}
+      >
+
       {loading && <option>Cargando...</option>}
       {!loading && semestres.length === 0 && <option>{mensaje}</option>}
       {!loading && semestres.map((s, i) => (
-       
         <option key={i} value={name === "cboSemestre" ? s.semestre : s.semana}>
           {name === "cboSemestre" ? s.semestre : s.semana}
         </option>

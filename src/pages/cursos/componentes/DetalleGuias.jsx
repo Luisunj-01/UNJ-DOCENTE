@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
+import axios from "axios";
+import Swal from "sweetalert2";
 
 import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 import BotonPDF from '../../asignatura/componentes/BotonPDF';
@@ -25,6 +27,7 @@ import RevisionTraPart from './ParticipantesTrabajo';
 import RecursosModal from '../../reutilizables/componentes/RecursosModal';
 import NuevoGuia from './Nuevoguia';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+import config from "../../../config"; // 🔹 Asegúrate que la ruta de tu API esté aquí
 
 function DetalleGuias({ datoscurso = [] }) {
 
@@ -38,9 +41,8 @@ function DetalleGuias({ datoscurso = [] }) {
   const location = useLocation();
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded.split('|');
-  const datoscursos = {
-    sede, semestre, escuela, curricula, curso, seccion
-  }
+  const datoscursos = { sede, semestre, escuela, curricula, curso, seccion };
+
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [filaParticipantes, setFilaParticipantes] = useState(null);
   const [filanuevoguia, setFilanuevoguia] = useState(null);
@@ -53,13 +55,9 @@ function DetalleGuias({ datoscurso = [] }) {
   const [tipoRecursoSeleccionado, setTipoRecursoSeleccionado] = useState(null);
 
   const token = usuario?.codigotokenautenticadorunj;
-  const cursoDesdeLink = location.state?.cursoSeleccionado;
   const persona = usuario.docente.persona;
-  const docente = usuario.docente.docente;
-  const nivel = "1";
   const dni = usuario.docente.numerodocumento;
   const tipo = 'D';
-  const accion = "C";
 
   const recursosItems = [
     {
@@ -85,13 +83,12 @@ function DetalleGuias({ datoscurso = [] }) {
       nombre,
       nombredocente,
     });
+
     interval = setInterval(cargarDatos, 2000);
     return () => clearInterval(interval);
-
   }, []);
 
   const cargarDatos = async () => {
-    //setLoading(true);
     try {
       const respuestguias = await obtenerDatosguias(sede, semestre, escuela, curricula, curso, seccion);
 
@@ -110,6 +107,44 @@ function DetalleGuias({ datoscurso = [] }) {
       setMensajeApi('Ocurrió un error al obtener los datos.');
     }
     setLoading(false);
+  };
+
+  // 🔹 FUNCIÓN ELIMINAR GUÍA
+  const eliminarGuia = async (fila) => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: `Se eliminará la guía de la semana ${fila.semana}.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.post(`${config.apiUrl}api/curso/EliminarGuias`, {
+            sede,
+            semestre,
+            escuela,
+            curricula,
+            curso,
+            seccion,
+            semana: fila.semana
+          });
+
+          if (!response.data.error) {
+            Swal.fire("Eliminado", response.data.mensaje, "success");
+            cargarDatos(); // refresca la tabla
+          } else {
+            Swal.fire("Error", response.data.mensaje, "error");
+          }
+        } catch (error) {
+          Swal.fire("Error", "No se pudo eliminar la guía.", "error");
+          console.error(error);
+        }
+      }
+    });
   };
 
   const handleClick = (tipo, fila) => {
@@ -183,10 +218,10 @@ function DetalleGuias({ datoscurso = [] }) {
           <IconButton title="Modificar Guia" color="success" size="small">
             <EditIcon />
           </IconButton>
-          <IconButton title="Eliminar" onClick={() => handleClick('material', fila)} color="error" size="small">
+          {/* 🔹 ELIMINAR */}
+          <IconButton title="Eliminar" onClick={() => eliminarGuia(fila)} color="error" size="small">
             <BlockIcon />
           </IconButton>
-          {/* 🔴 SE ELIMINÓ el botón "Nuevo Guía" de aquí */}
         </div>
       ),
     }
@@ -252,7 +287,7 @@ function DetalleGuias({ datoscurso = [] }) {
         )}
 
         {/* Modal Participantes */}
-        <Modal  show={mostrarParticipantes} onHide={() => setMostrarParticipantes(false)} size="xl">
+        <Modal show={mostrarParticipantes} onHide={() => setMostrarParticipantes(false)} size="xl">
           <Modal.Header closeButton>
             <Modal.Title>Participantes</Modal.Title>
           </Modal.Header>
