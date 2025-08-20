@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import TablaCursos from "../../reutilizables/componentes/TablaCursos";
 import { useParams } from "react-router-dom";
 import { obtenerDatosAsistencia } from "../logica/Curso";
-import { Form, Modal, Button } from "react-bootstrap";
+import { Form, Modal, Button, Alert } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ToastContext } from "../../../cuerpos/Layout";
@@ -53,7 +53,7 @@ function ParticipantesCurso({ datoscurso }) {
     curso: curso,
     seccion: seccion,
     sesion: datoscurso.sesion,
-    usuario: usuario.docente.numerodocumento,
+    //usuario: usuario.docente.numerodocumento,
   };
 
   useEffect(() => {
@@ -128,6 +128,32 @@ function ParticipantesCurso({ datoscurso }) {
 
     setLoading(false);
   };
+
+  const marcarTodosComoAsistencia = () => {
+  // 🔥 Clave de almacenamiento
+  const claveStorage = "asistenciasSeleccionadas";
+
+  // Creamos una copia de todos los alumnos con asistencia "A"
+  const nuevosDatos = datos.map((item) => {
+    const asistencia = "A";
+    // Actualizamos también en el storage
+    actualizarAsistenciaLocal(
+      item.alumno,
+      item.nombrecompleto,
+      asistencia,
+      item.observacion || "",
+      item.archivo || null
+    );
+    return { ...item, asistencia };
+  });
+
+  // Actualizamos estado local para que los selects cambien en UI
+  setDatos(nuevosDatos);
+
+  mostrarToast("Todos los alumnos fueron marcados como Asistencia.", "success");
+};
+
+
 
   const actualizarAsistenciaLocal = (
     alumno,
@@ -232,7 +258,20 @@ function ParticipantesCurso({ datoscurso }) {
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
     {
       clave: "asistencia",
-      titulo: "Asistencia",
+      titulo: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span>Asistencia &nbsp;&nbsp;</span>
+          {datos.length === 22 && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => marcarTodosComoAsistencia()}
+            >
+              Marcar todos
+            </Button>
+          )}
+        </div>
+      ),
       render: (fila, index) => (
         <Form.Group controlId={`asistencia${index + 1}`}>
           <Form.Select
@@ -251,7 +290,7 @@ function ParticipantesCurso({ datoscurso }) {
               }
             }}
           >
-            <option value="0">-- Seleccione --</option>
+            <option value="0">Seleccione Asistencia</option>
             <option value="A">Asistencia</option>
             <option value="F">Falta Just.</option>
             <option value="I">Falta</option>
@@ -260,7 +299,8 @@ function ParticipantesCurso({ datoscurso }) {
           </Form.Select>
         </Form.Group>
       ),
-    },
+    }
+
   ];
 
   return (
@@ -287,9 +327,24 @@ function ParticipantesCurso({ datoscurso }) {
 
         <div className="col-lg-6">
           <div style={{ float: "right" }}>
-            <button className="btn btn-success" onClick={handleGuardarClick}>
-              Guardar Asistencia
-            </button>
+            {datos.length === 0 ? (
+              <Button
+                variant="success"
+                size="sm"
+                onClick={handleGuardarClick}
+              >
+                Guardar Asistencia
+              </Button>
+            ) : (
+              <Button
+                variant="success"
+                size="sm"
+                onClick={handleGuardarClick}
+              >
+                Modificar Asistencia
+              </Button>
+            )}
+            
           </div>
         </div>
       </div>
@@ -297,7 +352,9 @@ function ParticipantesCurso({ datoscurso }) {
       {loading ? (
         <TablaSkeleton filas={9} columnas={4} />
       ) : datos.length === 0 ? (
-        <TablaSkeleton filas={9} columnas={4} />
+        <Alert variant="warning" className="text-center">
+          No se encontraron registros para la fecha <strong>{fechaSeleccionada}</strong>.
+      </Alert>
       ) : (
         <TablaCursos datos={datos} columnas={columnas} />
       )}

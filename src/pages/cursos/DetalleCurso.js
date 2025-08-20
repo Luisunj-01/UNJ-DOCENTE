@@ -109,6 +109,7 @@ function Detallecursos() {
         if (pasa) {
           // Caso habilitado
           return (
+            
             <BotonPDF
               key={index}
               fila={cursoItem}
