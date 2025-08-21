@@ -37,22 +37,35 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
   }, [fila, semestre, ruta]);
 
   const handleArchivoChange = (e) => {
-    const archivoSeleccionado = e.target.files[0];
-    if (!archivoSeleccionado) return;
+  const archivoSeleccionado = e.target.files[0];
+  if (!archivoSeleccionado) return;
 
-    const tamañoKB = archivoSeleccionado.size / 1024;
+  // ✅ Validar tipo MIME
+  if (archivoSeleccionado.type !== "application/pdf") {
+    Swal.fire({
+      icon: "error",
+      title: "Formato no válido",
+      text: "Solo se permiten archivos en formato PDF."
+    });
+    e.target.value = ""; // limpiar input
+    return;
+  }
 
-    if (tamañoKB > 30720) { // 30 MB
-      Swal.fire({
-        icon: 'error',
-        title: 'Archivo demasiado grande',
-        text: 'El archivo supera los 30 MB. Por favor, suba uno más liviano.'
-      });
-      return;
-    }
+  // ✅ Validar tamaño
+  const tamañoKB = archivoSeleccionado.size / 1024;
+  if (tamañoKB > 30720) { // 30 MB
+    Swal.fire({
+      icon: "error",
+      title: "Archivo demasiado grande",
+      text: "El archivo supera los 30 MB. Por favor, suba uno más liviano."
+    });
+    e.target.value = ""; // limpiar input
+    return;
+  }
 
-    setArchivo(archivoSeleccionado);
-  };
+  setArchivo(archivoSeleccionado);
+};
+
 
   const handleSubir = async () => {
   if (!archivo) {
@@ -126,6 +139,11 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
           <p><strong>SECCIÓN:</strong> {fila?.seccion}</p>
           <p><strong>ESCUELA:</strong> {fila?.descripcionescuela}</p>
           <p><strong>SEMESTRE:</strong> {semestre}</p>
+          <p><strong>SEMESTRE:</strong> {semestre}</p>
+          <div className="alert alert-success py-1 px-2 mt-2" style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
+            El archivo debe tener un tamaño máximo de 30 MB
+            </div>
+
         </div>
         <div className="col-lg-6">
           {urlPDF ? (
