@@ -18,32 +18,22 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
   });
 
   // Cargar datos de la guía seleccionada
-  useEffect(() => {
-    if (fila && show) {
-      axios
-        .post(
-          `${config.apiUrl}api/curso/ActualizarGuia/${datoscursos.sede}/${datoscursos.semestre}/${datoscursos.escuela}/${datoscursos.curricula}/${datoscursos.curso}/${datoscursos.seccion}/${fila.semana}`
-        )
-        .then((res) => {
-          const guia = res.data[0]; // El SP retorna un array
+        useEffect(() => {
+        if (fila && show) {
           setFormData({
-            semana: guia.semana,
-            contenido: guia.contenido,
-            observacion: guia.observacion,
-            claseSincrona: guia.clasesincrona || "",
-            claseGrabada: guia.clasegrabada || "",
-            fecha: guia.fecha ? guia.fecha.split("T")[0] : "",
-            horaEntrada: guia.horaentrada || "",
-            horaSalida: guia.horasalida || "",
-            concluida: guia.concluido === 1 ? true : false,
+            semana: fila.semana || "",
+            contenido: fila.contenido || "",
+            observacion: fila.observacion || "",
+            claseSincrona: fila.clasesincrona || "",
+            claseGrabada: fila.clasegrabada || "",
+            fecha: fila.fecha ? fila.fecha.split("T")[0] : "",
+            horaEntrada: fila.horaentrada || "",
+            horaSalida: fila.horasalida || "",
+            concluida: fila.concluido === 1 ? true : false,
           });
-        })
-        .catch((err) => {
-          console.error(err);
-          Swal.fire("Error", "No se pudo cargar la guía", "error");
-        });
-    }
-  }, [fila, show]);
+        }
+      }, [fila, show]);
+
 
   // Manejo de inputs
   const handleChange = (e) => {
