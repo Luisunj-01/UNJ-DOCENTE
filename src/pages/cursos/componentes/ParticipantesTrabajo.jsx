@@ -4,6 +4,9 @@ import { useParams } from 'react-router-dom';
 import { obtenerRevisionTrabajo } from '../logica/Curso';
 import { ToastContext } from '../../../cuerpos/Layout';
 import config from '../../../config';
+import BotonPDFTrabajo from '../../asignatura/componentes/BotonPDFTrabajo';
+import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+
 
 const RevisionTraPart = ({ datoscurso, semana }) => {
     
@@ -39,7 +42,7 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
       );
 
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
-        setMensajeApi('No se pudo obtener el detalle de la Asistencia.');
+        setMensajeApi('No se pudo obtener el detalle de los alumnos.');
         setLoading(false);
         return;
       }
@@ -90,8 +93,6 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
     )
   );
 };
-
-
 
   const guardarAsistenciaFinal = async () => {
   const claveStorage = 'asistenciasSeleccionadas';
@@ -146,19 +147,46 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
 };
 
 
-
-
-
 //console.log(datos);
 
-  const columnas = [
+
+
+const columnas = [
   { clave: 'alumno', titulo: 'Código' },
   { clave: 'nombrecompleto', titulo: 'Nombres Completos' },
-   { clave: 'trabajo', titulo: 'Trabajo' },
-  
-    
-    
+  ...[1, 2, 3, 4, 5].map((num) => ({
+    clave: `tra${num}`,
+    titulo: `Trabajo ${num}`,
+    render: (fila) => {
+      const idTrabajo = fila[`tra${num}`];
+      if (!idTrabajo) {
+        return <span className="text-muted">No enviado</span>;
+      }
+
+      const filaCurso = {
+        trabajo: idTrabajo,
+        sede: sede,
+        semestre: semestre,
+        estructura: escuela,
+        curricula: curricula,
+        curso: curso,
+        seccion: seccion,
+      };
+
+      return (
+        <BotonPDFTrabajo
+          fila={filaCurso}
+          semestre={semestre}
+          semana={semana}
+          token={"TOKEN_DEL_DOCENTE"}
+          titulo={``}
+          idTrabajo={idTrabajo}
+        />
+      );
+    }
+  }))
 ];
+
 
   return (
     <div>
@@ -171,7 +199,7 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
       </div>
 
       {loading ? (
-        <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
+        <TablaSkeleton filas={9} columnas={8} />
       ) : datos.length === 0 ? (
         <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
       ) : (

@@ -103,8 +103,6 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
   };
 
 
-
-  console.log(formData.fecha);
   return (
     <Modal show={show} onHide={onClose} size="lg">
       <Modal.Header closeButton>

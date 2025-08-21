@@ -86,6 +86,31 @@ export const obtenerDatostrabajoguias = async (sede, semestre, escuela, curricul
 };
 
 
+export const construirNombreArchivo = (curso, semestre, semana, nombrecarpeta) => {
+  
+  const cursoSinGuion = curso.curso.replace('-', '');
+  return `${curso.sede}${curso.semestre}${curso.curricula}${cursoSinGuion}${curso.seccion}${curso.trabajo}.pdf`;
+  
+};
+
+
+export const verificarArchivo = async (ruta, token) => {
+  try {
+    const res = await fetch(
+      `${config.apiUrl}api/verificar-archivo?ruta=${encodeURIComponent(ruta)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await res.json();
+    return data.success ? data.url : null;
+  } catch (error) {
+    return null;
+  }
+};
+
 
 
 

@@ -327,7 +327,7 @@ function DetalleGuias({ datoscurso = [] }) {
         </Modal>
 
         {/* Modal Detalles */}
-        <Modal show={mostrarDetalles} onHide={() => setMostrarDetalles(false)} size="lg">
+        <Modal show={mostrarDetalles} onHide={() => setMostrarDetalles(false)} size="xl">
           <Modal.Header closeButton>
             <Modal.Title>Revisión de Trabajos</Modal.Title>
           </Modal.Header>
