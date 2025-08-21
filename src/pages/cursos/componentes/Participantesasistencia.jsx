@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import TablaCursos from "../../reutilizables/componentes/TablaCursos";
 import { useParams } from "react-router-dom";
-import { obtenerDatosAsistencia } from "../logica/Curso";
+import { obtenerDatosAsistencia, obtenerDatosAsistencianuevo } from "../logica/Curso";
 import { Form, Modal, Button, Alert } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -11,6 +11,7 @@ import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 
 function ParticipantesCurso({ datoscurso }) {
   const [datos, setDatos] = useState([]);
+  const [datos2, setDatos2] = useState([]);
   const [asistencias, setAsistencias] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState("");
@@ -95,7 +96,19 @@ function ParticipantesCurso({ datoscurso }) {
         fecha
       );
 
+      const respuestaAsistencianuevo = await obtenerDatosAsistencianuevo(
+        parametrosaenviar,
+        fecha
+      );
+
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
+        setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
+        setDatos([]);
+        setLoading(false);
+        return;
+      }
+
+      if (!respuestaAsistencianuevo || !respuestaAsistencianuevo.datos) {
         setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
         setDatos([]);
         setLoading(false);
@@ -115,9 +128,16 @@ function ParticipantesCurso({ datoscurso }) {
           ...item,
           asistencia: item.condicion || "0",
         }));
+
+        const datosConAsistencianuevo = respuestaAsistencianuevo.datos.map((item) => ({
+          ...item,
+          asistencia: item.condicion || "0",
+        }));
         setDatos(datosConAsistencia);
+        setDatos2(datosConAsistencianuevo);
       } else {
         setDatos([]);
+        setDatos2([]);
       }
 
       setMensajeApi(respuestaAsistencia.mensaje);
@@ -261,7 +281,7 @@ function ParticipantesCurso({ datoscurso }) {
       titulo: (
         <div className="d-flex align-items-center justify-content-between">
           <span>Asistencia &nbsp;&nbsp;</span>
-          {datos.length === 22 && (
+          {datos.length === 0 && (
             <Button
               variant="primary"
               size="sm"
@@ -303,6 +323,8 @@ function ParticipantesCurso({ datoscurso }) {
 
   ];
 
+  
+
   return (
     <div>
       <div className="alert alert-info text-center">
@@ -333,7 +355,7 @@ function ParticipantesCurso({ datoscurso }) {
                 size="sm"
                 onClick={handleGuardarClick}
               >
-                Guardar Asistencia
+                Nueva Asistencia
               </Button>
             ) : (
               <Button
@@ -352,9 +374,10 @@ function ParticipantesCurso({ datoscurso }) {
       {loading ? (
         <TablaSkeleton filas={9} columnas={4} />
       ) : datos.length === 0 ? (
-        <Alert variant="warning" className="text-center">
+        <TablaCursos datos={datos2} columnas={columnas} />
+        /*<Alert variant="warning" className="text-center">
           No se encontraron registros para la fecha <strong>{fechaSeleccionada}</strong>.
-      </Alert>
+      </Alert>*/
       ) : (
         <TablaCursos datos={datos} columnas={columnas} />
       )}
