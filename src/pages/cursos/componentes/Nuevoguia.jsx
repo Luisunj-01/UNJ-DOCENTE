@@ -137,22 +137,13 @@ const NuevoGuia = ({ datoscurso, semana }) => {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Observación</Form.Label>
-          <Form.Control
-            type="text"
-            name="observacion"
-            value={formulario.observacion}
-            onChange={handleChange}
-          />
-        </Form.Group>
-
+        
         <Form.Group className="mb-3">
           <Form.Label>Clase síncrona</Form.Label>
           <Form.Control
             type="text"
-            name="claseSincrona"
-            value={formulario.claseSincrona}
+            name="observacion"
+            value={formulario.observacion}
             onChange={handleChange}
           />
         </Form.Group>

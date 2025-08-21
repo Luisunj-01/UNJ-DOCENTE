@@ -79,7 +79,7 @@ export const obtenerDatosAsistencia = async (objeto, fecha) => {
 
     const res = await axios.get(`${config.apiUrl}api/curso/partcipantesAsistencia/${objeto.sede}/${objeto.semestre}/${objeto.escuela}/${objeto.curricula}/${objeto.curso}/${objeto.seccion}/${tipo}/${grupo}/${objeto.sesion}/${clave}/${fecha}`);
     //console.log(`${config.apiUrl}api/curso/partcipantesAsistencia/${objeto.sede}/${objeto.semestre}/${objeto.escuela}/${objeto.curricula}/${objeto.curso}/${objeto.seccion}/${tipo}/${grupo}/${objeto.sesion}/${clave}/${fecha}/${objeto.usuario}/${tipozet}`);
-    console.log(res);
+    
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {

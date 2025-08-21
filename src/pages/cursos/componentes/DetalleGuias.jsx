@@ -28,6 +28,8 @@ import RecursosModal from '../../reutilizables/componentes/RecursosModal';
 import NuevoGuia from './Nuevoguia';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import config from "../../../config"; // 🔹 Asegúrate que la ruta de tu API esté aquí
+import ModalEditarGuia from "./ModalEditarGuia";
+
 
 function DetalleGuias({ datoscurso = [] }) {
 
@@ -42,6 +44,9 @@ function DetalleGuias({ datoscurso = [] }) {
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded.split('|');
   const datoscursos = { sede, semestre, escuela, curricula, curso, seccion };
+  const [mostrarEditar, setMostrarEditar] = useState(false);
+  const [filaEditar, setFilaEditar] = useState(null);
+
 
   
   const codex = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
@@ -155,7 +160,7 @@ function DetalleGuias({ datoscurso = [] }) {
           console.error(error);
         }
       }
-    });
+    }); 
   };
 
   const handleClick = (tipo, fila) => {
@@ -226,9 +231,18 @@ function DetalleGuias({ datoscurso = [] }) {
           <IconButton title="Imprimir" onClick={() => ventanaSecundaria(`../../Imprimirguiasemana?codigo=${code_zet}&semana=${fila.semana}`)}color="primary" size="small">
             <PrintIcon />
           </IconButton>
-          <IconButton title="Modificar Guia" color="success" size="small">
-            <EditIcon />
-          </IconButton>
+          <IconButton
+              title="Modificar Guia"
+              color="success"
+              size="small"
+              onClick={() => {
+                setFilaEditar(fila);
+                setMostrarEditar(true);
+              }}
+>
+  <EditIcon />
+</IconButton>
+
           {/* 🔹 ELIMINAR */}
           <IconButton title="Eliminar" onClick={() => eliminarGuia(fila)} color="error" size="small">
             <BlockIcon />
@@ -346,6 +360,15 @@ function DetalleGuias({ datoscurso = [] }) {
             </Button>
           </Modal.Footer>
         </Modal>
+
+        {/* ✅ Modal Editar Guía separado */}
+          <ModalEditarGuia
+            show={mostrarEditar}
+            onClose={() => setMostrarEditar(false)}
+            fila={filaEditar}
+            datoscursos={datoscursos}
+            onUpdated={cargarDatos}
+          />
 
       </div>
     </>
