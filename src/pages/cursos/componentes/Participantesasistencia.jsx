@@ -277,49 +277,50 @@ function ParticipantesCurso({ datoscurso }) {
     { clave: "alumno", titulo: "Código" },
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
     {
-      clave: "asistencia",
-      titulo: (
-        <div className="d-flex align-items-center justify-content-between">
-          <span>Asistencia &nbsp;&nbsp;</span>
-          {datos.length === 0 && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => marcarTodosComoAsistencia()}
-            >
-              Marcar todos
-            </Button>
-          )}
-        </div>
-      ),
-      render: (fila, index) => (
-        <Form.Group controlId={`asistencia${index + 1}`}>
-          <Form.Select
-            value={fila.asistencia || "0"}
-            onChange={(e) => {
-              const valor = e.target.value;
-              if (valor === "F") {
-                handleAbrirModal(fila.alumno, fila.nombrecompleto);
-              } else {
-                actualizarAsistenciaLocal(
-                  fila.alumno,
-                  fila.nombrecompleto,
-                  valor,
-                  fila.observacion || ""
-                );
-              }
-            }}
-          >
-            <option value="0">Seleccione Asistencia</option>
-            <option value="A">Asistencia</option>
-            <option value="F">Falta Just.</option>
-            <option value="I">Falta</option>
-            <option value="T">Tardanza Just.</option>
-            <option value="J">Tardanza</option>
-          </Form.Select>
-        </Form.Group>
-      ),
-    }
+  clave: "asistencia",
+  titulo: (
+    <div className="d-flex align-items-center justify-content-between">
+      <span>Asistencia &nbsp;&nbsp;</span>
+      {datos.length == 0 && ( // 🔥 cambiar a mayor que cero
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => marcarTodosComoAsistencia()}
+        >
+          Marcar todos
+        </Button>
+      )}
+    </div>
+  ),
+  render: (fila, index) => (
+    <Form.Group controlId={`asistencia${index + 1}`}>
+      <Form.Select
+        value={fila.asistencia || "0"}
+        onChange={(e) => {
+          const valor = e.target.value;
+          if (valor === "F") {
+            handleAbrirModal(fila.alumno, fila.nombrecompleto);
+          } else {
+            actualizarAsistenciaLocal(
+              fila.alumno,
+              fila.nombrecompleto,
+              valor,
+              fila.observacion || ""
+            );
+          }
+        }}
+      >
+        
+        <option value="A">Asistencia</option>
+        <option value="F">Falta Just.</option>
+        <option value="I">Falta</option>
+        <option value="T">Tardanza Just.</option>
+        <option value="J">Tardanza</option>
+      </Form.Select>
+    </Form.Group>
+  ),
+}
+
 
   ];
 

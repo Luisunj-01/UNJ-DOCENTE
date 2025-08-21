@@ -193,9 +193,7 @@ function DetalleGuias({ datoscurso = [] }) {
           item.curricula === curricula
         );
 
-        if (!cursoItem) {
-          return <span className="text-danger">Curso no encontrado</span>;
-        }
+       
 
         return (
           <BotonPDF
@@ -209,7 +207,7 @@ function DetalleGuias({ datoscurso = [] }) {
             tipo="guia"
           />
         );
-      }
+      },
     },
     {
       clave: '',

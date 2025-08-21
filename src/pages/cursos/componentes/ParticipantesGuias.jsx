@@ -5,6 +5,7 @@ import { obtenerparticipantes } from '../logica/Curso';
 import { Form } from 'react-bootstrap';
 import { ToastContext } from '../../../cuerpos/Layout';
 import config from '../../../config';
+import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 
 
 const ParticipantesGuias = ({ datoscurso, semana }) => {
@@ -270,9 +271,9 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
       </div>
 
       {loading ? (
-        <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
+        <TablaSkeleton filas={9} columnas={8} />
       ) : datos.length === 0 ? (
-        <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
+        <TablaCursos datos={datos} columnas={columnas} />
       ) : (
         <TablaCursos datos={datos} columnas={columnas} />
       )}

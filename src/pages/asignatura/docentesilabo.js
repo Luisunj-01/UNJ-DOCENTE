@@ -17,24 +17,14 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
   };
 
   useEffect(() => {
-    if (fila && semestre) {
-      const nombre = construirNombreArchivo(fila, semestre);
-      const rutaCompleta = `https://pruebas.unj.edu.pe/zetunajaen/${ruta}/${nombre}`;
-      fetch(rutaCompleta, { method: 'HEAD' })
-        .then((res) => {
-          if (res.ok) {
-            const nuevaURL = `${rutaCompleta}?t=${Date.now()}`;
-            setUrlPDF(nuevaURL);
-            setRenderKey(Date.now());
-          } else {
-            setUrlPDF(null);
-          }
-        })
-        .catch(() => {
-          setUrlPDF(null);
-        });
-    }
-  }, [fila, semestre, ruta]);
+  if (fila && semestre) {
+    const nombre = construirNombreArchivo(fila, semestre);
+    const rutaCompleta = `https://pruebas.unj.edu.pe/zetunajaen/${ruta}/${nombre}`;
+    // directo al iframe, sin fetch HEAD
+    setUrlPDF(`${rutaCompleta}?t=${Date.now()}`);
+    setRenderKey(Date.now());
+  }
+}, [fila, semestre, ruta]);
 
   const handleArchivoChange = (e) => {
   const archivoSeleccionado = e.target.files[0];
@@ -138,7 +128,6 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
           <p><strong>CÓDIGO:</strong> {fila?.curso}</p>
           <p><strong>SECCIÓN:</strong> {fila?.seccion}</p>
           <p><strong>ESCUELA:</strong> {fila?.descripcionescuela}</p>
-          <p><strong>SEMESTRE:</strong> {semestre}</p>
           <p><strong>SEMESTRE:</strong> {semestre}</p>
           <div className="alert alert-success py-1 px-2 mt-2" style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
             El archivo debe tener un tamaño máximo de 30 MB
