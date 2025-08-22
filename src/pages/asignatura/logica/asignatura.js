@@ -86,7 +86,7 @@ export const obtenerDatostrabajoguias = async (sede, semestre, escuela, curricul
 };
 
 
-export const construirNombreArchivo = (curso, semestre, semana, nombrecarpeta) => {
+export const construirNombreArchivo = (curso) => {
   
   const cursoSinGuion = curso.curso.replace('-', '');
   return `${curso.sede}${curso.semestre}${curso.curricula}${cursoSinGuion}${curso.seccion}${curso.trabajo}.pdf`;
@@ -96,8 +96,7 @@ export const construirNombreArchivo = (curso, semestre, semana, nombrecarpeta) =
 
 export const verificarArchivo = async (ruta, token) => {
   try {
-    const res = await fetch(
-      `${config.apiUrl}api/verificar-archivo?ruta=${encodeURIComponent(ruta)}`,
+    const res = await fetch(`${config.apiUrl}api/verificar-archivo?ruta=${encodeURIComponent(ruta)}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,6 +110,44 @@ export const verificarArchivo = async (ruta, token) => {
   }
 };
 
+
+
+// Obtener detalle de acta (notas de los alumnos por unidad)
+export const obtenerDetalleActa = async (sede, semestre, escuela, curricula, curso, seccion, uni) => {
+  try {
+    const res = await axios.get(`${config.apiUrl}api/curso/CalificacionesEstudiante/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${uni}`
+    );
+    console.log("API RESPONSE ===>", res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Error al obtener acta:", error.response?.data || error.message);
+    return { data: [] };
+  }
+};
+
+
+
+
+
+// Guardar notas de alumnos
+export const guardarNotasActa = async (sede, semestre, escuela, curricula, curso, seccion, uni, notas) => {
+  try {
+    const res = await axios.post(`${config.apiUrl}api/curso/guardar`, {
+      sede,
+      semestre,
+      escuela,
+      curricula,
+      curso,
+      seccion,
+      uni,
+      notas // aquí pasas el array de calificaciones editadas
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error al guardar notas:", error);
+    return { exito: false, mensaje: "Error al guardar notas" };
+  }
+};
 
 
 
