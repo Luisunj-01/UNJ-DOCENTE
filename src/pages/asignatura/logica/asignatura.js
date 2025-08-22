@@ -113,42 +113,42 @@ export const verificarArchivo = async (ruta, token) => {
 
 
 // Obtener detalle de acta (notas de los alumnos por unidad)
-export const obtenerDetalleActa = async (sede, semestre, escuela, curricula, curso, seccion, uni) => {
+export const obtenerDetalleActa = async (sede, semestre, escuela, curricula, curso, seccion, tipo) => {
   try {
-    const res = await axios.get(`${config.apiUrl}api/curso/CalificacionesEstudiante/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${uni}`
+    const response = await axios.get(`${config.apiUrl}api/curso/CalificacionesEstudiante/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}`
     );
-    console.log("API RESPONSE ===>", res.data);
-    return res.data;
+    return response; // 👈 devolvemos el response completo
   } catch (error) {
-    console.error("Error al obtener acta:", error.response?.data || error.message);
-    return { data: [] };
+    console.error("Error en obtenerDetalleActa:", error);
+    return { data: { data: [] } }; // 👈 devolvemos siempre con la misma forma
   }
 };
-
 
 
 
 
 // Guardar notas de alumnos
-export const guardarNotasActa = async (sede, semestre, escuela, curricula, curso, seccion, uni, notas) => {
+export const guardarNotasActa = async (sede, semestre, escuela, curricula, curso, seccion, uni, calificaciones) => {
   try {
-    const res = await axios.post(`${config.apiUrl}api/curso/guardar`, {
-      sede,
-      semestre,
-      escuela,
-      curricula,
-      curso,
-      seccion,
-      uni,
-      notas // aquí pasas el array de calificaciones editadas
-    });
-    return res.data;
+    const response = await axios.post(
+      `${config.apiUrl}api/curso/guardarNotasActa`, // 👈 cambia por tu ruta real de guardar
+      {
+        sede,
+        semestre,
+        escuela,
+        curricula,
+        curso,
+        seccion,
+        uni,
+        calificaciones,
+      }
+    );
+    return response.data;
   } catch (error) {
-    console.error("Error al guardar notas:", error);
-    return { exito: false, mensaje: "Error al guardar notas" };
+    console.error("Error en guardarNotasActa:", error);
+    return { exito: false, mensaje: "Error en la API" };
   }
 };
-
 
 
 
