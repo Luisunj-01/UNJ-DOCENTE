@@ -2,14 +2,14 @@ import { useContext, useEffect, useState } from "react";
 import TablaCursos from "../../reutilizables/componentes/TablaCursos";
 import { useParams } from "react-router-dom";
 import { obtenerDatosAsistencia, obtenerDatosAsistencianuevo } from "../logica/Curso";
-import { Form, Modal, Button, Alert } from "react-bootstrap";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { Form, Modal, Button } from "react-bootstrap";
 import { ToastContext } from "../../../cuerpos/Layout";
 import { useUsuario } from "../../../context/UserContext";
 import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
+import config from "../../../config";
 
 function ParticipantesCurso({ datoscurso }) {
+  
   const [datos, setDatos] = useState([]);
   const [datos2, setDatos2] = useState([]);
   const [asistencias, setAsistencias] = useState(null);
@@ -19,6 +19,7 @@ function ParticipantesCurso({ datoscurso }) {
   const [fechasDisponibles, setFechasDisponibles] = useState([]);
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
   const { usuario } = useUsuario();
+  
 
   // Modal de justificación
   const [showModalJustificacion, setShowModalJustificacion] = useState(false);
@@ -28,13 +29,6 @@ function ParticipantesCurso({ datoscurso }) {
     alumno: null,
     nombrecompleto: "",
   });
-
-  const formatearFecha = (fecha) => {
-    const yyyy = fecha.getFullYear();
-    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
-    const dd = String(fecha.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
 
   // Modal de validación de fecha
   const [showModalFecha, setShowModalFecha] = useState(false);
@@ -47,14 +41,20 @@ function ParticipantesCurso({ datoscurso }) {
   const { mostrarToast } = useContext(ToastContext);
 
   const parametrosaenviar = {
-    sede: sede,
-    semestre: semestre,
-    escuela: escuela,
-    curricula: curricula,
-    curso: curso,
-    seccion: seccion,
+    sede,
+    semestre,
+    escuela,
+    curricula,
+    curso,
+    seccion,
     sesion: datoscurso.sesion,
-    //usuario: usuario.docente.numerodocumento,
+  };
+
+  const formatearFecha = (fecha) => {
+    const yyyy = fecha.getFullYear();
+    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
+    const dd = String(fecha.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   useEffect(() => {
@@ -91,39 +91,27 @@ function ParticipantesCurso({ datoscurso }) {
   const cargarDatos = async (fecha = null) => {
     setLoading(true);
     try {
-      const respuestaAsistencia = await obtenerDatosAsistencia(
-        parametrosaenviar,
-        fecha
-      );
+      // limpiar antes de cada carga
+      setDatos([]);
+      setDatos2([]);
 
-      const respuestaAsistencianuevo = await obtenerDatosAsistencianuevo(
-        parametrosaenviar,
-        fecha
-      );
+      const respuestaAsistencia = await obtenerDatosAsistencia(parametrosaenviar, fecha);
+      const respuestaAsistencianuevo = await obtenerDatosAsistencianuevo(parametrosaenviar, fecha);
 
-      if (!respuestaAsistencia || !respuestaAsistencia.datos) {
+      if (!respuestaAsistencia?.datos || !respuestaAsistencianuevo?.datos) {
         setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
-        setDatos([]);
         setLoading(false);
         return;
       }
 
-      if (!respuestaAsistencianuevo || !respuestaAsistencianuevo.datos) {
-        setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
-        setDatos([]);
-        setLoading(false);
-        return;
-      }
-
-      // Extraemos fechas únicas del resultado
+      // Extraer fechas únicas
       const fechasUnicas = [
         ...new Set(respuestaAsistencia.datos.map((item) => item.fecha)),
       ];
-
       setFechasDisponibles(fechasUnicas);
 
       if (fecha) {
-        // 🔥 aquí precargamos asistencia desde "condicion"
+        // carga de registros previos (modo edición)
         const datosConAsistencia = respuestaAsistencia.datos.map((item) => ({
           ...item,
           asistencia: item.condicion || "0",
@@ -133,133 +121,173 @@ function ParticipantesCurso({ datoscurso }) {
           ...item,
           asistencia: item.condicion || "0",
         }));
+
         setDatos(datosConAsistencia);
         setDatos2(datosConAsistencianuevo);
-      } else {
-        setDatos([]);
-        setDatos2([]);
       }
 
       setMensajeApi(respuestaAsistencia.mensaje);
     } catch (error) {
       console.error("Error al cargar datos:", error);
       setMensajeApi("Ocurrió un error al obtener los datos.");
+      setDatos([]);
+      setDatos2([]);
     }
 
     setLoading(false);
   };
 
   const marcarTodosComoAsistencia = () => {
-  // 🔥 Clave de almacenamiento
-  const claveStorage = "asistenciasSeleccionadas";
-
-  // Creamos una copia de todos los alumnos con asistencia "A"
-  const nuevosDatos = datos.map((item) => {
-    const asistencia = "A";
-    // Actualizamos también en el storage
-    actualizarAsistenciaLocal(
-      item.alumno,
-      item.nombrecompleto,
-      asistencia,
-      item.observacion || "",
-      item.archivo || null
-    );
-    return { ...item, asistencia };
-  });
-
-  // Actualizamos estado local para que los selects cambien en UI
-  setDatos(nuevosDatos);
-
-  mostrarToast("Todos los alumnos fueron marcados como Asistencia.", "success");
-};
-
-
-
-  const actualizarAsistenciaLocal = (
-    alumno,
-    nombrecompleto,
-    asistencia,
-    observacion = "",
-    archivo = null
-  ) => {
-    const claveStorage = "asistenciasSeleccionadas";
-    let asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
-
-    if (asistencia === "0") {
-      asistencias = asistencias.filter((item) => item.alumno !== alumno);
-    } else {
-      const index = asistencias.findIndex((item) => item.alumno === alumno);
-      if (index !== -1) {
-        asistencias[index].asistencia = asistencia;
-        asistencias[index].observacion = observacion;
-        asistencias[index].archivo = archivo;
-      } else {
-        asistencias.push({
-          alumno,
-          nombrecompleto,
+    if (datos.length === 0) {
+      // Caso nuevo registro (trabaja sobre datos2)
+      const nuevosDatos = datos2.map((item) => {
+        const asistencia = "A";
+        actualizarAsistenciaLocal(
+          item.alumno,
+          item.nombrecompleto,
           asistencia,
-          observacion,
-          archivo,
-        });
-      }
+          item.observacion || "",
+          item.archivo || null
+        );
+        return { ...item, asistencia };
+      });
+      setDatos2(nuevosDatos);
+    } else {
+      // Caso modificación (trabaja sobre datos)
+      const nuevosDatos = datos.map((item) => {
+        const asistencia = "A";
+        actualizarAsistenciaLocal(
+          item.alumno,
+          item.nombrecompleto,
+          asistencia,
+          item.observacion || "",
+          item.archivo || null
+        );
+        return { ...item, asistencia };
+      });
+      setDatos(nuevosDatos);
     }
 
-    localStorage.setItem(claveStorage, JSON.stringify(asistencias));
+    mostrarToast("Todos los alumnos fueron marcados como Asistencia.", "success");
+  };
 
+  const actualizarAsistenciaLocal = (
+  alumno,
+  nombrecompleto,
+  asistencia,
+  observacion = "",
+  archivo = null
+) => {
+  const claveStorage = "asistenciasSeleccionadas";
+  let asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
+
+  if (asistencia === "0") {
+    asistencias = asistencias.filter((item) => item.alumno !== alumno);
+  } else {
+    const index = asistencias.findIndex((item) => item.alumno === alumno);
+    if (index !== -1) {
+      asistencias[index].asistencia = asistencia;
+      asistencias[index].observacion = observacion;
+      asistencias[index].archivo = archivo;
+    } else {
+      asistencias.push({ alumno, nombrecompleto, asistencia, observacion, archivo });
+    }
+  }
+
+  localStorage.setItem(claveStorage, JSON.stringify(asistencias));
+
+  // 🔹 actualizar datos existentes
+  if (datos.length > 0) {
     setDatos((prevDatos) =>
       prevDatos.map((item) =>
         item.alumno === alumno ? { ...item, asistencia, observacion } : item
       )
     );
-  };
-
-  const guardarAsistenciaFinal = () => {
-    const claveStorage = "asistenciasSeleccionadas";
-    const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
-
-    if (asistencias.length === 0) {
-      mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
-      return;
-    }
-
-    let fechaFormateada = fechaSeleccionada;
-    if (!fechaFormateada) {
-      const yyyy = new Date().getFullYear();
-      const mm = String(new Date().getMonth() + 1).padStart(2, "0");
-      const dd = String(new Date().getDate()).padStart(2, "0");
-      fechaFormateada = `${yyyy}-${mm}-${dd}`;
-    }
-
-    console.log("📅 Fecha seleccionada:", fechaFormateada);
-    console.log("📤 Asistencias a guardar/modificar:", asistencias);
-
-    mostrarToast(
-      fechaSeleccionada
-        ? "Asistencias modificadas correctamente."
-        : "Asistencias guardadas correctamente.",
-      "success"
+  } else {
+    setDatos2((prevDatos2) =>
+      prevDatos2.map((item) =>
+        item.alumno === alumno ? { ...item, asistencia, observacion } : item
+      )
     );
+  }
+};
 
-    localStorage.removeItem(claveStorage);
-    setAsistencias(asistencias);
+  const guardarAsistenciaFinal = async () => {
+  const claveStorage = "asistenciasSeleccionadas";
+  const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
+
+  if (asistencias.length === 0) {
+    mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
+    return;
+  }
+
+  let fechaFormateada = fechaSeleccionada;
+  if (!fechaFormateada) {
+    fechaFormateada = formatearFecha(new Date());
+  }
+
+  const payload = {// el mismo base64 que recibes en useParams()
+    clave: "01", // aquí defines la sesión item (podría ser dinámico)
+    txtFecha: fechaFormateada,
+    txtTipo: datos.length === 0 ? "N" : "U",
+    sede,
+    semestre,
+    escuela,
+    curricula,
+    curso,
+    seccion,
+    semana: datoscurso.sesion,
+    asistencias: asistencias.map((a) => ({
+      alumno: `${a.alumno}`,
+      persona: `${usuario.docente.persona}`, // o como lo generas en tu BD
+      asistencia: a.asistencia,
+      observacion: a.observacion || "",
+    })),
   };
+
+  console.log(payload);
+  try {
+
+    const response = await fetch(`${config.apiUrl}api/curso/GrabarAsistencia`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    console.log("Respuesta de API:", data);
+
+    if (data.error === 0) {
+      data.detalles.forEach(item => {
+        console.log(`Alumno ${item.alumno} → ${item.accion.toUpperCase()} (${item.condicion})`);
+      });
+    } else {
+      console.error("Error en API:", data.mensaje);
+    }
+
+
+    /*if (!response.ok || data.error) {
+      mostrarToast(data.mensaje || "Error al guardar asistencia", "danger");
+    } else {
+      mostrarToast(data.mensaje, "success");
+      localStorage.removeItem(claveStorage);
+      setAsistencias(asistencias);
+    }*/
+  } catch (error) {
+    console.error("Error en guardarAsistenciaFinal:", error);
+    mostrarToast("Ocurrió un error al guardar", "danger");
+  }
+};
+
 
   const handleAbrirModal = (alumno, nombrecompleto) => {
-    setJustificacion({
-      archivo: null,
-      observacion: "",
-      alumno,
-      nombrecompleto,
-    });
+    setJustificacion({ archivo: null, observacion: "", alumno, nombrecompleto });
     setShowModalJustificacion(true);
   };
 
   const handleGuardarJustificacion = () => {
     if (!justificacion.archivo && !justificacion.observacion) {
-      mostrarToast(
-        "Debes subir un archivo o escribir una observación",
-        "warning"
-      );
+      mostrarToast("Debes subir un archivo o escribir una observación", "warning");
       return;
     }
 
@@ -277,54 +305,45 @@ function ParticipantesCurso({ datoscurso }) {
     { clave: "alumno", titulo: "Código" },
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
     {
-  clave: "asistencia",
-  titulo: (
-    <div className="d-flex align-items-center justify-content-between">
-      <span>Asistencia &nbsp;&nbsp;</span>
-      {datos.length == 0 && ( // 🔥 cambiar a mayor que cero
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => marcarTodosComoAsistencia()}
-        >
-          Marcar todos
-        </Button>
-      )}
-    </div>
-  ),
-  render: (fila, index) => (
-    <Form.Group controlId={`asistencia${index + 1}`}>
-      <Form.Select
-        value={fila.asistencia || "0"}
-        onChange={(e) => {
-          const valor = e.target.value;
-          if (valor === "F") {
-            handleAbrirModal(fila.alumno, fila.nombrecompleto);
-          } else {
-            actualizarAsistenciaLocal(
-              fila.alumno,
-              fila.nombrecompleto,
-              valor,
-              fila.observacion || ""
-            );
-          }
-        }}
-      >
-        
-        <option value="A">Asistencia</option>
-        <option value="F">Falta Just.</option>
-        <option value="I">Falta</option>
-        <option value="T">Tardanza Just.</option>
-        <option value="J">Tardanza</option>
-      </Form.Select>
-    </Form.Group>
-  ),
-}
-
-
+      clave: "asistencia",
+      titulo: (
+        <div className="d-flex align-items-center justify-content-between">
+          <span>Asistencia &nbsp;&nbsp;</span>
+          {(datos.length === 0) && (
+            <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}>
+              Marcar todos
+            </Button>
+          )}
+        </div>
+      ),
+      render: (fila, index) => (
+        <Form.Group controlId={`asistencia${index + 1}`}>
+          <Form.Select
+            value={fila.asistencia || "0"}
+            onChange={(e) => {
+              const valor = e.target.value;
+              if (valor === "F") {
+                handleAbrirModal(fila.alumno, fila.nombrecompleto);
+              } else {
+                actualizarAsistenciaLocal(
+                  fila.alumno,
+                  fila.nombrecompleto,
+                  valor,
+                  fila.observacion || ""
+                );
+              }
+            }}
+          >
+            <option value="A">Asistencia</option>
+            <option value="F">Falta Just.</option>
+            <option value="I">Falta</option>
+            <option value="T">Tardanza Just.</option>
+            <option value="J">Tardanza</option>
+          </Form.Select>
+        </Form.Group>
+      ),
+    },
   ];
-
-  
 
   return (
     <div>
@@ -334,15 +353,14 @@ function ParticipantesCurso({ datoscurso }) {
 
       <div className="row mb-3">
         <div className="col-lg-6">
-          <label>
-            <strong>Seleccionar fecha:</strong>
-          </label>
+          <label><strong>Seleccionar fecha:</strong></label>
           <Form.Control
             type="date"
             value={fechaSeleccionada || ""}
             onChange={(e) => {
               const nuevaFecha = e.target.value;
               setFechaSeleccionada(nuevaFecha);
+              localStorage.removeItem("asistenciasSeleccionadas"); // limpiar memoria
               cargarDatos(nuevaFecha);
             }}
           />
@@ -351,23 +369,14 @@ function ParticipantesCurso({ datoscurso }) {
         <div className="col-lg-6">
           <div style={{ float: "right" }}>
             {datos.length === 0 ? (
-              <Button
-                variant="success"
-                size="sm"
-                onClick={handleGuardarClick}
-              >
+              <Button variant="success" size="sm" onClick={handleGuardarClick}>
                 Nueva Asistencia
               </Button>
             ) : (
-              <Button
-                variant="success"
-                size="sm"
-                onClick={handleGuardarClick}
-              >
+              <Button variant="success" size="sm" onClick={handleGuardarClick}>
                 Modificar Asistencia
               </Button>
             )}
-            
           </div>
         </div>
       </div>
@@ -376,18 +385,12 @@ function ParticipantesCurso({ datoscurso }) {
         <TablaSkeleton filas={9} columnas={4} />
       ) : datos.length === 0 ? (
         <TablaCursos datos={datos2} columnas={columnas} />
-        /*<Alert variant="warning" className="text-center">
-          No se encontraron registros para la fecha <strong>{fechaSeleccionada}</strong>.
-      </Alert>*/
       ) : (
         <TablaCursos datos={datos} columnas={columnas} />
       )}
 
       {/* Modal Justificación */}
-      <Modal
-        show={showModalJustificacion}
-        onHide={() => setShowModalJustificacion(false)}
-      >
+      <Modal show={showModalJustificacion} onHide={() => setShowModalJustificacion(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Falta Justificada</Modal.Title>
         </Modal.Header>
@@ -397,10 +400,7 @@ function ParticipantesCurso({ datoscurso }) {
             <Form.Control
               type="file"
               onChange={(e) =>
-                setJustificacion({
-                  ...justificacion,
-                  archivo: e.target.files[0],
-                })
+                setJustificacion({ ...justificacion, archivo: e.target.files[0] })
               }
             />
           </Form.Group>
@@ -411,19 +411,13 @@ function ParticipantesCurso({ datoscurso }) {
               rows={3}
               value={justificacion.observacion}
               onChange={(e) =>
-                setJustificacion({
-                  ...justificacion,
-                  observacion: e.target.value,
-                })
+                setJustificacion({ ...justificacion, observacion: e.target.value })
               }
             />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowModalJustificacion(false)}
-          >
+          <Button variant="secondary" onClick={() => setShowModalJustificacion(false)}>
             Cancelar
           </Button>
           <Button variant="success" onClick={handleGuardarJustificacion}>
@@ -439,9 +433,7 @@ function ParticipantesCurso({ datoscurso }) {
         </Modal.Header>
         <Modal.Body>
           <p>Tu rango de fecha es distinta a la de la guía.</p>
-          <p>
-            ¿Deseas grabar con la fecha de la guía <b>{datoscurso?.fecha}</b>?
-          </p>
+          <p>¿Deseas grabar con la fecha de la guía <b>{datoscurso?.fecha}</b>?</p>
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -473,10 +465,7 @@ function ParticipantesCurso({ datoscurso }) {
       </Modal>
 
       {/* Modal Confirmación */}
-      <Modal
-        show={showModalConfirmar}
-        onHide={() => setShowModalConfirmar(false)}
-      >
+      <Modal show={showModalConfirmar} onHide={() => setShowModalConfirmar(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirmar guardado</Modal.Title>
         </Modal.Header>
@@ -491,16 +480,12 @@ function ParticipantesCurso({ datoscurso }) {
                     year: "numeric",
                   })
                 : "Sin fecha"}
-            </b>
-            .
+            </b>.
           </p>
           <p>¿Deseas continuar?</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowModalConfirmar(false)}
-          >
+          <Button variant="secondary" onClick={() => setShowModalConfirmar(false)}>
             Cancelar
           </Button>
           <Button

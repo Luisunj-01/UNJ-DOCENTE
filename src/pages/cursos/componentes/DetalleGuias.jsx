@@ -14,8 +14,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MenuIcon from '@mui/icons-material/Menu';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
-
-import { IconButton } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { IconButton, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import { obtenerDatosguias } from '../logica/Curso';
 import { useUsuario } from '../../../context/UserContext';
 import { obtenerCursosPrematricula } from '../../reutilizables/logica/docente';
@@ -29,6 +29,7 @@ import NuevoGuia from './Nuevoguia';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import config from "../../../config"; // 🔹 Asegúrate que la ruta de tu API esté aquí
 import ModalEditarGuia from "./ModalEditarGuia";
+import AccionesMenu from './AccionesMenu';
 
 
 function DetalleGuias({ datoscurso = [] }) {
@@ -213,41 +214,15 @@ function DetalleGuias({ datoscurso = [] }) {
       clave: '',
       titulo: 'Acciones',
       render: (fila) => (
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <IconButton title="Ver Participantes" onClick={() => handleClick('participantes', fila)} color="primary" size="small">
-            <PersonIcon />
-          </IconButton>
-          <IconButton title="Ver Trabajos" onClick={() => handleClick('trabajos', fila)} color="secondary" size="small">
-            <NotificationsIcon />
-          </IconButton>
-          <IconButton title="Ver Detalles" onClick={() => handleClick('detalles', fila)} color="default" size="small">
-            <MenuIcon />
-          </IconButton>
-          <IconButton title="Ver Materiales" onClick={() => handleClick('materiales', fila)} color="inherit" size="small">
-            <FolderOpenIcon />
-          </IconButton>
-          <IconButton title="Imprimir" onClick={() => ventanaSecundaria(`../../Imprimirguiasemana?codigo=${code_zet}&semana=${fila.semana}`)}color="primary" size="small">
-            <PrintIcon />
-          </IconButton>
-          <IconButton
-              title="Modificar Guia"
-              color="success"
-              size="small"
-              onClick={() => {
-                setFilaEditar(fila);
-                setMostrarEditar(true);
-              }}
->
-  <EditIcon />
-</IconButton>
-
-          {/* 🔹 ELIMINAR */}
-          <IconButton title="Eliminar" onClick={() => eliminarGuia(fila)} color="error" size="small">
-            <BlockIcon />
-          </IconButton>
-        </div>
-      ),
+        <AccionesMenu 
+          fila={fila}
+          onEliminar={eliminarGuia}
+          onEditar={(fila) => { setFilaEditar(fila); setMostrarEditar(true); }}
+          onVer={handleClick}
+        />
+      )
     }
+
   ];
 
   return (
@@ -296,7 +271,7 @@ function DetalleGuias({ datoscurso = [] }) {
           <TablaSkeleton filas={9} columnas={6} />
         ) : datos.length === 0 ? (
           <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
-        ) : (
+        ) : ( 
           <TablaCursos datos={datos} columnas={columnas} />
         )}
 

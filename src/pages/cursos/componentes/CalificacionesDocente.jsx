@@ -4,7 +4,7 @@ import { obtenerDetalleActa } from "../../asignatura/logica/asignatura";
 
 
 
-function CalificacionesDocente ({  }){
+/*function CalificacionesDocente ({  }){
 
   // 🔹 Parámetros fijos de prueba
   const sede = "01";
@@ -95,7 +95,7 @@ useEffect(() => {
     <div className="p-4">
       <h2 className="text-xl font-bold mb-3">Registro de Calificaciones</h2>
 
-      {/* Select Unidad */}
+     
       <div className="mb-4">
         <label className="font-semibold mr-2">Unidad:</label>
         <select
@@ -111,7 +111,7 @@ useEffect(() => {
         </select>
       </div>
 
-      {/* Tabla */}
+   
       {loading ? (
             <p>Cargando...</p>
           ) : (
@@ -180,7 +180,8 @@ useEffect(() => {
         Guardar Notas
       </button>
     </div>
-  );
+  ); 
 };
 
 export default CalificacionesDocente;
+*/

@@ -140,7 +140,8 @@ function Asistenciadocente({ datoscurso }) {
         </div>
       ),
     }
-  ];
+  ]; 
+
 
   const handleVolver = () => {
     setMostrarParticipantes(false);
