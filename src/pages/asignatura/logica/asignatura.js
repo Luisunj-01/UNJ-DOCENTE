@@ -136,28 +136,4 @@ export const obtenerDetalleActa = async (sede, semestre, escuela, curricula, cur
 
 
 
-// Guardar notas de alumnos
-export const guardarNotasActa = async (sede, semestre, escuela, curricula, curso, seccion, uni, calificaciones) => {
-  try {
-    const response = await axios.post(
-      `${config.apiUrl}api/curso/guardarNotasActa`, // 👈 cambia por tu ruta real de guardar
-      {
-        sede,
-        semestre,
-        escuela,
-        curricula,
-        curso,
-        seccion,
-        uni,
-        calificaciones,
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error en guardarNotasActa:", error);
-    return { exito: false, mensaje: "Error en la API" };
-  }
-};
-
-
 

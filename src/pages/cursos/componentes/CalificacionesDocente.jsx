@@ -26,7 +26,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
   const token = localStorage.getItem("token");
 
   const decoded = atob(atob(id));
-  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] = decoded.split('|');
+  const [sede, semestre, escuela, curricula, curso, seccion ] = decoded.split('|');
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -39,7 +39,8 @@ const CalificacionesDocente = ({ datosprincipal }) => {
         return;
       }
       setDatos(response.datos);
-      setCalificaciones(response.datos.map((d) => ({ ...d }))); // 👈 clonar para edición SIN perder notas
+      setCalificaciones(response.datos.map((d, i) => ({ ...d, index: i })));
+
       setMensajeApi(response.mensaje);
       setLoading(false);
     };
@@ -66,9 +67,9 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       unidad, // unidad seleccionada
       calificaciones: calificaciones.map(c => ({
         alumno: c.alumno,
-        ec: c.ec ?? null,
-        ep: c.ep ?? null,
-        ea: c.ea ?? null,
+        ec: c.ec ?? "",
+        ep: c.ep ?? "",
+        ea: c.ea ?? "",
         promediounidad: c.promediounidad ?? null
       }))
     };
@@ -96,87 +97,101 @@ const CalificacionesDocente = ({ datosprincipal }) => {
   const columnas = [
     { clave: 'alumno', titulo: 'Código' },
     { clave: 'nombrecompleto', titulo: 'Nombres' },
-   {
+
+{
   clave: 'ec',
   titulo: 'EC',
-  render: (fila, index) => (
+  render: (row) => (
     <input
-      type="number"
+      type="text"
+      maxLength="5"
+      size="6"
+      autoComplete="off"
       className="form-control text-center"
-      value={fila.ec !== null && fila.ec !== undefined ? fila.ec : ""}
+      value={row.ec ?? ""}
       onChange={(e) => {
         const nuevas = [...calificaciones];
-        nuevas[index] = {
-          ...fila,
-          ec: e.target.value // 👈 guardamos texto para que se pueda escribir libremente
-        };
+        nuevas[row.index] = { ...row, ec: e.target.value };
         setCalificaciones(nuevas);
       }}
       onBlur={(e) => {
         const nuevas = [...calificaciones];
-        nuevas[index] = {
-          ...fila,
-          ec: e.target.value === "" ? null : parseInt(e.target.value, 10) // 👈 conversión a número solo al salir
-        };
+        let valor = parseFloat(e.target.value.replace(",", "."));
+        if (isNaN(valor)) {
+          nuevas[row.index] = { ...row, ec: "" };
+        } else {
+          valor = Math.max(0, Math.min(20, valor));
+          nuevas[row.index] = { ...row, ec: valor.toFixed(2) };
+        }
         setCalificaciones(nuevas);
       }}
     />
   )
 },
+
 {
   clave: 'ep',
   titulo: 'EP',
-  render: (fila, index) => (
+  render: (row) => (
     <input
-      type="number"
+      type="text"
+      maxLength="5"
+      size="6"
+      autoComplete="off"
       className="form-control text-center"
-      value={fila.ep !== null && fila.ep !== undefined ? fila.ep : ""}
+      value={row.ep ?? ""}
       onChange={(e) => {
         const nuevas = [...calificaciones];
-        nuevas[index] = {
-          ...fila,
-          ep: e.target.value
-        };
+        nuevas[row.index] = { ...row, ep: e.target.value };
         setCalificaciones(nuevas);
       }}
       onBlur={(e) => {
         const nuevas = [...calificaciones];
-        nuevas[index] = {
-          ...fila,
-          ep: e.target.value === "" ? null : parseInt(e.target.value, 10)
-        };
+        let valor = parseFloat(e.target.value.replace(",", "."));
+        if (isNaN(valor)) {
+          nuevas[row.index] = { ...row, ep: "" };
+        } else {
+          valor = Math.max(0, Math.min(20, valor));
+          nuevas[row.index] = { ...row, ep: valor.toFixed(2) };
+        }
         setCalificaciones(nuevas);
       }}
     />
   )
 },
+
 {
   clave: 'ea',
   titulo: 'EA',
-  render: (fila, index) => (
+  render: (row) => (
     <input
-      type="number"
+      type="text"
+      maxLength="5"
+      size="6"
+      autoComplete="off"
       className="form-control text-center"
-      value={fila.ea !== null && fila.ea !== undefined ? fila.ea : ""}
+      value={row.ea ?? ""}
       onChange={(e) => {
         const nuevas = [...calificaciones];
-        nuevas[index] = {
-          ...fila,
-          ea: e.target.value
-        };
+        nuevas[row.index] = { ...row, ea: e.target.value };
         setCalificaciones(nuevas);
       }}
       onBlur={(e) => {
         const nuevas = [...calificaciones];
-        nuevas[index] = {
-          ...fila,
-          ea: e.target.value === "" ? null : parseInt(e.target.value, 10)
-        };
+        let valor = parseFloat(e.target.value.replace(",", "."));
+        if (isNaN(valor)) {
+          nuevas[row.index] = { ...row, ea: "" };
+        } else {
+          valor = Math.max(0, Math.min(20, valor));
+          nuevas[row.index] = { ...row, ea: valor.toFixed(2) };
+        }
         setCalificaciones(nuevas);
       }}
     />
   )
 },
+
+
 
 
 
@@ -199,20 +214,33 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       >
         CALIFICACIONES DEL DOCENTE
       </h2>
-      <div className="mb-3 d-flex justify-content-start align-items-center gap-3">
-        <label htmlFor="unidad" className="form-label mb-0">UNIDAD:</label>
-        <select
-          id="unidad"
-          className="form-select w-auto"
-          value={unidad}
-          onChange={(e) => setUnidad(e.target.value)}
-        >
-          {unidades.map((u) => (
-            <option key={u.value} value={u.value}>
-              {u.label}
-            </option>
-          ))}
-        </select>
+      <div className="mb-3 d-flex flex-column align-items-start gap-2">
+        <div className="d-flex align-items-center gap-3">
+          <label htmlFor="unidad" className="form-label mb-0">UNIDAD:</label>
+          <select
+            id="unidad"
+            className="form-select w-auto"
+            value={unidad}
+            onChange={(e) => setUnidad(e.target.value)}
+          >
+            {unidades.map((u) => (
+              <option key={u.value} value={u.value}>
+                {u.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 🔹 Instrucciones debajo del selector */}
+        <div className="mt-2 p-3 border rounded bg-light" style={{ fontSize: "0.9rem" }}>
+          <strong>Instrucciones:</strong>
+          <ul className="mb-0 mt-1">
+            <li>Si ingresa datos no numéricos o notas que no estén dentro del rango de 0.00 a 20.00 serán consideradas como 0.</li>
+            <li>Las notas se redondean a dos decimales.</li>
+            <li>El promedio del aplazado tiene que ser menor o igual a 14, si ingresa una nota mayor, se transformará en 14.</li>
+            <li>Utilice la tecla <kbd>Tab</kbd> para desplazarse.</li>
+          </ul>
+        </div>
       </div>
 
       {loading ? (
