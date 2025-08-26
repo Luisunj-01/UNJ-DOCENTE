@@ -6,6 +6,7 @@ import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 import axios from "axios";
 import Swal from "sweetalert2";
 import config from '../../../config';
+import { useUsuario } from "../../../context/UserContext";
 // import { token } desde donde lo tengas guardado
 
 const unidades = [
@@ -23,8 +24,9 @@ const CalificacionesDocente = ({ datosprincipal }) => {
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
   const { id } = useParams();
-  const token = localStorage.getItem("token");
-
+  const { usuario } = useUsuario();
+  const token = usuario?.codigotokenautenticadorunj;
+  const [cambios, setCambios] = useState({});
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion ] = decoded.split('|');
 
@@ -32,7 +34,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     const cargarDatos = async () => {
       setLoading(true);
       const response = await obtenerDetalleActa(sede, semestre, escuela, curricula, curso, seccion, unidad);
-      console.log(response);
+      //console.log(response);
       if (!response || !response.datos) {
         setMensajeApi('No se pudo obtener los trabajos.');
         setLoading(false);
@@ -57,42 +59,49 @@ const CalificacionesDocente = ({ datosprincipal }) => {
 
   // 🔹 Guardar notas (POST al backend)
   const guardarCalificaciones = async () => {
-    const payload = {
-      sede,
-      semestre,
-      escuela,
-      curricula,
-      curso,
-      seccion,
-      unidad, // unidad seleccionada
-      calificaciones: calificaciones.map(c => ({
-        alumno: c.alumno,
-        ec: c.ec ?? "",
-        ep: c.ep ?? "",
-        ea: c.ea ?? "",
-        promediounidad: c.promediounidad ?? null
-      }))
-    };
+  // Convierte cambios en un arreglo [{ alumno, ec?, ep?, ea? }]
+  const calificacionesModificadas = Object.entries(cambios).map(([alumno, notas]) => ({
+    alumno,
+    ...notas
+  }));
 
-    try {
-      const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
+  if (calificacionesModificadas.length === 0) {
+    Swal.fire("ℹ️ Aviso", "No hay cambios para guardar.", "info");
+    return;
+  }
 
-      if (!response.data.error) {
-        Swal.fire("✅ Éxito", response.data.mensaje, "success");
-      } else {
-        Swal.fire("⚠️ Error", response.data.mensaje, "error");
-      }
-    } catch (error) {
-      console.error("❌ Error al guardar notas:", error);
-      Swal.fire("Error", "No se pudo guardar las notas. Intenta de nuevo.", "error");
-    }
+  const payload = {
+    sede,
+    semestre,
+    escuela,
+    curricula,
+    curso,
+    seccion,
+    unidad,
+    calificaciones: calificacionesModificadas
   };
+
+  try {
+    const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.data.error) {
+      Swal.fire("✅ Éxito", response.data.mensaje, "success");
+      setCambios({}); // 🔹 Limpiar cambios después de guardar
+    } else {
+      Swal.fire("⚠️ Error", response.data.mensaje, "error");
+    }
+  } catch (error) {
+    console.error("❌ Error al guardar notas:", error);
+    Swal.fire("Error", "No se pudo guardar las notas. Intenta de nuevo.", "error");
+  }
+};
+
 
   const columnas = [
     { clave: 'alumno', titulo: 'Código' },
@@ -118,13 +127,24 @@ const CalificacionesDocente = ({ datosprincipal }) => {
         const nuevas = [...calificaciones];
         let valor = parseFloat(e.target.value.replace(",", "."));
         if (isNaN(valor)) {
-          nuevas[row.index] = { ...row, ec: "" };
+          valor = "";
         } else {
-          valor = Math.max(0, Math.min(20, valor));
-          nuevas[row.index] = { ...row, ec: valor.toFixed(2) };
+          valor = Math.max(0, Math.min(20, valor)).toFixed(2);
         }
+        nuevas[row.index] = { ...row, ec: valor };
         setCalificaciones(nuevas);
+
+        // 👇 Registrar solo el campo editado
+        setCambios(prev => ({
+          ...prev,
+          [row.alumno]: {
+            ...prev[row.alumno],
+            ec: valor
+          }
+        }));
       }}
+
+      
     />
   )
 },
@@ -149,13 +169,23 @@ const CalificacionesDocente = ({ datosprincipal }) => {
         const nuevas = [...calificaciones];
         let valor = parseFloat(e.target.value.replace(",", "."));
         if (isNaN(valor)) {
-          nuevas[row.index] = { ...row, ep: "" };
+          valor = "";
         } else {
-          valor = Math.max(0, Math.min(20, valor));
-          nuevas[row.index] = { ...row, ep: valor.toFixed(2) };
+          valor = Math.max(0, Math.min(20, valor)).toFixed(2);
         }
+        nuevas[row.index] = { ...row, ep: valor };
         setCalificaciones(nuevas);
+
+        // 👇 Registrar solo el campo editado
+        setCambios(prev => ({
+          ...prev,
+          [row.alumno]: {
+            ...prev[row.alumno],
+            ep: valor
+          }
+        }));
       }}
+
     />
   )
 },
@@ -177,16 +207,26 @@ const CalificacionesDocente = ({ datosprincipal }) => {
         setCalificaciones(nuevas);
       }}
       onBlur={(e) => {
-        const nuevas = [...calificaciones];
-        let valor = parseFloat(e.target.value.replace(",", "."));
-        if (isNaN(valor)) {
-          nuevas[row.index] = { ...row, ea: "" };
-        } else {
-          valor = Math.max(0, Math.min(20, valor));
-          nuevas[row.index] = { ...row, ea: valor.toFixed(2) };
+      const nuevas = [...calificaciones];
+      let valor = parseFloat(e.target.value.replace(",", "."));
+      if (isNaN(valor)) {
+        valor = "";
+      } else {
+        valor = Math.max(0, Math.min(20, valor)).toFixed(2);
+      }
+      nuevas[row.index] = { ...row, ea: valor };
+      setCalificaciones(nuevas);
+
+      // 👇 Registrar solo el campo editado
+      setCambios(prev => ({
+        ...prev,
+        [row.alumno]: {
+          ...prev[row.alumno],
+          ea: valor
         }
-        setCalificaciones(nuevas);
-      }}
+      }));
+    }}
+
     />
   )
 },

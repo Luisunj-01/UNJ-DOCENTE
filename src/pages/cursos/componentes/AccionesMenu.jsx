@@ -64,7 +64,10 @@ function AccionesMenu({ fila, onEliminar, onEditar, onVer }) {
           <ListItemText primary="Ver Materiales" />
         </MenuItem>
 
-        <MenuItem onClick={() => { onVer('imprimir', fila); handleMenuClose(); }}>
+        <MenuItem onClick={() => {
+          window.open(`/imprimirguiasemana?codigo=${fila.codigo}&semana=${fila.semana}`, "_blank");
+          handleMenuClose();
+        }}>
           <ListItemIcon><PrintIcon fontSize="small" /></ListItemIcon>
           <ListItemText primary="Imprimir" />
         </MenuItem>
@@ -80,6 +83,7 @@ function AccionesMenu({ fila, onEliminar, onEditar, onVer }) {
         </MenuItem>
       </Menu>
     </>
+    
   );
 }
 
