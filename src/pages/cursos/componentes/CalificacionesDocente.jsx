@@ -1,187 +1,99 @@
-import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { obtenerDetalleActa } from "../../asignatura/logica/asignatura";
+import React, { useEffect, useState } from 'react';
+import TablaCursos from "../../reutilizables/componentes/TablaCursos";
+import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 
+const unidades = [
+  { value: '01', label: 'PRIMER PROMEDIO' },
+  { value: '02', label: 'SEGUNDO PROMEDIO' },
+  { value: '03', label: 'TERCER PROMEDIO' },
+  { value: '04', label: 'SUSTITUTORIO' },
+  { value: '05', label: 'APLAZADOS' }
+];
 
-
-
-/*function CalificacionesDocente ({  }){
-
-  // 🔹 Parámetros fijos de prueba
-  const sede = "01";
-  const semestre = "202501";
-  const escuela = "TM";
-  const curricula = "03";
-  const curso = "TM-08";
-  const seccion = "A";
-
-  // Unidad seleccionada (se manda como último parámetro)
-  const [unidad, setUnidad] = useState("01");
+const CalificacionesDocente = ({ datosprincipal }) => {
+  const [unidad, setUnidad] = useState('01');
+  const [datos, setDatos] = useState([]);
   const [calificaciones, setCalificaciones] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+    const [mensajeApi, setMensajeApi] = useState('');
+  const { id } = useParams();
 
-  const unidades = [
-    { value: "01", label: "PRIMER PROMEDIO" },
-    { value: "02", label: "SEGUNDO PROMEDIO" },
-    { value: "03", label: "TERCER PROMEDIO" },
-    { value: "04", label: "SUSTITUTORIO" },
-    { value: "05", label: "APLAZADO" },
+  const decoded = atob(atob(id));
+  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] = decoded.split('|');
+  useEffect(() => {
+    const cargarDatos = async () => {
+      setLoading(true);
+      const response = await obtenerDetalleActa(sede, semestre, escuela, curricula, curso, seccion, unidad);
+      console.log(response);
+      if (!response || !response.datos) {
+        setMensajeApi('No se pudo obtener los trabajos.');
+        setLoading(false);
+        return;
+      }
+      setDatos(response.datos);
+      setMensajeApi(response.mensaje);
+      setLoading(false);
+    };
+
+    cargarDatos();
+  }, [unidad, sede, semestre, escuela, curricula, curso, seccion]);
+
+
+  const columnas = [
+    { clave: 'alumno', titulo: 'Código' },
+    { clave: 'nombrecompleto', titulo: 'Nombres' },
+    { clave: 'ec', titulo: 'EC' },
+    { clave: 'ep', titulo: 'EP' },
+    { clave: 'ea', titulo: 'EA' },
+    { clave: 'promediounidad', titulo: 'PU' },
+
+    
   ];
 
-  // 🔹 Cargar notas al cambiar la unidad
-
-useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await obtenerDetalleActa(
-        sede,
-        semestre,
-        escuela,
-        curricula,
-        curso,
-        seccion,
-        unidad
-      );
-      console.log("👉 API RESPONSE:", response.data);
-
-      setCalificaciones(response.data?.data || []);
-    } catch (error) {
-      console.error("❌ Error cargando calificaciones:", error);
-      setCalificaciones([]);
-    }
-    setLoading(false);
-  };
-  fetchData();
-}, [unidad]);
-
-
-
-
-
-
-  // 🔹 Manejar cambio de notas
-  const handleNotaChange = (index, campo, valor) => {
-    const nuevasNotas = [...calificaciones];
-    nuevasNotas[index][campo] = valor;
-
-    const EC = parseFloat(nuevasNotas[index].EC || 0);
-    const EP = parseFloat(nuevasNotas[index].EP || 0);
-    const EA = parseFloat(nuevasNotas[index].EA || 0);
-    nuevasNotas[index].PU = ((EC + EP + EA) / 3).toFixed(2);
-
-    setCalificaciones(nuevasNotas);
-  };
-
-  // 🔹 Guardar todas las notas
-  const handleGuardar = async () => {
-    const response = await guardarNotasActa(
-      sede,
-      semestre,
-      escuela,
-      curricula,
-      curso,
-      seccion,
-      unidad,
-      calificaciones
-    );
-    if (response.exito) {
-      alert("Notas guardadas correctamente ✅");
-    } else {
-      alert("Error al guardar ❌: " + response.mensaje);
-    }
-  };
-
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold mb-3">Registro de Calificaciones</h2>
+    <div className="container py-4">
+      <h2
+        className="text-center fw-bold mb-4"
+        style={{
+        backgroundColor: '#d4f6fd',   // Celeste suave
+        color: '#0b60a9',             // Azul del texto
+        padding: '0.8rem',
+        borderRadius: '8px',
+        border: '1px solid #b3e9f7',  // Borde celeste claro
+        fontSize: '1rem',
+        letterSpacing: '1px'
+      }}
+    >
+      CALIFICACIONES DEL DOCENTE
+    </h2>
+      <div className="mb-3 d-flex justify-content-start align-items-center gap-3">
+  <label htmlFor="unidad" className="form-label mb-0">Unidad:</label>
+  <select
+    id="unidad"
+    className="form-select w-auto"
+    value={unidad}
+    onChange={(e) => setUnidad(e.target.value)}
+  >
+    {unidades.map((u) => (
+      <option key={u.value} value={u.value}>
+        {u.label}
+      </option>
+    ))}
+  </select>
+</div>
 
-     
-      <div className="mb-4">
-        <label className="font-semibold mr-2">Unidad:</label>
-        <select
-          value={unidad}
-          onChange={(e) => setUnidad(e.target.value)}
-          className="border p-2 rounded"
-        >
-          {unidades.map((u) => (
-            <option key={u.value} value={u.value}>
-              {u.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-   
-      {loading ? (
-            <p>Cargando...</p>
-          ) : (
-            <table className="w-full border border-collapse text-sm">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th className="border p-2">Nro</th>
-                  <th className="border p-2">Código</th>
-                  <th className="border p-2">Nombres</th>
-                  <th className="border p-2">EC</th>
-                  <th className="border p-2">EP</th>
-                  <th className="border p-2">EA</th>
-                  <th className="border p-2">PU</th>
-                </tr>
-              </thead>
-              <tbody>
-              {calificaciones.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-center p-4">
-                    ⚠️ No hay alumnos en esta unidad
-                  </td>
-                </tr>
-              ) : (
-                calificaciones.map((alumno, index) => (
-                  <tr key={alumno.Codigo}>
-                    <td className="border p-2">{index + 1}</td>
-                    <td className="border p-2">{alumno.Codigo}</td>
-                    <td className="border p-2">{alumno.Nombres}</td>
-                    <td className="border p-2">
-                      <input
-                        type="number"
-                        value={alumno.EC || ""}
-                        onChange={(e) => handleNotaChange(index, "EC", e.target.value)}
-                        className="w-16 border rounded p-1"
-                      />
-                    </td>
-                    <td className="border p-2">
-                      <input
-                        type="number"
-                        value={alumno.EP || ""}
-                        onChange={(e) => handleNotaChange(index, "EP", e.target.value)}
-                        className="w-16 border rounded p-1"
-                      />
-                    </td>
-                    <td className="border p-2">
-                      <input
-                        type="number"
-                        value={alumno.EA || ""}
-                        onChange={(e) => handleNotaChange(index, "EA", e.target.value)}
-                        className="w-16 border rounded p-1"
-                      />
-                    </td>
-                    <td className="border p-2">{alumno.PU}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )}
-
-
-      <button
-        onClick={handleGuardar}
-        className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Guardar Notas
-      </button>
+       {loading ? (
+        <TablaSkeleton filas={9} columnas={7} />
+      ) : datos.length === 0 ? (
+        <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
+      ) : (
+        <TablaCursos datos={datos} columnas={columnas} />
+      )}
+      
     </div>
-  ); 
+  );
 };
 
 export default CalificacionesDocente;
-*/

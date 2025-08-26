@@ -9,6 +9,7 @@ import { obtenerConfiguracion, obtenerCursosPrematricula } from '../reutilizable
 import Asistenciadocente from './componentes/Asistenciadocente';
 import DetalleGuias from './componentes/DetalleGuias';
 import Detallecursoprincipal from './componentes/Detallecursoprincipal';
+import CalificacionesDocente from './componentes/CalificacionesDocente';
 //import CalificacionesDocente from './componentes/CalificacionesDocente';
 
 function Detallecursos() {
@@ -209,8 +210,8 @@ function Detallecursos() {
               {activeTab === 'principal' && <Detallecursoprincipal datos={datoscurso} />}
               {activeTab === 'Asistencia' && <Asistenciadocente datos={datos} />}
               {activeTab === 'Guias' && <DetalleGuias datos={datos} />}
-              {/*{activeTab === 'calificaciones' && <CalificacionesDocente datos={datos} />}
-              {activeTab === 'personales' && <Datospersonalesdocente datosdocente={datosdocente} />}
+              {activeTab === 'calificaciones' && <CalificacionesDocente datosprincipal={datos} />}
+              {/*{activeTab === 'personales' && <Datospersonalesdocente datosdocente={datosdocente} />}
               {activeTab === 'participantes' && <ParticipantesCurso curso={curso} seccion={seccion} />}
               {activeTab === 'calificaciones' && <CalificacionesCurso curso={curso} />} */}
             </div>

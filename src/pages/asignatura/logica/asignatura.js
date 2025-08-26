@@ -113,15 +113,24 @@ export const verificarArchivo = async (ruta, token) => {
 
 
 // Obtener detalle de acta (notas de los alumnos por unidad)
-export const obtenerDetalleActa = async (sede, semestre, escuela, curricula, curso, seccion, tipo) => {
+export const obtenerDetalleActa = async (sede, semestre, escuela, curricula, curso, seccion, uni) => {
   try {
-    const response = await axios.get(`${config.apiUrl}api/curso/CalificacionesEstudiante/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}`
-    );
-    return response; // 👈 devolvemos el response completo
+    //const usuario = JSON.parse(localStorage.getItem('usuario'));
+    //const token = usuario?.token;
+
+    const res = await axios.get(`${config.apiUrl}api/curso/CalificacionesEstudiante/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${uni}`);
+    
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron Trabajos.' };
+    }
   } catch (error) {
-    console.error("Error en obtenerDetalleActa:", error);
-    return { data: { data: [] } }; // 👈 devolvemos siempre con la misma forma
+    console.error('Error al obtener datos:', error);
+    return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
   }
+
+  
 };
 
 
