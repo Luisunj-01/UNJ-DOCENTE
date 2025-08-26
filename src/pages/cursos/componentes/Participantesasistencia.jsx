@@ -7,8 +7,10 @@ import { ToastContext } from "../../../cuerpos/Layout";
 import { useUsuario } from "../../../context/UserContext";
 import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 import config from "../../../config";
-
+import axios from "axios";
+import Swal from "sweetalert2";
 function ParticipantesCurso({ datoscurso }) {
+  
   
   const [datos, setDatos] = useState([]);
   const [datos2, setDatos2] = useState([]);
@@ -19,7 +21,7 @@ function ParticipantesCurso({ datoscurso }) {
   const [fechasDisponibles, setFechasDisponibles] = useState([]);
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
   const { usuario } = useUsuario();
-  
+  const token = usuario?.codigotokenautenticadorunj;
 
   // Modal de justificación
   const [showModalJustificacion, setShowModalJustificacion] = useState(false);
@@ -111,20 +113,21 @@ function ParticipantesCurso({ datoscurso }) {
       setFechasDisponibles(fechasUnicas);
 
       if (fecha) {
-        // carga de registros previos (modo edición)
-        const datosConAsistencia = respuestaAsistencia.datos.map((item) => ({
-          ...item,
-          asistencia: item.condicion || "0",
-        }));
+      // unir ambas listas
+      const alumnosCompletos = respuestaAsistencianuevo.datos.map((nuevo) => {
+        const encontrado = respuestaAsistencia.datos.find((a) => a.alumno === nuevo.alumno);
+        return {
+          ...nuevo,
+          asistencia: encontrado ? (encontrado.condicion || "0") : "0",
+          observacion: encontrado ? encontrado.observaciones : "",
+          persona: encontrado ? encontrado.persona : nuevo.persona,
+        };
+      });
 
-        const datosConAsistencianuevo = respuestaAsistencianuevo.datos.map((item) => ({
-          ...item,
-          asistencia: item.condicion || "0",
-        }));
+      setDatos(alumnosCompletos); // 👈 aquí siempre tendrás TODOS los alumnos
+      setDatos2([]); // ya no lo necesitas en modo edición
+    }
 
-        setDatos(datosConAsistencia);
-        setDatos2(datosConAsistencianuevo);
-      }
 
       setMensajeApi(respuestaAsistencia.mensaje);
     } catch (error) {
@@ -137,6 +140,7 @@ function ParticipantesCurso({ datoscurso }) {
     setLoading(false);
   };
 
+  console.log(datos);
   const marcarTodosComoAsistencia = () => {
     if (datos.length === 0) {
       // Caso nuevo registro (trabaja sobre datos2)
@@ -158,6 +162,7 @@ function ParticipantesCurso({ datoscurso }) {
         const asistencia = "A";
         actualizarAsistenciaLocal(
           item.alumno,
+          item.persona,
           item.nombrecompleto,
           asistencia,
           item.observacion || "",
@@ -171,8 +176,10 @@ function ParticipantesCurso({ datoscurso }) {
     mostrarToast("Todos los alumnos fueron marcados como Asistencia.", "success");
   };
 
+
   const actualizarAsistenciaLocal = (
   alumno,
+  persona,
   nombrecompleto,
   asistencia,
   observacion = "",
@@ -190,7 +197,7 @@ function ParticipantesCurso({ datoscurso }) {
       asistencias[index].observacion = observacion;
       asistencias[index].archivo = archivo;
     } else {
-      asistencias.push({ alumno, nombrecompleto, asistencia, observacion, archivo });
+      asistencias.push({ alumno, persona, nombrecompleto, asistencia, observacion, archivo });
     }
   }
 
@@ -215,6 +222,7 @@ function ParticipantesCurso({ datoscurso }) {
   const guardarAsistenciaFinal = async () => {
   const claveStorage = "asistenciasSeleccionadas";
   const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
+ 
 
   if (asistencias.length === 0) {
     mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
@@ -225,6 +233,9 @@ function ParticipantesCurso({ datoscurso }) {
   if (!fechaFormateada) {
     fechaFormateada = formatearFecha(new Date());
   }
+
+  console.log(asistencias);
+  
 
   const payload = {// el mismo base64 que recibes en useParams()
     clave: "01", // aquí defines la sesión item (podría ser dinámico)
@@ -239,16 +250,31 @@ function ParticipantesCurso({ datoscurso }) {
     semana: datoscurso.sesion,
     asistencias: asistencias.map((a) => ({
       alumno: `${a.alumno}`,
-      persona: `${usuario.docente.persona}`, // o como lo generas en tu BD
+      persona: a.persona, // o como lo generas en tu BD
       asistencia: a.asistencia,
       observacion: a.observacion || "",
+      usuarioregistro: `${usuario.docente.numerodocumento}`,
     })),
   };
 
   console.log(payload);
   try {
 
-    const response = await fetch(`${config.apiUrl}api/curso/GrabarAsistencia`, {
+    const response = await axios.post(`${config.apiUrl}api/curso/GrabarAsistencia`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.data.error) {
+        Swal.fire("✅ Éxito", response.data.mensaje, "success");
+      } else {
+        Swal.fire("⚠️ Error", response.data.mensaje, "error");
+      }
+
+    /*const response = await fetch(`${config.apiUrl}api/curso/GrabarAsistencia`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -264,7 +290,7 @@ function ParticipantesCurso({ datoscurso }) {
     } else {
       console.error("Error en API:", data.mensaje);
     }
-
+ */
 
     /*if (!response.ok || data.error) {
       mostrarToast(data.mensaje || "Error al guardar asistencia", "danger");
@@ -327,6 +353,7 @@ function ParticipantesCurso({ datoscurso }) {
               } else {
                 actualizarAsistenciaLocal(
                   fila.alumno,
+                  fila.persona,
                   fila.nombrecompleto,
                   valor,
                   fila.observacion || ""

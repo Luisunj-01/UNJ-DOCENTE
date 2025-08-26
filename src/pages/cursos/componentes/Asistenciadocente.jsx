@@ -147,6 +147,7 @@ function Asistenciadocente({ datoscurso }) {
     setMostrarParticipantes(false);
     setDatosCursoSeleccionado(null);
   };
+ 
 
   return mostrarParticipantes && datosCursoSeleccionado ? (
     <>
