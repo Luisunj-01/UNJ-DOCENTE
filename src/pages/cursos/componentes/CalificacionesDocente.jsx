@@ -118,6 +118,16 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       autoComplete="off"
       className="form-control text-center"
       value={row.ec ?? ""}
+      style={{
+        color:
+          row.ec !== "" && parseFloat(row.ec) <= 10.99
+            ? "red"
+            : "black",
+        backgroundColor:
+          row.ec !== "" && parseFloat(row.ec) <= 10.99
+            ? "#ffe6e6"
+            : "white"
+      }}
       onChange={(e) => {
         const nuevas = [...calificaciones];
         nuevas[row.index] = { ...row, ec: e.target.value };
@@ -126,15 +136,14 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       onBlur={(e) => {
         const nuevas = [...calificaciones];
         let valor = parseFloat(e.target.value.replace(",", "."));
-        if (isNaN(valor)) {
-          valor = "";
+        if (isNaN(valor) || valor < 0 || valor > 20) {
+          valor = 0;
         } else {
-          valor = Math.max(0, Math.min(20, valor)).toFixed(2);
+          valor = valor.toFixed(2);
         }
         nuevas[row.index] = { ...row, ec: valor };
         setCalificaciones(nuevas);
 
-        // 👇 Registrar solo el campo editado
         setCambios(prev => ({
           ...prev,
           [row.alumno]: {
@@ -143,8 +152,6 @@ const CalificacionesDocente = ({ datosprincipal }) => {
           }
         }));
       }}
-
-      
     />
   )
 },
@@ -160,6 +167,16 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       autoComplete="off"
       className="form-control text-center"
       value={row.ep ?? ""}
+      style={{
+        color:
+          row.ep !== "" && parseFloat(row.ep) <= 10
+            ? "red"
+            : "black",
+        backgroundColor:
+          row.ep !== "" && parseFloat(row.ep) <= 10
+            ? "#ffe6e6"
+            : "white"
+      }}
       onChange={(e) => {
         const nuevas = [...calificaciones];
         nuevas[row.index] = { ...row, ep: e.target.value };
@@ -168,15 +185,14 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       onBlur={(e) => {
         const nuevas = [...calificaciones];
         let valor = parseFloat(e.target.value.replace(",", "."));
-        if (isNaN(valor)) {
-          valor = "";
+        if (isNaN(valor) || valor < 0 || valor > 20) {
+          valor = 0;
         } else {
-          valor = Math.max(0, Math.min(20, valor)).toFixed(2);
+          valor = valor.toFixed(2);
         }
         nuevas[row.index] = { ...row, ep: valor };
         setCalificaciones(nuevas);
 
-        // 👇 Registrar solo el campo editado
         setCambios(prev => ({
           ...prev,
           [row.alumno]: {
@@ -185,7 +201,6 @@ const CalificacionesDocente = ({ datosprincipal }) => {
           }
         }));
       }}
-
     />
   )
 },
@@ -201,35 +216,45 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       autoComplete="off"
       className="form-control text-center"
       value={row.ea ?? ""}
+      style={{
+        color:
+          row.ea !== "" && parseFloat(row.ea) <= 10
+            ? "red"
+            : "black",
+        backgroundColor:
+          row.ea !== "" && parseFloat(row.ea) <= 10
+            ? "#ffe6e6"
+            : "white"
+      }}
       onChange={(e) => {
         const nuevas = [...calificaciones];
         nuevas[row.index] = { ...row, ea: e.target.value };
         setCalificaciones(nuevas);
       }}
       onBlur={(e) => {
-      const nuevas = [...calificaciones];
-      let valor = parseFloat(e.target.value.replace(",", "."));
-      if (isNaN(valor)) {
-        valor = "";
-      } else {
-        valor = Math.max(0, Math.min(20, valor)).toFixed(2);
-      }
-      nuevas[row.index] = { ...row, ea: valor };
-      setCalificaciones(nuevas);
-
-      // 👇 Registrar solo el campo editado
-      setCambios(prev => ({
-        ...prev,
-        [row.alumno]: {
-          ...prev[row.alumno],
-          ea: valor
+        const nuevas = [...calificaciones];
+        let valor = parseFloat(e.target.value.replace(",", "."));
+        if (isNaN(valor) || valor < 0 || valor > 20) {
+          valor = 0;
+        } else {
+          valor = valor.toFixed(2);
         }
-      }));
-    }}
+        nuevas[row.index] = { ...row, ea: valor };
+        setCalificaciones(nuevas);
 
+        setCambios(prev => ({
+          ...prev,
+          [row.alumno]: {
+            ...prev[row.alumno],
+            ea: valor
+          }
+        }));
+      }}
     />
   )
 },
+
+
 
 
 
