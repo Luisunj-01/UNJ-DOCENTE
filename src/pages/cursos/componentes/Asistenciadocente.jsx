@@ -255,7 +255,7 @@ const normalizarFecha = (fechaStr) => {
         </div>
       ),
     }
-  ]; 
+  ];  
 
 
   const handleVolver = () => {

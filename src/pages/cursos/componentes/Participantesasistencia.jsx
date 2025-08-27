@@ -199,7 +199,7 @@ function ParticipantesCurso({ datoscurso }) {
           <option value="J">Tardanza</option>
         </Form.Select>
       )
-    },
+    }, 
     {
       clave: "existe",
       titulo: "Asistencia Existente",
