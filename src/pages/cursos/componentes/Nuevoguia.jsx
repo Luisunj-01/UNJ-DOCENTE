@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Button, Form } from "react-bootstrap";
-import config from "../../../config"; // Ajusta la ruta a tu config
+import { Button, Form, Row, Col } from "react-bootstrap";
+import config from "../../../config"; 
 import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../../context/UserContext";
 import Swal from "sweetalert2";
 
-const NuevoGuia = ({ datoscurso, semana }) => {
+const NuevoGuia = ({ datoscurso, semana, onUpdated }) => {
   const { usuario } = useUsuario();
-
   const token = usuario?.codigotokenautenticadorunj;
-
 
   const [formulario, setFormulario] = useState({
     sede: "",
@@ -28,6 +26,9 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     horaSalida: "",
     concluida: false,
   });
+
+  // 🔹 Fechas adicionales
+  const [fechasAdicionales, setFechasAdicionales] = useState([]);
 
   // Cargar datos iniciales cuando cambia datoscurso o semana
   useEffect(() => {
@@ -52,7 +53,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     }
   }, [datoscurso, semana]);
 
-  // Manejar cambios en inputs
+  // Manejar cambios en inputs normales
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormulario({
@@ -61,9 +62,29 @@ const NuevoGuia = ({ datoscurso, semana }) => {
     });
   };
 
+  // 🔹 Manejar cambios en fechas adicionales
+  const handleFechaChange = (index, field, value) => {
+    const nuevas = [...fechasAdicionales];
+    nuevas[index][field] = value;
+    setFechasAdicionales(nuevas);
+  };
+
+  // 🔹 Agregar nueva fecha
+  const agregarFecha = () => {
+    setFechasAdicionales([
+      ...fechasAdicionales,
+      { fecha: "", hora_entrada: "", hora_salida: "" },
+    ]);
+  };
+
+  // 🔹 Eliminar fecha
+  const eliminarFecha = (index) => {
+    const nuevas = fechasAdicionales.filter((_, i) => i !== index);
+    setFechasAdicionales(nuevas);
+  };
+
   // Guardar guía (POST a API Laravel)
   const guardarGuia = async () => {
-    
     try {
       const payload = {
         sede: formulario.sede,
@@ -78,31 +99,38 @@ const NuevoGuia = ({ datoscurso, semana }) => {
         clasegrabada: formulario.claseGrabada, // ✅ coincide con backend
         horaentrada: formulario.horaEntrada,
         horasalida: formulario.horaSalida,
-        concluido: formulario.concluida ? "1" : "0", // ✅ string para que pase la validación
-        fecha: formulario.fecha
+        concluido: formulario.concluida ? "1" : "0",
+        fecha: formulario.fecha,
+        fechas_adicionales: fechasAdicionales.map(f => ({
+          fecha: f.fecha,
+          hora_entrada: f.hora_entrada || "",
+          hora_salida: f.hora_salida || ""
+        }))
       };
 
       console.log("📤 Enviando payload:", payload);
 
       const response = await fetch(`${config.apiUrl}api/curso/GrabarGuia`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
       if (response.ok && !data.error) {
         Swal.fire("✅ Guía guardada correctamente", data.mensaje, "success");
+        setFechasAdicionales([]); // limpiar extras
+        if (onUpdated) onUpdated();
       } else {
-        Swal.fire("Error Falta datos por completar", data.mensaje, "error");
+        Swal.fire("⚠️ Error", data.mensaje || "Faltan datos", "error");
       }
     } catch (error) {
-      console.error("Error al guardar guía:", error);
-      //alert("❌ Error en el servidor");
+      console.error("❌ Error al guardar guía:", error);
+      Swal.fire("Error", "No se pudo guardar la guía", "error");
     }
   };
 
@@ -111,20 +139,14 @@ const NuevoGuia = ({ datoscurso, semana }) => {
       <Form>
         <Form.Group className="mb-3">
           <Form.Label>Semana</Form.Label>
-
           <SemestreSelect
             value={formulario.semana}
-            onChange={(valor) => {
-              setFormulario((prev) => ({
-                ...prev,
-                semana: valor,
-              }));
-            }}
+            onChange={(valor) =>
+              setFormulario((prev) => ({ ...prev, semana: valor }))
+            }
             name="semana"
             parametros={datoscurso}
           />
-
-
         </Form.Group>
 
         <Form.Group className="mb-3">
@@ -137,7 +159,6 @@ const NuevoGuia = ({ datoscurso, semana }) => {
           />
         </Form.Group>
 
-        
         <Form.Group className="mb-3">
           <Form.Label>Clase síncrona</Form.Label>
           <Form.Control
@@ -158,37 +179,86 @@ const NuevoGuia = ({ datoscurso, semana }) => {
           />
         </Form.Group>
 
+        {/* 🔹 Fecha + Hora entrada + Hora salida en la misma fila */}
         <Form.Group className="mb-3">
-          <Form.Label>Fecha</Form.Label>
-          <Form.Control
-            type="date"
-            name="fecha"
-            value={formulario.fecha}
-            onChange={handleChange}
-          />
+          <Form.Label>Fecha principal</Form.Label>
+          <Row>
+            <Col>
+              <Form.Control
+                type="date"
+                name="fecha"
+                value={formulario.fecha}
+                onChange={handleChange}
+              />
+            </Col>
+            <Col>
+              <Form.Control
+                type="time"
+                name="horaEntrada"
+                value={formulario.horaEntrada}
+                onChange={handleChange}
+              />
+            </Col>
+            <Col>
+              <Form.Control
+                type="time"
+                name="horaSalida"
+                value={formulario.horaSalida}
+                onChange={handleChange}
+              />
+            </Col>
+          </Row>
         </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Hora entrada</Form.Label>
-          <Form.Control
-            type="time"
-            name="horaEntrada"
-            value={formulario.horaEntrada}
-            onChange={handleChange}
-          />
+        {/* 🔹 Fechas adicionales */}
+        <Form.Group>
+          <Form.Label>Fechas adicionales</Form.Label>
+          {fechasAdicionales.map((f, index) => (
+            <Row key={index} className="mb-2">
+              <Col>
+                <Form.Control
+                  type="date"
+                  value={f.fecha}
+                  onChange={(e) =>
+                    handleFechaChange(index, "fecha", e.target.value)
+                  }
+                />
+              </Col>
+              <Col>
+                <Form.Control
+                  type="time"
+                  value={f.hora_entrada}
+                  onChange={(e) =>
+                    handleFechaChange(index, "hora_entrada", e.target.value)
+                  }
+                />
+              </Col>
+              <Col>
+                <Form.Control
+                  type="time"
+                  value={f.hora_salida}
+                  onChange={(e) =>
+                    handleFechaChange(index, "hora_salida", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs="auto">
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => eliminarFecha(index)}
+                >
+                  ✕
+                </Button>
+              </Col>
+            </Row>
+          ))}
+          <Button variant="primary" size="sm" onClick={agregarFecha}>
+            + Agregar fecha
+          </Button>
         </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Hora salida</Form.Label>
-          <Form.Control
-            type="time"
-            name="horaSalida"
-            value={formulario.horaSalida}
-            onChange={handleChange}
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3" controlId="concluida">
+        <Form.Group className="mt-3" controlId="concluida">
           <Form.Check
             type="checkbox"
             label="Concluida"
@@ -198,7 +268,7 @@ const NuevoGuia = ({ datoscurso, semana }) => {
           />
         </Form.Group>
 
-        <Button variant="primary" onClick={guardarGuia}>
+        <Button variant="success" className="mt-3" onClick={guardarGuia}>
           Guardar
         </Button>
       </Form>
@@ -207,4 +277,3 @@ const NuevoGuia = ({ datoscurso, semana }) => {
 };
 
 export default NuevoGuia;
-

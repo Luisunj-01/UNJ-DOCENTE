@@ -86,7 +86,7 @@ function DetalleGuias({ datoscurso = [] }) {
   ];
 
   useEffect(() => {
-    let interval;
+    //let interval;
     cargarDatos();
 
     setDatos2({
@@ -97,8 +97,8 @@ function DetalleGuias({ datoscurso = [] }) {
       nombredocente,
     });
 
-    interval = setInterval(cargarDatos, 2000);
-      return () => clearInterval(interval);
+    /*interval = setInterval(cargarDatos, 2000);
+      return () => clearInterval(interval);*/
     }, []);
 
     const ventanaSecundaria = (url) => {
@@ -106,6 +106,7 @@ function DetalleGuias({ datoscurso = [] }) {
   };
 
   const cargarDatos = async () => {
+    setLoading(true);
     try {
       const respuestguias = await obtenerDatosguias(sede, semestre, escuela, curricula, curso, seccion);
 
@@ -184,7 +185,58 @@ function DetalleGuias({ datoscurso = [] }) {
   const columnas = [
     { clave: 'semana', titulo: 'Semana' },
     { clave: 'contenido', titulo: 'Contenido' },
-    { clave: 'fecha', titulo: 'Fecha' },
+    {
+      clave: 'fecha',
+      titulo: 'Fecha',
+      render: (fila) => {
+        // 👇 Función para formatear fecha
+        const formatFecha = (fechaStr) => {
+          if (!fechaStr) return "";
+          
+          // Caso: viene como yyyy-mm-dd
+          if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
+            const [y, m, d] = fechaStr.split("-");
+            return `${d}/${m}/${y}`;
+          }
+
+          // Caso: viene como dd/mm/yyyy (ya lista)
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(fechaStr)) {
+            return fechaStr;
+          }
+
+          // Último recurso: usar Date (puede restar un día según zona horaria)
+          const d = new Date(fechaStr);
+          if (isNaN(d)) return fechaStr;
+          return d.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+        };
+        // 👇 Parsear fechas adicionales
+        const fechasExtras = [];
+        try {
+          if (fila.fechas_adicionales) {
+            fechasExtras.push(...JSON.parse(fila.fechas_adicionales));
+          }
+        } catch (e) {
+          console.error("Error parseando fechas adicionales", e);
+        }
+
+        return (
+          <div>
+            {/* Fecha principal */}
+            <div>{formatFecha(fila.fecha)}</div>
+
+            {/* Fechas adicionales */}
+            {fechasExtras.map((f, i) => (
+              <div key={i}>{formatFecha(f.fecha)}</div>
+            ))}
+          </div>
+        );
+      }
+    },
+
     {
       titulo: 'Guía',
       render: (fila) => {
@@ -324,6 +376,7 @@ function DetalleGuias({ datoscurso = [] }) {
               <NuevoGuia 
                 datoscurso={datoscursos} 
                 semana={filanuevoguia.semana} 
+                onUpdated={cargarDatos} 
               />
             )}
           </Modal.Body>
