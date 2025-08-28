@@ -3,23 +3,19 @@ import { useUsuario } from '../../../context/UserContext';
 import { useLocation } from 'react-router-dom';
 
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
-import TablaCursos from '../../reutilizables/componentes/TablaCursos';
-
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenerguiasemana, obtenerNombreConfiguracion } from '../logica/Reportes';
+import { obtenerAsistenciasemana, obtenerNombreConfiguracion } from '../logica/Reportes';
+import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
 
-const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, semestre, objetos }) => {
+const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, semestre, objetos}) => {
   const fecha = new Date();
-  const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
 
   return (
     <>
       <Cabecerareporte titulomat={titulomat} />
-
       <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
-
       <table className="table">
         <tbody>
           <tr>
@@ -31,14 +27,18 @@ const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, seme
           <tr>
             <td><strong>Semestre:</strong></td>
             <td>{semestre}</td>
-            <td><strong>Fecha:</strong></td>
-            <td>{fechaFormateada}</td>
+            <td><strong>Sección:</strong></td>
+            <td>{objetos.seccion}</td>
           </tr>
           <tr>
             <td><strong>Curricula:</strong></td>
             <td>{objetos.curricula}</td>
-            <td><strong>Sección:</strong></td>
-            <td>{objetos.seccion}</td>
+            <td><strong>Sesion:</strong></td>
+            <td>{objetos.sesion}</td>
+          </tr>
+          <tr>
+            <td><strong>Escuela:</strong></td>
+            <td colSpan={3}>{nombreEscuela}</td>
           </tr>
         </tbody>
       </table>
@@ -46,26 +46,24 @@ const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, seme
   );
 };
 
-const Imprimirguiasemana = () => {
+const ImprimirAsistenciaSemana = () => {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [nombresede, setNombresede] = useState('No Definida');
   const [nombreescuela, setNombreescuela] = useState('No Definida');
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('FS-01: FICHA DE SEGUIMIENTO DOCENTE AL ACCIONAR ESTUDIANTIL RESPECTO A LA GUIA DE APRENDIZAJE');
+  const [titulomat] = useState('REGISTRO DE ASISTENCIA DE ESTUDIANTES');
 
   const queryParams2 = new URLSearchParams(search);
   const codigo2 = queryParams2.get('codigo');
-  const semana = queryParams2.get('semana');
 
-  
-  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '';
+  // 📌 aquí añadimos los nuevos parámetros
+  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '', tipo = '', grupo = '', sesion = '', clave = '';
   try {
     if (codigo2) {
       const decoded2 = atob(atob(codigo2));
-      [sede, semestre, escuela, curricula, curso, seccion] = decoded2.split('|');
-      
+      [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave] = decoded2.split('|');
     }
   } catch (error) {
     console.error("Error decodificando parámetros:", error);
@@ -74,29 +72,27 @@ const Imprimirguiasemana = () => {
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
 
-  const objetos = {
-        sede: sede,
-        semestre: semestre,
-        escuela: escuela,
-        curricula: curricula,
-        curso: curso, seccion
-      }
-      
+  const objetos = { sede, semestre, escuela, curricula, curso, seccion, sesion };
+
   useEffect(() => {
-    if (!sede || !semestre || !escuela || !curricula  || !curso || !seccion || !semana) {
+    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
       setLoading(false);
       return;
     }
 
-
     const fetchDatos = async () => {
       try {
-        const resultadomatricula = await obtenerguiasemana(sede, semestre, escuela, curricula, curso, seccion, semana);
+        // 📌 enviamos también tipo, grupo, sesion y clave
+        const resultadoAsistencia = await obtenerAsistenciasemana(
+          sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave
+        );
+
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
-        const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico });
+        const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico || '' });
 
-        setDatos(resultadomatricula?.datos || []);
+        console.log("📌 Datos recibidos de la API:", resultadoAsistencia);
 
+        setDatos(resultadoAsistencia?.datos || []);
         setNombresede(typeof nombresedeResp === 'object' ? nombresedeResp?.valor || '' : nombresedeResp);
         setNombreescuela(typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || '' : nombreescuelaResp);
       } catch (err) {
@@ -107,7 +103,8 @@ const Imprimirguiasemana = () => {
     };
 
     fetchDatos();
-  }, [sede, semestre, escuela, curricula, curso, seccion, semana, departamentoacademico]);
+  }, [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave, departamentoacademico]);
+
 
 
   const columnasEncabezado = [
@@ -115,14 +112,8 @@ const Imprimirguiasemana = () => {
       { titulo: 'No.', rowSpan: 2 },
       { titulo: 'Código', rowSpan: 2 },
       { titulo: 'Apellidos y Nombres.', rowSpan: 2 },
-      { titulo: 'Celular', rowSpan: 2 },
-      { titulo: 'Correo Institucional.', rowSpan: 2 },
-     
-      { titulo: 'Actividades Realizadas', colSpan: 5 },
-      
-    ],
-    [
-      { titulo: 'Actividad' }, { titulo: 'Evidencia' }, { titulo: 'Participo' }, { titulo: 'Minutos' }, { titulo: 'Observación' },
+      { titulo: 'Fecha', colSpan: 5 },
+      { titulo: 'Observacion' }, 
       
     ]
   ];
@@ -130,15 +121,10 @@ const Imprimirguiasemana = () => {
   const columnas = [
     { clave: 'alumno' },
     { clave: 'nombrecompleto' },
-    { clave: 'celular' },
-    { clave: 'email_institucional' },
-    { clave: 'actividad' }, { clave: 'evidencia' }, { clave: 'participo' }, { clave: 'minutos' }, { clave: 'tema' },
+    { clave: 'fecha' }, 
+    { clave: 'observacion' },
     
   ];
-
-  const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteoria || 0), 0);
-  const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
-  const totalHT = totalHorasTeoria + totalHorasPractica;
 
   return (
     <>
@@ -169,10 +155,10 @@ const Imprimirguiasemana = () => {
         <div className="row mt-3">
           <div className="col-12">
             {loading ? (
-              <TablaSkeleton filas={6} columnas={8} />
+              <TablaSkeleton filas={5} columnas={6} />
             ) : (
               <>
-                <TablaCursoSub
+                <TablaCursos
                         datos={datos} 
                         columnasEncabezado={columnasEncabezado} 
                         columnas={columnas}
@@ -187,4 +173,4 @@ const Imprimirguiasemana = () => {
   );
 };
 
-export default Imprimirguiasemana;
+export default ImprimirAsistenciaSemana;

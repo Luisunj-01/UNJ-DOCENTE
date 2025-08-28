@@ -5,39 +5,50 @@ import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 import { obtenerdatosasistencia } from '../logica/Curso';
 
 import PrintIcon from '@mui/icons-material/Print';
-import EditIcon from '@mui/icons-material/Edit';
-import BlockIcon from '@mui/icons-material/Block';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 
 import ParticipantesCurso from './Participantesasistencia';
-import { IconButton } from '@mui/material';
+import { IconButton, Dialog, DialogContent, DialogTitle } from '@mui/material';
 import { ToastContext } from '../../../cuerpos/Layout';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+import ImprimirAsistenciaSemana from '../../reportes/componentes/ImprimirAsistenciaSemana';
+
+// 👉 Importamos el componente de impresión
 
 function Asistenciadocente({ datoscurso }) {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
-  
+
   const { id } = useParams();
   const decoded = atob(atob(id));
-  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] = decoded.split('|');
+  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] =
+    decoded.split('|');
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [datosCursoSeleccionado, setDatosCursoSeleccionado] = useState(null);
-  const { mostrarToast } = useContext(ToastContext);  
+  const { mostrarToast } = useContext(ToastContext);
+
+  // 👉 Estado para imprimir en ventana flotante
+  const [openImprimir, setOpenImprimir] = useState(false);
+  const [datosSeleccionados, setDatosSeleccionados] = useState(null);
 
   useEffect(() => {
     let interval;
     cargarDatos();
     interval = setInterval(cargarDatos, 2000);
-      return () => clearInterval(interval);
+    return () => clearInterval(interval);
   }, []);
 
   const cargarDatos = async () => {
-    //setLoading(true);
-
     try {
-      const respuestaAsistencia = await obtenerdatosasistencia(sede, semestre, escuela, curricula, curso, seccion);
+      const respuestaAsistencia = await obtenerdatosasistencia(
+        sede,
+        semestre,
+        escuela,
+        curricula,
+        curso,
+        seccion
+      );
 
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
         setMensajeApi('No se pudo obtener el detalle de asistencia.');
@@ -59,165 +70,125 @@ function Asistenciadocente({ datoscurso }) {
     console.log(`Click en: ${tipo}`, fila);
   };
 
-  const imprimirTodasLasAsistencias = () => {
-    console.log('Imprimir todas las asistencias');
-    // Aquí puedes agregar lógica para imprimir toda la tabla o generar PDF
+  const normalizarFecha = (fechaStr) => {
+    if (!fechaStr) return null;
+    const str = String(fechaStr).trim();
+
+    // dd/mm/yyyy → yyyy-mm-dd
+    let m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+
+    // yyyy-mm-dd → yyyy-mm-dd
+    m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+
+    // yyyy/mm/dd → yyyy-mm-dd
+    m = str.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+
+    // ISO con T o espacio
+    m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s].*$/);
+    if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+
+    return null;
   };
-const normalizarFecha = (fechaStr) => {
-  if (!fechaStr) return null;
-  const str = String(fechaStr).trim();
 
-  // dd/mm/yyyy → yyyy-mm-dd
-  let m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-
-  // yyyy-mm-dd → yyyy-mm-dd
-  m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-
-  // yyyy/mm/dd → yyyy-mm-dd
-  m = str.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-
-  // ISO con T o espacio
-  m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s].*$/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-
-  return null;
-};
-  //console.log(datos);
   const columnas = [
     { clave: 'sesion', titulo: 'Sesión' },
     { clave: 'contenido', titulo: 'Contenido' },
     {
-  clave: "fecha",
-  titulo: "Fechas",
-  render: (fila) => {
-    // 👉 Normalizador de fechas a dd/mm/yyyy
-    const formatFecha = (fechaStr) => {
-      if (!fechaStr) return "";
+      clave: 'fecha',
+      titulo: 'Fechas',
+      render: (fila) => {
+        const formatFecha = (fechaStr) => {
+          if (!fechaStr) return '';
 
-      const str = String(fechaStr).trim();
+          const str = String(fechaStr).trim();
 
-      // Caso 1: ya viene dd/mm/yyyy
-      if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
 
-      // Caso 2: yyyy-mm-dd
-      let m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+          let m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (m) return `${m[3]}/${m[2]}/${m[1]}`;
 
-      // Caso 3: yyyy/mm/dd
-      m = str.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
-      if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+          m = str.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+          if (m) return `${m[3]}/${m[2]}/${m[1]}`;
 
-      // Caso 4: ISO con T o espacio → yyyy-mm-ddTHH:mm:ss
-      m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s].*$/);
-      if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+          m = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s].*$/);
+          if (m) return `${m[3]}/${m[2]}/${m[1]}`;
 
-      // Si no se reconoce, devolver tal cual
-      return str;
-    };
+          return str;
+        };
 
+        let fechasGuia = [formatFecha(fila.fecha_programada)];
 
-    // 👉 Tomamos la fecha principal
-    let fechasGuia = [formatFecha(fila.fecha_programada)];
-
-    // 👉 Y las adicionales si existen
-    if (fila.fechas_adicionales) {
-      try {
-        const arr = JSON.parse(fila.fechas_adicionales);
-        if (Array.isArray(arr)) {
-          fechasGuia = fechasGuia.concat(arr.map((f) => formatFecha(f.fecha || f)));
+        if (fila.fechas_adicionales) {
+          try {
+            const arr = JSON.parse(fila.fechas_adicionales);
+            if (Array.isArray(arr)) {
+              fechasGuia = fechasGuia.concat(arr.map((f) => formatFecha(f.fecha || f)));
+            }
+          } catch {
+            fechasGuia = fechasGuia.concat(
+              fila.fechas_adicionales
+                .split(',')
+                .map((f) => formatFecha(f.trim()))
+                .filter((f) => f !== '')
+            );
+          }
         }
-      } catch {
-        fechasGuia = fechasGuia.concat(
-          fila.fechas_adicionales
-            .split(",")
-            .map((f) => formatFecha(f.trim()))
-            .filter((f) => f !== "")
-        );
-      }
-    }
 
-    // 👉 Mostramos todas las fechas (solo guía)
-    return (
-      <div style={{ textAlign: "center", fontWeight: "bold" }}>
-        {fechasGuia.map((f, i) => (
-          <div
-            key={i}
-            style={{
-              backgroundColor: "#e0e0e0",
-              color: "black",
-              margin: "2px",
-              padding: "3px",
-              borderRadius: "4px",
-            }}
-          >
-            📅 {f}
+        return (
+          <div style={{ textAlign: 'center', fontWeight: 'bold' }}>
+            {fechasGuia.map((f, i) => (
+              <div
+                key={i}
+                style={{
+                  backgroundColor: '#e0e0e0',
+                  color: 'black',
+                  margin: '2px',
+                  padding: '3px',
+                  borderRadius: '4px',
+                }}
+              >
+                📅 {f}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    );
-  },
-},
-
-
-
-
-
-
-
+        );
+      },
+    },
     {
       clave: '',
-      titulo: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
-          <span>Asistencia</span>
-          {/*<IconButton
-              title="REGISTRO DE SESIONES DE CLASE"
-              onClick={imprimirTodasLasAsistencias}
-              size="small"
-            >
-              <PrintIcon style={{ color: '#28a745' }} />
-            </IconButton>
-
-
-            <IconButton
-              title="IMPRIMIR"
-              onClick={imprimirTodasLasAsistencias}
-              size="small"
-            >
-              <PrintIcon style={{ color: '#a954b4ff' }} />
-            </IconButton> */}
-        </div>
-      ),
+      titulo: 'Asistencia',
       render: (fila) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <IconButton
+          {/* Botón Imprimir */}
+         <IconButton
             title={`Imprimir Asistencia: ${nombrecurso}`}
-            onClick={() => handleClick('guia', fila)}
+            onClick={() => {
+              const codigo = btoa(btoa(
+                `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`
+              ));
+
+              window.open(
+                `/ImprimirAsistenciaSemana?codigo=${codigo}`,
+                'popupImpresion',
+                'width=1000,height=700,scrollbars=yes,resizable=yes'
+              );
+            }}
             color="primary"
             size="small"
           >
             <PrintIcon />
           </IconButton>
 
-          
-
-            
 
 
+
+          {/* Botón Nuevo */}
           <IconButton
             title={`Nuevo Asistencia: ${nombrecurso}`}
             onClick={() => {
-              // 👉 Normaliza todas las fechas de la guía a formato yyyy-mm-dd
-              const normalizar = (f) => {
-                if (!f) return null;
-                const partes = f.split("/");
-                if (partes.length !== 3) return null;
-                const [d, m, y] = partes;
-                if (!d || !m || !y) return null;
-                return `${y.padStart(4,"0")}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
-              };
               let fechasGuia = [];
               const fPrincipal = normalizarFecha(fila.fecha_programada);
               if (fPrincipal) fechasGuia.push(fPrincipal);
@@ -233,7 +204,7 @@ const normalizarFecha = (fechaStr) => {
                 } catch {
                   fechasGuia = fechasGuia.concat(
                     fila.fechas_adicionales
-                      .split(",")
+                      .split(',')
                       .map((f) => normalizarFecha(f.trim()))
                       .filter(Boolean)
                   );
@@ -242,7 +213,7 @@ const normalizarFecha = (fechaStr) => {
               setDatosCursoSeleccionado({
                 ...fila,
                 modoEdicion: false,
-                fechasGuia, // 👈 ahora mandamos las fechas válidas
+                fechasGuia,
               });
               setMostrarParticipantes(true);
             }}
@@ -251,18 +222,15 @@ const normalizarFecha = (fechaStr) => {
           >
             <NoteAddIcon />
           </IconButton>
-
         </div>
       ),
-    }
-  ];  
-
+    },
+  ];
 
   const handleVolver = () => {
     setMostrarParticipantes(false);
     setDatosCursoSeleccionado(null);
   };
- 
 
   return mostrarParticipantes && datosCursoSeleccionado ? (
     <>
@@ -270,14 +238,10 @@ const normalizarFecha = (fechaStr) => {
         <button className="btn btn-secondary" onClick={handleVolver}>
           ← Regresar
         </button>
-
-        
-
       </div>
       <ParticipantesCurso datoscurso={datosCursoSeleccionado} />
     </>
   ) : (
-    // 👉 Aquí está tu contenido original
     <div>
       <div className="alert alert-info text-center">
         <strong style={{ color: '#085a9b' }}>ASISTENCIA</strong>
@@ -290,12 +254,21 @@ const normalizarFecha = (fechaStr) => {
       ) : (
         <TablaCursos datos={datos} columnas={columnas} />
       )}
+
+      {/* Dialog flotante para imprimir asistencia */}
+      <Dialog
+        open={openImprimir}
+        onClose={() => setOpenImprimir(false)}
+        fullWidth
+        maxWidth="lg"
+      >
+        <DialogTitle>Imprimir Asistencia - {nombrecurso}</DialogTitle>
+        <DialogContent>
+          <ImprimirAsistenciaSemana datos={datosSeleccionados} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 export default Asistenciadocente;
-
-
-
-
