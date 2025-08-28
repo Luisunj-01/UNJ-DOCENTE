@@ -9,322 +9,166 @@ import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 import config from "../../../config";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { FaChalkboardTeacher, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+
 function ParticipantesCurso({ datoscurso }) {
-  
-  
   const [datos, setDatos] = useState([]);
-  const [datos2, setDatos2] = useState([]);
-  const [asistencias, setAsistencias] = useState(null);
+  const [datosFiltrados, setDatosFiltrados] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mensajeApi, setMensajeApi] = useState("");
-  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
-  const [fechasDisponibles, setFechasDisponibles] = useState([]);
-  const [showModalConfirmar, setShowModalConfirmar] = useState(false);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState("");
+  const [practicaSeleccionada, setPracticaSeleccionada] = useState("");
+  const [practicasDisponibles, setPracticasDisponibles] = useState([]);
   const { usuario } = useUsuario();
   const token = usuario?.codigotokenautenticadorunj;
+  const { mostrarToast } = useContext(ToastContext);
 
-  // Modal de justificación
   const [showModalJustificacion, setShowModalJustificacion] = useState(false);
-  const [justificacion, setJustificacion] = useState({
-    archivo: null,
-    observacion: "",
-    alumno: null,
-    nombrecompleto: "",
-  });
-
-  // Modal de validación de fecha
-  const [showModalFecha, setShowModalFecha] = useState(false);
+  const [justificacion, setJustificacion] = useState({ archivo: null, observacion: "", alumno: null, nombrecompleto: "" });
+  const [showModalConfirmar, setShowModalConfirmar] = useState(false);
 
   const { id } = useParams();
   const decoded = atob(atob(id));
-  const [sede, semestre, escuela, curricula, curso, seccion] =
-    decoded.split("|");
+  const [sede, semestre, escuela, curricula, curso, seccion] = decoded.split("|");
 
-  const { mostrarToast } = useContext(ToastContext);
+  const parametrosaenviar = { sede, semestre, escuela, curricula, curso, seccion, sesion: datoscurso.sesion };
 
-  const parametrosaenviar = {
-    sede,
-    semestre,
-    escuela,
-    curricula,
-    curso,
-    seccion,
-    sesion: datoscurso.sesion,
-  };
-
-  const formatearFecha = (fecha) => {
-    const yyyy = fecha.getFullYear();
-    const mm = String(fecha.getMonth() + 1).padStart(2, "0");
-    const dd = String(fecha.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  useEffect(() => {
-    if (!datoscurso?.modoEdicion) {
-      localStorage.removeItem("asistenciasSeleccionadas");
-    }
-
-    // Validar fecha contra la guía
-    if (datoscurso?.fecha) {
-      const [dia, mes, anio] = datoscurso.fecha.split("/").map(Number);
-      const fechaGuia = new Date(anio, mes - 1, dia);
-      const hoy = new Date();
-
-      if (fechaGuia.toDateString() !== hoy.toDateString()) {
-        setShowModalFecha(true);
-      }
-    }
-
-    cargarDatos();
-  }, []);
-
-  const handleGuardarClick = () => {
-    const claveStorage = "asistenciasSeleccionadas";
-    const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
-
-    if (asistencias.length === 0) {
-      mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
-      return;
-    }
-
-    setShowModalConfirmar(true);
-  };
-
+  // --- Cargar datos ---
   const cargarDatos = async (fecha = null) => {
     setLoading(true);
     try {
-      // limpiar antes de cada carga
-      setDatos([]);
-      setDatos2([]);
+      const resAsistencia = await obtenerDatosAsistencia(parametrosaenviar, fecha);
+      const resAsistNuevo = await obtenerDatosAsistencianuevo(parametrosaenviar, fecha);
 
-      const respuestaAsistencia = await obtenerDatosAsistencia(parametrosaenviar, fecha);
-      const respuestaAsistencianuevo = await obtenerDatosAsistencianuevo(parametrosaenviar, fecha);
-
-      if (!respuestaAsistencia?.datos || !respuestaAsistencianuevo?.datos) {
-        setMensajeApi("No se pudo obtener el detalle de la Asistencia.");
+      if (!resAsistencia?.datos || !resAsistNuevo?.datos) {
+        setDatos([]);
+        setDatosFiltrados([]);
+        setPracticasDisponibles([]);
         setLoading(false);
         return;
       }
 
-      // Extraer fechas únicas
-      const fechasUnicas = [
-        ...new Set(respuestaAsistencia.datos.map((item) => item.fecha)),
-      ];
-      setFechasDisponibles(fechasUnicas);
-
-      if (fecha) {
-      // unir ambas listas
-      const alumnosCompletos = respuestaAsistencianuevo.datos.map((nuevo) => {
-        const encontrado = respuestaAsistencia.datos.find((a) => a.alumno === nuevo.alumno);
+      // Combinar listas y agregar flag de existencia
+      const alumnosCompletos = resAsistNuevo.datos.map((nuevo) => {
+        const encontrado = resAsistencia.datos.find(a => a.alumno === nuevo.alumno);
         return {
           ...nuevo,
           asistencia: encontrado ? (encontrado.condicion || "0") : "0",
           observacion: encontrado ? encontrado.observaciones : "",
           persona: encontrado ? encontrado.persona : nuevo.persona,
+          existe: !!encontrado
         };
       });
 
-      setDatos(alumnosCompletos); // 👈 aquí siempre tendrás TODOS los alumnos
-      setDatos2([]); // ya no lo necesitas en modo edición
-    }
+      // Evitar duplicados
+      const alumnosUnicos = Array.from(new Map(alumnosCompletos.map(a => [a.alumno, a])).values());
 
-
-      setMensajeApi(respuestaAsistencia.mensaje);
+      setDatos(alumnosUnicos);
+      setDatosFiltrados([]);
+      setPracticasDisponibles([...new Set(alumnosUnicos.map(a => a.practica))].sort());
+      setPracticaSeleccionada("");
     } catch (error) {
-      console.error("Error al cargar datos:", error);
-      setMensajeApi("Ocurrió un error al obtener los datos.");
+      console.error(error);
       setDatos([]);
-      setDatos2([]);
+      setDatosFiltrados([]);
+      setPracticasDisponibles([]);
     }
-
     setLoading(false);
   };
 
-  console.log(datos);
-  const marcarTodosComoAsistencia = () => {
-    if (datos.length === 0) {
-      // Caso nuevo registro (trabaja sobre datos2)
-      const nuevosDatos = datos2.map((item) => {
-        const asistencia = "A";
-        actualizarAsistenciaLocal(
-          item.alumno,
-          item.nombrecompleto,
-          asistencia,
-          item.observacion || "",
-          item.archivo || null
-        );
-        return { ...item, asistencia };
-      });
-      setDatos2(nuevosDatos);
-    } else {
-      // Caso modificación (trabaja sobre datos)
-      const nuevosDatos = datos.map((item) => {
-        const asistencia = "A";
-        actualizarAsistenciaLocal(
-          item.alumno,
-          item.persona,
-          item.nombrecompleto,
-          asistencia,
-          item.observacion || "",
-          item.archivo || null
-        );
-        return { ...item, asistencia };
-      });
-      setDatos(nuevosDatos);
-    }
+  useEffect(() => {
+    cargarDatos();
+  }, []);
 
+  // --- Filtrar por práctica ---
+  const filtrarPorPractica = (practica) => {
+    setPracticaSeleccionada(practica);
+    const filtrados = datos.filter(a => a.practica === practica);
+    setDatosFiltrados(filtrados);
+  };
+
+  // --- Marcar todos ---
+  const marcarTodosComoAsistencia = () => {
+    setDatosFiltrados(prev => {
+      const nuevos = prev.map(d => ({ ...d, asistencia: "A" }));
+      nuevos.forEach(d => actualizarAsistenciaLocal(d.alumno, d.persona, d.nombrecompleto, "A", d.observacion || ""));
+      return nuevos;
+    });
     mostrarToast("Todos los alumnos fueron marcados como Asistencia.", "success");
   };
 
+  // --- Actualizar asistencia local ---
+  const actualizarAsistenciaLocal = (alumno, persona, nombrecompleto, asistencia, observacion = "", archivo = null) => {
+    const clave = "asistenciasSeleccionadas";
+    let asistencias = JSON.parse(localStorage.getItem(clave)) || [];
 
-  const actualizarAsistenciaLocal = (
-  alumno,
-  persona,
-  nombrecompleto,
-  asistencia,
-  observacion = "",
-  archivo = null
-) => {
-  const claveStorage = "asistenciasSeleccionadas";
-  let asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
-
-  if (asistencia === "0") {
-    asistencias = asistencias.filter((item) => item.alumno !== alumno);
-  } else {
-    const index = asistencias.findIndex((item) => item.alumno === alumno);
-    if (index !== -1) {
-      asistencias[index].asistencia = asistencia;
-      asistencias[index].observacion = observacion;
-      asistencias[index].archivo = archivo;
+    if (asistencia === "0") {
+      asistencias = asistencias.filter(a => a.alumno !== alumno);
     } else {
-      asistencias.push({ alumno, persona, nombrecompleto, asistencia, observacion, archivo });
+      const index = asistencias.findIndex(a => a.alumno === alumno);
+      if (index !== -1) {
+        asistencias[index] = { ...asistencias[index], asistencia, observacion, archivo };
+      } else {
+        asistencias.push({ alumno, persona, nombrecompleto, asistencia, observacion, archivo });
+      }
     }
-  }
+    localStorage.setItem(clave, JSON.stringify(asistencias));
 
-  localStorage.setItem(claveStorage, JSON.stringify(asistencias));
-
-  // 🔹 actualizar datos existentes
-  if (datos.length > 0) {
-    setDatos((prevDatos) =>
-      prevDatos.map((item) =>
-        item.alumno === alumno ? { ...item, asistencia, observacion } : item
-      )
-    );
-  } else {
-    setDatos2((prevDatos2) =>
-      prevDatos2.map((item) =>
-        item.alumno === alumno ? { ...item, asistencia, observacion } : item
-      )
-    );
-  }
-};
-
-  const guardarAsistenciaFinal = async () => {
-  const claveStorage = "asistenciasSeleccionadas";
-  const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
- 
-
-  if (asistencias.length === 0) {
-    mostrarToast("No hay asistencias seleccionadas para guardar.", "info");
-    return;
-  }
-
-  let fechaFormateada = fechaSeleccionada;
-  if (!fechaFormateada) {
-    fechaFormateada = formatearFecha(new Date());
-  }
-
-  console.log(asistencias);
-  
-
-  const payload = {// el mismo base64 que recibes en useParams()
-    clave: "01", // aquí defines la sesión item (podría ser dinámico)
-    txtFecha: fechaFormateada,
-    txtTipo: datos.length === 0 ? "N" : "U",
-    sede,
-    semestre,
-    escuela,
-    curricula,
-    curso,
-    seccion,
-    semana: datoscurso.sesion,
-    asistencias: asistencias.map((a) => ({
-      alumno: `${a.alumno}`,
-      persona: a.persona, // o como lo generas en tu BD
-      asistencia: a.asistencia,
-      observacion: a.observacion || "",
-      usuarioregistro: `${usuario.docente.numerodocumento}`,
-    })),
+    // Actualizar estado
+    setDatos(prev => prev.map(d => d.alumno === alumno ? { ...d, asistencia, observacion } : d));
+    setDatosFiltrados(prev => prev.map(d => d.alumno === alumno ? { ...d, asistencia, observacion } : d));
   };
 
-  console.log(payload);
-  try {
-
-    const response = await axios.post(`${config.apiUrl}api/curso/GrabarAsistencia`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      });
-
-      if (!response.data.error) {
-        Swal.fire("✅ Éxito", response.data.mensaje, "success");
-      } else {
-        Swal.fire("⚠️ Error", response.data.mensaje, "error");
-      }
-
-    /*const response = await fetch(`${config.apiUrl}api/curso/GrabarAsistencia`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    console.log("Respuesta de API:", data);
-
-    if (data.error === 0) {
-      data.detalles.forEach(item => {
-        console.log(`Alumno ${item.alumno} → ${item.accion.toUpperCase()} (${item.condicion})`);
-      });
-    } else {
-      console.error("Error en API:", data.mensaje);
-    }
- */
-
-    /*if (!response.ok || data.error) {
-      mostrarToast(data.mensaje || "Error al guardar asistencia", "danger");
-    } else {
-      mostrarToast(data.mensaje, "success");
-      localStorage.removeItem(claveStorage);
-      setAsistencias(asistencias);
-    }*/
-  } catch (error) {
-    console.error("Error en guardarAsistenciaFinal:", error);
-    mostrarToast("Ocurrió un error al guardar", "danger");
-  }
-};
-
-
+  // --- Abrir modal justificación ---
   const handleAbrirModal = (alumno, nombrecompleto) => {
-    setJustificacion({ archivo: null, observacion: "", alumno, nombrecompleto });
+    setJustificacion({ alumno, nombrecompleto, observacion: "", archivo: null });
     setShowModalJustificacion(true);
   };
-
   const handleGuardarJustificacion = () => {
     if (!justificacion.archivo && !justificacion.observacion) {
       mostrarToast("Debes subir un archivo o escribir una observación", "warning");
       return;
     }
-
-    actualizarAsistenciaLocal(
-      justificacion.alumno,
-      justificacion.nombrecompleto,
-      "F",
-      justificacion.observacion,
-      justificacion.archivo
-    );
+    actualizarAsistenciaLocal(justificacion.alumno, "", justificacion.nombrecompleto, "F", justificacion.observacion, justificacion.archivo);
     setShowModalJustificacion(false);
+  };
+
+  // --- Guardar asistencia final ---
+  const guardarAsistenciaFinal = async () => {
+    const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
+    if (asistencias.length === 0) {
+      mostrarToast("No hay asistencias seleccionadas.", "info");
+      return;
+    }
+    const payload = {
+      clave: "01",
+      txtFecha: fechaSeleccionada,
+      txtTipo: "U",
+      sede, semestre, escuela, curricula, curso, seccion,
+      semana: datoscurso.sesion,
+      asistencias: asistencias.map(a => ({
+        alumno: a.alumno,
+        persona: a.persona,
+        asistencia: a.asistencia,
+        observacion: a.observacion || "",
+        usuarioregistro: usuario.docente.numerodocumento
+      }))
+    };
+
+    try {
+      const response = await axios.post(`${config.apiUrl}api/curso/GrabarAsistencia`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.data.error) {
+        Swal.fire("Éxito", response.data.mensaje, "success");
+        localStorage.removeItem("asistenciasSeleccionadas");
+        cargarDatos(fechaSeleccionada);
+      } else {
+        Swal.fire("Error", response.data.mensaje, "error");
+      }
+    } catch (error) {
+      console.error(error);
+      mostrarToast("Ocurrió un error al guardar.", "danger");
+    }
   };
 
   const columnas = [
@@ -335,195 +179,108 @@ function ParticipantesCurso({ datoscurso }) {
       titulo: (
         <div className="d-flex align-items-center justify-content-between">
           <span>Asistencia &nbsp;&nbsp;</span>
-          {(datos.length === 0) && (
-            <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}>
-              Marcar todos
-            </Button>
-          )}
+          <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}><FaChalkboardTeacher /></Button>
         </div>
       ),
       render: (fila, index) => (
-        <Form.Group controlId={`asistencia${index + 1}`}>
-          <Form.Select
-            value={fila.asistencia || "0"}
-            onChange={(e) => {
-              const valor = e.target.value;
-              if (valor === "F") {
-                handleAbrirModal(fila.alumno, fila.nombrecompleto);
-              } else {
-                actualizarAsistenciaLocal(
-                  fila.alumno,
-                  fila.persona,
-                  fila.nombrecompleto,
-                  valor,
-                  fila.observacion || ""
-                );
-              }
-            }}
-          >
-            <option value="A">Asistencia</option>
-            <option value="F">Falta Just.</option>
-            <option value="I">Falta</option>
-            <option value="T">Tardanza Just.</option>
-            <option value="J">Tardanza</option>
-          </Form.Select>
-        </Form.Group>
-      ),
-    },
+        <Form.Select
+          value={fila.asistencia || "0"}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (val === "F") handleAbrirModal(fila.alumno, fila.nombrecompleto);
+            else actualizarAsistenciaLocal(fila.alumno, fila.persona, fila.nombrecompleto, val, fila.observacion || "");
+          }}
+        >
+          <option value="0">Seleccione</option>
+          <option value="A">Asistencia</option>
+          <option value="F">Falta Just.</option>
+          <option value="I">Falta</option>
+          <option value="T">Tardanza Just.</option>
+          <option value="J">Tardanza</option>
+        </Form.Select>
+      )
+    }, 
+    {
+      clave: "existe",
+      titulo: "Asistencia Existente",
+      render: (fila) => fila.existe ? <FaCheckCircle style={{ color: "green" }} /> : <FaTimesCircle style={{ color: "red" }} />
+    }
   ];
 
   return (
     <div>
-      <div className="alert alert-info text-center">
-        <strong style={{ color: "#085a9b" }}>PARTICIPANTES</strong>
-      </div>
+      <div className="alert alert-info text-center"><strong style={{ color: "#085a9b" }}>PARTICIPANTES</strong></div>
 
       <div className="row mb-3">
-        <div className="col-lg-6">
+        <div className="col-lg-4">
           <label><strong>Seleccionar fecha:</strong></label>
-          <Form.Control
-            type="date"
-            value={fechaSeleccionada || ""}
+          <Form.Select
+            value={fechaSeleccionada}
             onChange={(e) => {
               const nuevaFecha = e.target.value;
               setFechaSeleccionada(nuevaFecha);
-              localStorage.removeItem("asistenciasSeleccionadas"); // limpiar memoria
+              setPracticaSeleccionada(""); // 🔹 limpiar práctica al cambiar fecha
               cargarDatos(nuevaFecha);
             }}
-          />
+          >
+            <option value="">Seleccione una fecha</option>
+            {datoscurso?.fechasGuia?.map((f, i) => (
+              <option key={i} value={f}>{f}</option>
+            ))}
+          </Form.Select>
+
         </div>
 
-        <div className="col-lg-6">
-          <div style={{ float: "right" }}>
-            {datos.length === 0 ? (
-              <Button variant="success" size="sm" onClick={handleGuardarClick}>
-                Nueva Asistencia
-              </Button>
-            ) : (
-              <Button variant="success" size="sm" onClick={handleGuardarClick}>
-                Modificar Asistencia
-              </Button>
-            )}
-          </div>
+        <div className="col-lg-4">
+          <label><strong>Seleccionar Grupo:</strong></label>
+          <Form.Select
+            value={practicaSeleccionada}
+            onChange={(e) => filtrarPorPractica(e.target.value)}
+            disabled={!fechaSeleccionada} // 🔹 deshabilitado hasta seleccionar fecha
+          >
+            <option value="">Seleccione un Grupo</option>
+            {practicasDisponibles.map((p, i) => (
+              <option key={i} value={p}>{p}</option>
+            ))}
+          </Form.Select>
+        </div>
+
+
+        <div className="col-lg-4 d-flex align-items-end justify-content-end">
+          <Button variant="success" size="sm" onClick={() => setShowModalConfirmar(true)}>
+            {datos.length === 0 ? "Nueva Asistencia" : "Modificar Asistencia"}
+          </Button>
         </div>
       </div>
 
-      {loading ? (
-        <TablaSkeleton filas={9} columnas={4} />
-      ) : datos.length === 0 ? (
-        <TablaCursos datos={datos2} columnas={columnas} />
-      ) : (
-        <TablaCursos datos={datos} columnas={columnas} />
-      )}
+      {loading ? <TablaSkeleton filas={5} columnas={4} /> : <TablaCursos datos={datosFiltrados} columnas={columnas} />}
 
       {/* Modal Justificación */}
       <Modal show={showModalJustificacion} onHide={() => setShowModalJustificacion(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Falta Justificada</Modal.Title>
-        </Modal.Header>
+        <Modal.Header closeButton><Modal.Title>Falta Justificada</Modal.Title></Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">
             <Form.Label>Subir archivo</Form.Label>
-            <Form.Control
-              type="file"
-              onChange={(e) =>
-                setJustificacion({ ...justificacion, archivo: e.target.files[0] })
-              }
-            />
+            <Form.Control type="file" onChange={(e) => setJustificacion({ ...justificacion, archivo: e.target.files[0] })} />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Observación</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              value={justificacion.observacion}
-              onChange={(e) =>
-                setJustificacion({ ...justificacion, observacion: e.target.value })
-              }
-            />
+            <Form.Control as="textarea" rows={3} value={justificacion.observacion} onChange={(e) => setJustificacion({ ...justificacion, observacion: e.target.value })} />
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModalJustificacion(false)}>
-            Cancelar
-          </Button>
-          <Button variant="success" onClick={handleGuardarJustificacion}>
-            Guardar
-          </Button>
+          <Button variant="secondary" onClick={() => setShowModalJustificacion(false)}>Cancelar</Button>
+          <Button variant="success" onClick={handleGuardarJustificacion}>Guardar</Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Modal Fecha */}
-      <Modal show={showModalFecha} onHide={() => setShowModalFecha(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Fecha distinta a la guía</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>Tu rango de fecha es distinta a la de la guía.</p>
-          <p>¿Deseas grabar con la fecha de la guía <b>{datoscurso?.fecha}</b>?</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setShowModalFecha(false);
-              const hoy = formatearFecha(new Date());
-              setFechaSeleccionada(hoy);
-              cargarDatos(hoy);
-            }}
-          >
-            No
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              setShowModalFecha(false);
-              if (datoscurso?.fecha) {
-                const [dia, mes, anio] = datoscurso.fecha.split("/").map(Number);
-                const fechaGuia = formatearFecha(new Date(anio, mes - 1, dia));
-                setFechaSeleccionada(fechaGuia);
-                cargarDatos(fechaGuia);
-              }
-            }}
-          >
-            Sí
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Modal Confirmación */}
+      {/* Modal Confirmar */}
       <Modal show={showModalConfirmar} onHide={() => setShowModalConfirmar(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirmar guardado</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            Se guardarán las asistencias del día{" "}
-            <b>
-              {fechaSeleccionada
-                ? new Date(fechaSeleccionada).toLocaleDateString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })
-                : "Sin fecha"}
-            </b>.
-          </p>
-          <p>¿Deseas continuar?</p>
-        </Modal.Body>
+        <Modal.Header closeButton><Modal.Title>Confirmar guardado</Modal.Title></Modal.Header>
+        <Modal.Body>¿Deseas guardar las asistencias seleccionadas?</Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModalConfirmar(false)}>
-            Cancelar
-          </Button>
-          <Button
-            variant="success"
-            onClick={() => {
-              setShowModalConfirmar(false);
-              guardarAsistenciaFinal();
-            }}
-          >
-            Sí, guardar
-          </Button>
+          <Button variant="secondary" onClick={() => setShowModalConfirmar(false)}>Cancelar</Button>
+          <Button variant="success" onClick={() => { setShowModalConfirmar(false); guardarAsistenciaFinal(); }}>Sí, guardar</Button>
         </Modal.Footer>
       </Modal>
     </div>

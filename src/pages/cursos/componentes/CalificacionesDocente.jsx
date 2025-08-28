@@ -56,6 +56,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     nuevas[index][campo] = valor;
     setCalificaciones(nuevas);
   };
+  
 
   // 🔹 Guardar notas (POST al backend)
   const guardarCalificaciones = async () => {

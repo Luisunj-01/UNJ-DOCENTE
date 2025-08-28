@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import Swal from "sweetalert2";
 import config from "../../../config";
 import { useUsuario } from "../../../context/UserContext";
@@ -21,6 +21,9 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
     concluida: false,
   });
 
+  // 🔹 Fechas adicionales ahora son objetos { fecha, hora_entrada, hora_salida }
+  const [fechasAdicionales, setFechasAdicionales] = useState([]);
+
   function convertDateSlashToISO(dateStr) {
     if (!dateStr) return "";
     const parts = dateStr.split("/");
@@ -29,26 +32,35 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
     return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
 
-  
-  // Cargar datos cuando se abre el modal y se pasa fila
+  // Cargar datos cuando se abre el modal
   useEffect(() => {
     if (fila && show) {
       setFormData({
         semana: fila.semana || "",
         contenido: fila.contenido || "",
         observacion: fila.observacion || "",
-        //claseSincrona: fila.clasesincrona || "",
         claseGrabada: fila.clasegrabada || "",
         fecha: fila.fecha ? convertDateSlashToISO(fila.fecha) : "",
-        //fecha: fila.fecha ? fila.fecha.split("T")[0] : "",
         horaEntrada: fila.horaentrada || "",
         horaSalida: fila.horasalida || "",
         concluida: fila.concluido === 1 ? true : false,
       });
+
+      // 🔹 Parsear fechas adicionales
+      if (fila.fechas_adicionales) {
+        try {
+          const parsed = JSON.parse(fila.fechas_adicionales);
+          setFechasAdicionales(parsed);
+        } catch {
+          setFechasAdicionales([]);
+        }
+      } else {
+        setFechasAdicionales([]);
+      }
     }
   }, [fila, show]);
 
-  // Manejo de inputs
+  // Manejo de inputs normales
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -57,8 +69,29 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
     });
   };
 
+  // 🔹 Manejar cambios en fechas adicionales
+  const handleFechaChange = (index, field, value) => {
+    const nuevasFechas = [...fechasAdicionales];
+    nuevasFechas[index][field] = value;
+    setFechasAdicionales(nuevasFechas);
+  };
 
-  // Guardar cambios (POST al backend)
+  // 🔹 Agregar nueva fecha con estructura completa
+  const agregarFecha = () => {
+    setFechasAdicionales([
+      ...fechasAdicionales,
+      { fecha: "", hora_entrada: "", hora_salida: "" },
+    ]);
+  };
+
+  // 🔹 Eliminar fecha
+  const eliminarFecha = (index) => {
+    const nuevasFechas = fechasAdicionales.filter((_, i) => i !== index);
+    setFechasAdicionales(nuevasFechas);
+  };
+
+  // Guardar cambios
+  // Guardar cambios
   const handleSave = async () => {
     const payload = {
       sede: datoscursos.sede,
@@ -71,15 +104,21 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
       observacion: formData.observacion,
       contenido: formData.contenido,
       clasegrabada: formData.claseGrabada,
-      //clasesincrona: formData.claseSincrona,
+      // 🔹 Fecha principal independiente
+      fecha: formData.fecha,
       horaentrada: formData.horaEntrada,
       horasalida: formData.horaSalida,
+      // 🔹 Estado concluido
       concluido: formData.concluida ? "1" : "0",
-      fecha: formData.fecha,
+      // 🔹 Fechas adicionales
+      fechas_adicionales: fechasAdicionales.map(f => ({
+        fecha: f.fecha,
+        hora_entrada: f.hora_entrada || "",
+        hora_salida: f.hora_salida || ""
+      }))
     };
 
-
-    
+    console.log("📦 Payload enviado:", JSON.stringify(payload, null, 2));
     try {
       const response = await axios.post(`${config.apiUrl}api/curso/ActualizarGuia`, payload, {
         headers: {
@@ -91,14 +130,14 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
 
       if (!response.data.error) {
         Swal.fire("✅ Éxito", response.data.mensaje, "success");
-        onUpdated(); // Refrescar tabla
-        onClose();   // Cerrar modal
+        onUpdated();
+        onClose();
       } else {
-        Swal.fire(" Error", response.data.mensaje, "error");
+        Swal.fire("Error", response.data.mensaje, "error");
       }
     } catch (error) {
       console.error("❌ Error al actualizar la guía:", error);
-      Swal.fire("Error", "No se pudo actualizar la guía, Hay campos vacíos para actualizar", "error");
+      Swal.fire("Error", "No se pudo actualizar la guía", "error");
     }
   };
 
@@ -112,7 +151,12 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
         <Form>
           <Form.Group>
             <Form.Label>Semana</Form.Label>
-            <Form.Control type="text" name="semana" value={formData.semana} readOnly />
+            <Form.Control
+              type="text"
+              name="semana"
+              value={formData.semana}
+              readOnly
+            />
           </Form.Group>
 
           <Form.Group>
@@ -124,8 +168,6 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
               onChange={handleChange}
             />
           </Form.Group>
-
-        
 
           <Form.Group>
             <Form.Label>Clase síncrona</Form.Label>
@@ -147,37 +189,88 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
             />
           </Form.Group>
 
-          <Form.Group>
-            <Form.Label>Fecha</Form.Label>
-            <Form.Control
-              type="date"
-              name="fecha"
-              value={formData.fecha}
-              onChange={handleChange}
-            />
+          {/* 🔹 Fecha + Hora entrada + Hora salida en la misma fila */}
+          <Form.Group className="mb-3">
+            <Form.Label>Fecha principal</Form.Label>
+            <Row>
+              <Col>
+                <Form.Control
+                  type="date"
+                  name="fecha"
+                  value={formData.fecha}
+                  onChange={handleChange}
+                />
+              </Col>
+              <Col>
+                <Form.Control
+                  type="time"
+                  name="horaEntrada"
+                  value={formData.horaEntrada}
+                  onChange={handleChange}
+                  placeholder="Hora entrada"
+                />
+              </Col>
+              <Col>
+                <Form.Control
+                  type="time"
+                  name="horaSalida"
+                  value={formData.horaSalida}
+                  onChange={handleChange}
+                  placeholder="Hora salida"
+                />
+              </Col>
+            </Row>
           </Form.Group>
 
+          {/* 🔹 Sección de Fechas Adicionales */}
           <Form.Group>
-            <Form.Label>Hora entrada</Form.Label>
-            <Form.Control
-              type="time"
-              name="horaEntrada"
-              value={formData.horaEntrada}
-              onChange={handleChange}
-            />
+            <Form.Label>Fechas adicionales</Form.Label>
+            {fechasAdicionales.map((fechaObj, index) => (
+              <Row key={index} className="mb-2">
+                <Col>
+                  <Form.Control
+                    type="date"
+                    value={fechaObj.fecha}
+                    onChange={(e) =>
+                      handleFechaChange(index, "fecha", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col>
+                  <Form.Control
+                    type="time"
+                    value={fechaObj.hora_entrada}
+                    onChange={(e) =>
+                      handleFechaChange(index, "hora_entrada", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col>
+                  <Form.Control
+                    type="time"
+                    value={fechaObj.hora_salida}
+                    onChange={(e) =>
+                      handleFechaChange(index, "hora_salida", e.target.value)
+                    }
+                  />
+                </Col>
+                <Col xs="auto">
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => eliminarFecha(index)}
+                  >
+                    ✕
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+            <Button variant="primary" size="sm" onClick={agregarFecha}>
+              + Agregar fecha
+            </Button>
           </Form.Group>
 
-          <Form.Group>
-            <Form.Label>Hora salida</Form.Label>
-            <Form.Control
-              type="time"
-              name="horaSalida"
-              value={formData.horaSalida}
-              onChange={handleChange}
-            />
-          </Form.Group>
-
-          <Form.Group controlId="concluida">
+          <Form.Group controlId="concluida" className="mt-3">
             <Form.Check
               type="checkbox"
               label="Concluida"
