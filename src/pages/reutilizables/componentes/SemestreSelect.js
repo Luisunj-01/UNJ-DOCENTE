@@ -5,40 +5,57 @@ import { obtenersemestre, obtenersemana } from '../logica/docente';
 function SemestreSelect({ value, onChange, name, className = 'form-select', parametros }) {
   const [semestres, setSemestres] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mensaje, setMensaje] = useState();
+  const [mensaje, setMensaje] = useState('');
   const { usuario } = useUsuario();
-  const token = usuario?.codigotokenautenticadorunj;
-
-  const persona = usuario.docente.persona;
+  const persona = usuario?.docente?.persona;
 
   useEffect(() => {
     if (name === "cboSemestre") {
-      cargarsemestre();
+      cargarSemestre();
     } else if (name === "semana") {
-      cargarsemana();
+      cargarSemana();
     }
   }, [name]); 
 
-  async function cargarsemestre() {
-    const resultado = await obtenersemestre(persona);
-    if (resultado && resultado.datos) {
-      setSemestres(resultado.datos);
-    } else {
-      setSemestres([]);
-      setMensaje("No hay semestres");
+  async function cargarSemestre() {
+    try {
+      const resultado = await obtenersemestre(persona);
+      if (resultado && resultado.datos) {
+        setSemestres(resultado.datos);
+      } else {
+        setSemestres([]);
+        setMensaje("No hay semestres");
+      }
+    } catch (error) {
+      console.error("Error cargando semestres:", error);
+      setMensaje("Error cargando semestres");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
-  async function cargarsemana() {
-    const resultado = await obtenersemana(parametros.sede, parametros.semestre, parametros.escuela, parametros.curricula, parametros.curso, parametros.seccion);
-    if (resultado && resultado.datos) {
-      setSemestres(resultado.datos);
-    } else {
-      setSemestres([]);
-      setMensaje("No hay semana");
+  async function cargarSemana() {
+    try {
+      const resultado = await obtenersemana(
+        parametros?.sede, 
+        parametros?.semestre, 
+        parametros?.escuela, 
+        parametros?.curricula, 
+        parametros?.curso, 
+        parametros?.seccion
+      );
+      if (resultado && resultado.datos) {
+        setSemestres(resultado.datos);
+      } else {
+        setSemestres([]);
+        setMensaje("No hay semanas");
+      }
+    } catch (error) {
+      console.error("Error cargando semanas:", error);
+      setMensaje("Error cargando semanas");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -46,13 +63,13 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
       name={name}
       className={className}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={onChange}   
       disabled={loading}
     >
       {loading && <option>Cargando...</option>}
       {!loading && semestres.length === 0 && <option>{mensaje}</option>}
 
-      {/* 👇 Si no es cboSemestre, mostramos opción por defecto */}
+      {/* 👇 Si es semana mostramos opción por defecto */}
       {!loading && name !== "cboSemestre" && (
         <option value="">Seleccione semana</option>
       )}

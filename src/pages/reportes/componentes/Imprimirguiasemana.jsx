@@ -178,21 +178,7 @@ const Imprimirguiasemana = () => {
                         columnasEncabezado={columnasEncabezado} 
                         columnas={columnas}
                     />
-                <div className="row">
-                  <div className="col-md-7"></div>
-                  <div className="col-md-5">
-                    <table className="table">
-                      <tbody>
-                        <tr>
-                          <td></td><td></td>
-                          <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
-                          <td style={{ textAlign: 'center' }}><strong>{totalHorasPractica}</strong></td>
-                          <td style={{ textAlign: 'center' }}><strong>{totalHT}</strong></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                
               </>
             )}
           </div>
