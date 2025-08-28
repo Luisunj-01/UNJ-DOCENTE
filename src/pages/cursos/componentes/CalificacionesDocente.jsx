@@ -56,15 +56,27 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     nuevas[index][campo] = valor;
     setCalificaciones(nuevas);
   };
+  console.log(datos);
   
 
   // 🔹 Guardar notas (POST al backend)
   const guardarCalificaciones = async () => {
-  // Convierte cambios en un arreglo [{ alumno, ec?, ep?, ea? }]
-  const calificacionesModificadas = Object.entries(cambios).map(([alumno, notas]) => ({
-    alumno,
-    ...notas
-  }));
+  // Convierte cambios en un arreglo [{ alumno, ec?, ep?, ea?, formula }]
+  const calificacionesModificadas = Object.entries(cambios).map(([alumno, notas]) => {
+    // buscar datos completos del alumno
+    const alumnoDatos = datos.find(d => d.alumno === alumno);
+
+    // Si escuela es TM usa la fórmula fija, si no usa la fórmula del JSON
+    const formulaFinal = (escuela === "TM")
+      ? "055,030,015"
+      : alumnoDatos?.formula || "";
+
+    return {
+      alumno,
+      ...notas,
+      formula: formulaFinal
+    };
+  });
 
   if (calificacionesModificadas.length === 0) {
     Swal.fire("ℹ️ Aviso", "No hay cambios para guardar.", "info");
@@ -82,6 +94,8 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     calificaciones: calificacionesModificadas
   };
 
+  console.log("📤 Enviando payload:", payload);
+
   try {
     const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {
       headers: {
@@ -93,7 +107,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
 
     if (!response.data.error) {
       Swal.fire("✅ Éxito", response.data.mensaje, "success");
-      setCambios({}); // 🔹 Limpiar cambios después de guardar
+      setCambios({});
     } else {
       Swal.fire("⚠️ Error", response.data.mensaje, "error");
     }
@@ -104,156 +118,164 @@ const CalificacionesDocente = ({ datosprincipal }) => {
 };
 
 
+
   const columnas = [
     { clave: 'alumno', titulo: 'Código' },
     { clave: 'nombrecompleto', titulo: 'Nombres' },
+    {
+      clave: 'ec',
+      titulo: 'EC',
+      render: (row) => (
+        <input
+          type="text"
+          inputMode="decimal"
+          maxLength="5"
+          size="6"
+          autoComplete="off"
+          className="form-control text-center"
+          value={row.ec ?? ""}
+          style={{
+            color: row.ec !== "" && parseFloat(row.ec) <= 10.99 ? "red" : "black",
+            backgroundColor: row.ec !== "" && parseFloat(row.ec) <= 10.99 ? "#ffe6e6" : "white"
+          }}
+          onKeyDown={(e) => {
+            if (
+              !/[0-9.]/.test(e.key) &&
+              !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
+          onChange={(e) => {
+            const nuevas = [...calificaciones];
+            nuevas[row.index] = { ...row, ec: e.target.value };
+            setCalificaciones(nuevas);
+          }}
+          onBlur={(e) => {
+            const nuevas = [...calificaciones];
+            let valor = parseFloat(e.target.value.replace(",", "."));
+            if (isNaN(valor) || valor < 0 || valor > 20) {
+              valor = 0;
+            } else {
+              valor = valor.toFixed(2);
+            }
+            nuevas[row.index] = { ...row, ec: valor };
+            setCalificaciones(nuevas);
 
-{
-  clave: 'ec',
-  titulo: 'EC',
-  render: (row) => (
-    <input
-      type="text"
-      maxLength="5"
-      size="6"
-      autoComplete="off"
-      className="form-control text-center"
-      value={row.ec ?? ""}
-      style={{
-        color:
-          row.ec !== "" && parseFloat(row.ec) <= 10.99
-            ? "red"
-            : "black",
-        backgroundColor:
-          row.ec !== "" && parseFloat(row.ec) <= 10.99
-            ? "#ffe6e6"
-            : "white"
-      }}
-      onChange={(e) => {
-        const nuevas = [...calificaciones];
-        nuevas[row.index] = { ...row, ec: e.target.value };
-        setCalificaciones(nuevas);
-      }}
-      onBlur={(e) => {
-        const nuevas = [...calificaciones];
-        let valor = parseFloat(e.target.value.replace(",", "."));
-        if (isNaN(valor) || valor < 0 || valor > 20) {
-          valor = 0;
-        } else {
-          valor = valor.toFixed(2);
-        }
-        nuevas[row.index] = { ...row, ec: valor };
-        setCalificaciones(nuevas);
+            setCambios(prev => ({
+              ...prev,
+              [row.alumno]: {
+                ...prev[row.alumno],
+                ec: valor
+              }
+            }));
+          }}
+        />
+      )
+    },
+    {
+      clave: 'ep',
+      titulo: 'EP',
+      render: (row) => (
+        <input
+          type="text"
+          inputMode="decimal"
+          maxLength="5"
+          size="6"
+          autoComplete="off"
+          className="form-control text-center"
+          value={row.ep ?? ""}
+          style={{
+            color: row.ep !== "" && parseFloat(row.ep) <= 10.99 ? "red" : "black",
+            backgroundColor: row.ep !== "" && parseFloat(row.ep) <= 10.99 ? "#ffe6e6" : "white"
+          }}
+          onKeyDown={(e) => {
+            if (
+              !/[0-9.]/.test(e.key) &&
+              !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
+          onChange={(e) => {
+            const nuevas = [...calificaciones];
+            nuevas[row.index] = { ...row, ep: e.target.value };
+            setCalificaciones(nuevas);
+          }}
+          onBlur={(e) => {
+            const nuevas = [...calificaciones];
+            let valor = parseFloat(e.target.value.replace(",", "."));
+            if (isNaN(valor) || valor < 0 || valor > 20) {
+              valor = 0;
+            } else {
+              valor = valor.toFixed(2);
+            }
+            nuevas[row.index] = { ...row, ep: valor };
+            setCalificaciones(nuevas);
 
-        setCambios(prev => ({
-          ...prev,
-          [row.alumno]: {
-            ...prev[row.alumno],
-            ec: valor
-          }
-        }));
-      }}
-    />
-  )
-},
+            setCambios(prev => ({
+              ...prev,
+              [row.alumno]: {
+                ...prev[row.alumno],
+                ep: valor
+              }
+            }));
+          }}
+        />
+      )
+    },
+    {
+      clave: 'ea',
+      titulo: 'EA',
+      render: (row) => (
+        <input
+          type="text"
+          inputMode="decimal"
+          maxLength="5"
+          size="6"
+          autoComplete="off"
+          className="form-control text-center"
+          value={row.ea ?? ""}
+          style={{
+            color: row.ea !== "" && parseFloat(row.ea) <= 10.99 ? "red" : "black",
+            backgroundColor: row.ea !== "" && parseFloat(row.ea) <= 10.99 ? "#ffe6e6" : "white"
+          }}
+          onKeyDown={(e) => {
+            if (
+              !/[0-9.]/.test(e.key) &&
+              !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
+            ) {
+              e.preventDefault();
+            }
+          }}
+          onChange={(e) => {
+            const nuevas = [...calificaciones];
+            nuevas[row.index] = { ...row, ea: e.target.value };
+            setCalificaciones(nuevas);
+          }}
+          onBlur={(e) => {
+            const nuevas = [...calificaciones];
+            let valor = parseFloat(e.target.value.replace(",", "."));
+            if (isNaN(valor) || valor < 0 || valor > 20) {
+              valor = 0;
+            } else {
+              valor = valor.toFixed(2);
+            }
+            nuevas[row.index] = { ...row, ea: valor };
+            setCalificaciones(nuevas);
 
-{
-  clave: 'ep',
-  titulo: 'EP',
-  render: (row) => (
-    <input
-      type="text"
-      maxLength="5"
-      size="6"
-      autoComplete="off"
-      className="form-control text-center"
-      value={row.ep ?? ""}
-      style={{
-        color:
-          row.ep !== "" && parseFloat(row.ep) <= 10
-            ? "red"
-            : "black",
-        backgroundColor:
-          row.ep !== "" && parseFloat(row.ep) <= 10
-            ? "#ffe6e6"
-            : "white"
-      }}
-      onChange={(e) => {
-        const nuevas = [...calificaciones];
-        nuevas[row.index] = { ...row, ep: e.target.value };
-        setCalificaciones(nuevas);
-      }}
-      onBlur={(e) => {
-        const nuevas = [...calificaciones];
-        let valor = parseFloat(e.target.value.replace(",", "."));
-        if (isNaN(valor) || valor < 0 || valor > 20) {
-          valor = 0;
-        } else {
-          valor = valor.toFixed(2);
-        }
-        nuevas[row.index] = { ...row, ep: valor };
-        setCalificaciones(nuevas);
+            setCambios(prev => ({
+              ...prev,
+              [row.alumno]: {
+                ...prev[row.alumno],
+                ea: valor
+              }
+            }));
+          }}
+        />
+      )
+    },
 
-        setCambios(prev => ({
-          ...prev,
-          [row.alumno]: {
-            ...prev[row.alumno],
-            ep: valor
-          }
-        }));
-      }}
-    />
-  )
-},
-
-{
-  clave: 'ea',
-  titulo: 'EA',
-  render: (row) => (
-    <input
-      type="text"
-      maxLength="5"
-      size="6"
-      autoComplete="off"
-      className="form-control text-center"
-      value={row.ea ?? ""}
-      style={{
-        color:
-          row.ea !== "" && parseFloat(row.ea) <= 10
-            ? "red"
-            : "black",
-        backgroundColor:
-          row.ea !== "" && parseFloat(row.ea) <= 10
-            ? "#ffe6e6"
-            : "white"
-      }}
-      onChange={(e) => {
-        const nuevas = [...calificaciones];
-        nuevas[row.index] = { ...row, ea: e.target.value };
-        setCalificaciones(nuevas);
-      }}
-      onBlur={(e) => {
-        const nuevas = [...calificaciones];
-        let valor = parseFloat(e.target.value.replace(",", "."));
-        if (isNaN(valor) || valor < 0 || valor > 20) {
-          valor = 0;
-        } else {
-          valor = valor.toFixed(2);
-        }
-        nuevas[row.index] = { ...row, ea: valor };
-        setCalificaciones(nuevas);
-
-        setCambios(prev => ({
-          ...prev,
-          [row.alumno]: {
-            ...prev[row.alumno],
-            ea: valor
-          }
-        }));
-      }}
-    />
-  )
-},
 
 
 
