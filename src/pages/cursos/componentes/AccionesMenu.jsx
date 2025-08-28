@@ -15,9 +15,16 @@ import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import PrintIcon from "@mui/icons-material/Print";
 import EditIcon from "@mui/icons-material/Edit";
 import BlockIcon from "@mui/icons-material/Block";
+import { useParams } from "react-router-dom";
 
 // ✅ Nuevo componente
 function AccionesMenu({ fila, onEliminar, onEditar, onVer }) {
+
+  const { id } = useParams();
+  const decoded = atob(atob(id));
+  const [sede, semestre, escuela, curricula, curso, seccion, nombre, nombredocente] = decoded.split('|');
+  const encoded = btoa(btoa(decoded));
+
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenuOpen = (event) => {
@@ -65,7 +72,7 @@ function AccionesMenu({ fila, onEliminar, onEditar, onVer }) {
         </MenuItem>
 
         <MenuItem onClick={() => {
-          window.open(`/imprimirguiasemana?codigo=${fila.codigo}&semana=${fila.semana}`, "_blank");
+          window.open(`/imprimirguiasemana?codigo=${encoded}&semana=${fila.semana}`, "_blank");
           handleMenuClose();
         }}>
           <ListItemIcon><PrintIcon fontSize="small" /></ListItemIcon>
