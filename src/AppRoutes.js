@@ -29,6 +29,7 @@ import useInactividad from './hooks/useInactividad.js';
 import Imprimirdocentesemestrecarga from './pages/reportes/componentes/Imprimirdocentesemestrecarga.jsx';
 import Imprimirhorariodocente from './pages/reportes/componentes/Imprimirhorariodocente.jsx';
 import Imprimirguiasemana from './pages/reportes/componentes/Imprimirguiasemana.jsx';
+import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsistenciaSemana';
 
 
 function AppRoutes() {
@@ -86,6 +87,11 @@ function AppRoutes() {
           <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
           <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
           <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}   />
+          <Route path='ImprimirAsistenciaSemana' element={<ImprimirAsistenciaSemana />}   />
+
+
+
+
           
           {/* Ruta por defecto para no encontradas */}
           <Route path="*" element={<Error404 />} />

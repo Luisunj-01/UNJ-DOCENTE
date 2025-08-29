@@ -35,7 +35,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
 
   // 🔹 límite de faltas = 30% del total de sesiones
   const maxFaltasPermitidas = Math.round((totalFechas || 0) * 0.3);
-  console.log(maxFaltasPermitidas);
+  //console.log();
   // --- Cargar datos ---
   const cargarDatos = async (fecha = null) => {
     setLoading(true);
@@ -86,7 +86,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
 
   useEffect(() => { cargarDatos(); }, []);
 
-  console.log(datos);
+  //console.log(datos);
   // --- Filtrar por práctica ---
   const filtrarPorPractica = (practica) => {
     setPracticaSeleccionada(practica);
@@ -153,6 +153,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   };
 
   // --- Guardar asistencia final ---
+  // --- Guardar asistencia final ---
   const guardarAsistenciaFinal = async () => {
     const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
     if (asistencias.length === 0) {
@@ -160,37 +161,56 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
       return;
     }
 
-    const payload = {
-      clave: "01",
-      txtFecha: fechaSeleccionada,
-      txtTipo: "U",
-      sede, semestre, escuela, curricula, curso, seccion,
-      semana: datoscurso.sesion,
-      asistencias: asistencias.map(a => ({
+    const asistenciasConTipo = asistencias.map(a => {
+      const alumnoEncontrado = datos.find(d => d.alumno === a.alumno);
+      return {
         alumno: a.alumno,
         persona: a.persona,
         asistencia: a.asistencia,
         observacion: a.observacion || "",
-        usuarioregistro: usuario.docente.numerodocumento
-      }))
+        usuarioregistro: usuario.docente.numerodocumento,
+        txttipo: alumnoEncontrado?.existe ? "U" : "N"
+      };
+    });
+
+    const payload = {
+      clave: "01",
+      txtFecha: fechaSeleccionada,
+      sede, semestre, escuela, curricula, curso, seccion,
+      semana: datoscurso.sesion,
+      asistencias: asistenciasConTipo
     };
 
+    console.log("Payload final 👉", payload);
+
     try {
-      const response = await axios.post(`${config.apiUrl}api/curso/GrabarAsistencia`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.post(
+        `${config.apiUrl}api/curso/GrabarAsistencia`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+
+      //console.log(response)
       if (!response.data.error) {
         Swal.fire("Éxito", response.data.mensaje, "success");
-        localStorage.removeItem("asistenciasSeleccionadas");
-        cargarDatos(fechaSeleccionada);
       } else {
         Swal.fire("Error", response.data.mensaje, "error");
       }
+
+      // ✅ limpiar siempre, pase lo que pase
+      localStorage.removeItem("asistenciasSeleccionadas");
+      cargarDatos(fechaSeleccionada);
+
     } catch (error) {
       console.error(error);
       mostrarToast("Ocurrió un error al guardar.", "danger");
+
+      // ✅ también limpiar en error
+      localStorage.removeItem("asistenciasSeleccionadas");
     }
   };
+
 
   const columnas = [
     { clave: "alumno", titulo: "Código" },

@@ -10,6 +10,7 @@ import { IconButton } from '@mui/material';
 import ParticipantesCurso from './Participantesasistencia';
 import { ToastContext } from '../../../cuerpos/Layout';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+import ImprimirAsistenciaSemana from '../../reportes/componentes/ImprimirAsistenciaSemana';
 
 function Asistenciadocente() {
   const [datos, setDatos] = useState([]);
