@@ -149,6 +149,18 @@ function Asistenciadocente() {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <IconButton
             title={`Imprimir Asistencia: ${nombrecurso}`}
+            onClick={() => {
+              const codigo = btoa(btoa(
+                `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${fila.sesion}`
+              ));
+
+              window.open(
+                `/ImprimirAsistenciaSemana?codigo=${codigo}`,
+                'popupImpresion',
+                'width=1000,height=700,scrollbars=yes,resizable=yes'
+              );
+            }}
+
             color="primary"
             size="small"
           >
