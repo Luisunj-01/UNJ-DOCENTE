@@ -11,7 +11,8 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { FaChalkboardTeacher, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
-function ParticipantesCurso({ datoscurso }) {
+function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
+  //console.log(todasLasAsistencias);
   const [datos, setDatos] = useState([]);
   const [datosFiltrados, setDatosFiltrados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,34 +33,44 @@ function ParticipantesCurso({ datoscurso }) {
 
   const parametrosaenviar = { sede, semestre, escuela, curricula, curso, seccion, sesion: datoscurso.sesion };
 
+  // 🔹 límite de faltas = 30% del total de sesiones
+  const maxFaltasPermitidas = Math.round((totalFechas || 0) * 0.3);
+  console.log(maxFaltasPermitidas);
   // --- Cargar datos ---
   const cargarDatos = async (fecha = null) => {
     setLoading(true);
     try {
-      const resAsistencia = await obtenerDatosAsistencia(parametrosaenviar, fecha);
-      const resAsistNuevo = await obtenerDatosAsistencianuevo(parametrosaenviar, fecha);
+      const resAsistencia = await obtenerDatosAsistencia(parametrosaenviar, fecha);      // histórico
+      const resAsistNuevo = await obtenerDatosAsistencianuevo(parametrosaenviar, fecha); // lista de alumnos
 
       if (!resAsistencia?.datos || !resAsistNuevo?.datos) {
-        setDatos([]);
-        setDatosFiltrados([]);
-        setPracticasDisponibles([]);
-        setLoading(false);
+        setDatos([]); setDatosFiltrados([]); setPracticasDisponibles([]); setLoading(false);
         return;
       }
 
-      // Combinar listas y agregar flag de existencia
+      // 🔹 Mapear alumnos y calcular cuántas faltas acumula cada uno en TODO el curso
+      // 🔹 Mapear alumnos y usar total_faltas desde backend
       const alumnosCompletos = resAsistNuevo.datos.map((nuevo) => {
         const encontrado = resAsistencia.datos.find(a => a.alumno === nuevo.alumno);
+
+        const asistencia = encontrado ? (encontrado.condicion || "0") : "0";
+        const observacion = encontrado ? encontrado.observaciones : "";
+        const persona = encontrado ? encontrado.persona : nuevo.persona;
+
+        // ⚡ ya no calculamos en frontend, usamos total_faltas de la BD
+        const faltasHistoricas = nuevo.total_faltas || 0;
+
         return {
           ...nuevo,
-          asistencia: encontrado ? (encontrado.condicion || "0") : "0",
-          observacion: encontrado ? encontrado.observaciones : "",
-          persona: encontrado ? encontrado.persona : nuevo.persona,
-          existe: !!encontrado
+          asistencia,
+          observacion,
+          persona,
+          existe: !!encontrado,
+          totalFaltas: faltasHistoricas
         };
       });
 
-      // Evitar duplicados
+
       const alumnosUnicos = Array.from(new Map(alumnosCompletos.map(a => [a.alumno, a])).values());
 
       setDatos(alumnosUnicos);
@@ -68,17 +79,14 @@ function ParticipantesCurso({ datoscurso }) {
       setPracticaSeleccionada("");
     } catch (error) {
       console.error(error);
-      setDatos([]);
-      setDatosFiltrados([]);
-      setPracticasDisponibles([]);
+      setDatos([]); setDatosFiltrados([]); setPracticasDisponibles([]);
     }
     setLoading(false);
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos(); }, []);
 
+  console.log(datos);
   // --- Filtrar por práctica ---
   const filtrarPorPractica = (practica) => {
     setPracticaSeleccionada(practica);
@@ -86,14 +94,26 @@ function ParticipantesCurso({ datoscurso }) {
     setDatosFiltrados(filtrados);
   };
 
-  // --- Marcar todos ---
+  // --- Marcar todos como Asistencia (excepto los que superaron el límite) ---
   const marcarTodosComoAsistencia = () => {
     setDatosFiltrados(prev => {
-      const nuevos = prev.map(d => ({ ...d, asistencia: "A" }));
-      nuevos.forEach(d => actualizarAsistenciaLocal(d.alumno, d.persona, d.nombrecompleto, "A", d.observacion || ""));
+      const nuevos = prev.map(d => {
+        if (d.totalFaltas >= maxFaltasPermitidas) return d; // 🔴 no marcar inhabilitados
+        actualizarAsistenciaLocal(
+          d.alumno,
+          d.persona,
+          d.nombrecompleto,
+          "A",
+          d.observacion || ""
+        );
+        return { ...d, asistencia: "A" };
+      });
       return nuevos;
     });
-    mostrarToast("Todos los alumnos fueron marcados como Asistencia.", "success");
+    mostrarToast(
+      "Todos los alumnos fueron marcados como Asistencia (excepto los inhabilitados).",
+      "success"
+    );
   };
 
   // --- Actualizar asistencia local ---
@@ -113,7 +133,6 @@ function ParticipantesCurso({ datoscurso }) {
     }
     localStorage.setItem(clave, JSON.stringify(asistencias));
 
-    // Actualizar estado
     setDatos(prev => prev.map(d => d.alumno === alumno ? { ...d, asistencia, observacion } : d));
     setDatosFiltrados(prev => prev.map(d => d.alumno === alumno ? { ...d, asistencia, observacion } : d));
   };
@@ -123,6 +142,7 @@ function ParticipantesCurso({ datoscurso }) {
     setJustificacion({ alumno, nombrecompleto, observacion: "", archivo: null });
     setShowModalJustificacion(true);
   };
+
   const handleGuardarJustificacion = () => {
     if (!justificacion.archivo && !justificacion.observacion) {
       mostrarToast("Debes subir un archivo o escribir una observación", "warning");
@@ -139,6 +159,7 @@ function ParticipantesCurso({ datoscurso }) {
       mostrarToast("No hay asistencias seleccionadas.", "info");
       return;
     }
+
     const payload = {
       clave: "01",
       txtFecha: fechaSeleccionada,
@@ -179,27 +200,57 @@ function ParticipantesCurso({ datoscurso }) {
       titulo: (
         <div className="d-flex align-items-center justify-content-between">
           <span>Asistencia &nbsp;&nbsp;</span>
-          <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}><FaChalkboardTeacher /></Button>
+          <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}>
+            <FaChalkboardTeacher />
+          </Button>
         </div>
       ),
-      render: (fila, index) => (
-        <Form.Select
-          value={fila.asistencia || "0"}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val === "F") handleAbrirModal(fila.alumno, fila.nombrecompleto);
-            else actualizarAsistenciaLocal(fila.alumno, fila.persona, fila.nombrecompleto, val, fila.observacion || "");
-          }}
-        >
-          <option value="0">Seleccione</option>
-          <option value="A">Asistencia</option>
-          <option value="F">Falta Just.</option>
-          <option value="I">Falta</option>
-          <option value="T">Tardanza Just.</option>
-          <option value="J">Tardanza</option>
-        </Form.Select>
+      render: (fila) => {
+        if (fila.totalFaltas >= maxFaltasPermitidas) {
+          // 🔴 Inhabilitado
+          return (
+            <Form.Select value="INHABILITADO" disabled>
+              <option value="INHABILITADO">Inhabilitado</option>
+            </Form.Select>
+          );
+        }
+
+        return (
+          <Form.Select
+            value={fila.asistencia || "0"}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "F")
+                handleAbrirModal(fila.alumno, fila.nombrecompleto);
+              else
+                actualizarAsistenciaLocal(
+                  fila.alumno,
+                  fila.persona,
+                  fila.nombrecompleto,
+                  val,
+                  fila.observacion || ""
+                );
+            }}
+          >
+            <option value="0">Seleccione</option>
+            <option value="A">Asistencia</option>
+            <option value="F">Falta Just.</option>
+            <option value="I">Falta</option>
+            <option value="T">Tardanza Just.</option>
+            <option value="J">Tardanza</option>
+          </Form.Select>
+        );
+      }
+    },
+    {
+      clave: "totalFaltas",
+      titulo: "Faltas acumuladas",
+      render: (fila) => (
+        <span style={{ color: fila.totalFaltas >= maxFaltasPermitidas ? "red" : "black" }}>
+          {fila.totalFaltas} / {maxFaltasPermitidas}
+        </span>
       )
-    }, 
+    },
     {
       clave: "existe",
       titulo: "Asistencia Existente",
@@ -209,7 +260,11 @@ function ParticipantesCurso({ datoscurso }) {
 
   return (
     <div>
-      <div className="alert alert-info text-center"><strong style={{ color: "#085a9b" }}>PARTICIPANTES</strong></div>
+      <div className="alert alert-info text-center">
+        <strong style={{ color: "#085a9b" }}>PARTICIPANTES</strong>
+        <br />
+        <small>Máx. faltas permitidas: {maxFaltasPermitidas}</small>
+      </div>
 
       <div className="row mb-3">
         <div className="col-lg-4">
@@ -219,7 +274,7 @@ function ParticipantesCurso({ datoscurso }) {
             onChange={(e) => {
               const nuevaFecha = e.target.value;
               setFechaSeleccionada(nuevaFecha);
-              setPracticaSeleccionada(""); // 🔹 limpiar práctica al cambiar fecha
+              setPracticaSeleccionada("");
               cargarDatos(nuevaFecha);
             }}
           >
@@ -228,7 +283,6 @@ function ParticipantesCurso({ datoscurso }) {
               <option key={i} value={f}>{f}</option>
             ))}
           </Form.Select>
-
         </div>
 
         <div className="col-lg-4">
@@ -236,7 +290,7 @@ function ParticipantesCurso({ datoscurso }) {
           <Form.Select
             value={practicaSeleccionada}
             onChange={(e) => filtrarPorPractica(e.target.value)}
-            disabled={!fechaSeleccionada} // 🔹 deshabilitado hasta seleccionar fecha
+            disabled={!fechaSeleccionada}
           >
             <option value="">Seleccione un Grupo</option>
             {practicasDisponibles.map((p, i) => (
@@ -245,7 +299,6 @@ function ParticipantesCurso({ datoscurso }) {
           </Form.Select>
         </div>
 
-
         <div className="col-lg-4 d-flex align-items-end justify-content-end">
           <Button variant="success" size="sm" onClick={() => setShowModalConfirmar(true)}>
             {datos.length === 0 ? "Nueva Asistencia" : "Modificar Asistencia"}
@@ -253,7 +306,7 @@ function ParticipantesCurso({ datoscurso }) {
         </div>
       </div>
 
-      {loading ? <TablaSkeleton filas={5} columnas={4} /> : <TablaCursos datos={datosFiltrados} columnas={columnas} />}
+      {loading ? <TablaSkeleton filas={5} columnas={5} /> : <TablaCursos datos={datosFiltrados} columnas={columnas} />}
 
       {/* Modal Justificación */}
       <Modal show={showModalJustificacion} onHide={() => setShowModalJustificacion(false)}>

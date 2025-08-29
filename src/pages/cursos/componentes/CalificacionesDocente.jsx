@@ -56,24 +56,29 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     nuevas[index][campo] = valor;
     setCalificaciones(nuevas);
   };
-  console.log(datos);
+  //console.log(datos);
   
+//console.log(usuario);
 
   // 🔹 Guardar notas (POST al backend)
   const guardarCalificaciones = async () => {
-  // Convierte cambios en un arreglo [{ alumno, ec?, ep?, ea?, formula }]
+  // Convertimos los cambios en un arreglo con valores numéricos
   const calificacionesModificadas = Object.entries(cambios).map(([alumno, notas]) => {
-    // buscar datos completos del alumno
     const alumnoDatos = datos.find(d => d.alumno === alumno);
 
-    // Si escuela es TM usa la fórmula fija, si no usa la fórmula del JSON
-    const formulaFinal = (escuela === "TM")
-      ? "055,030,015"
-      : alumnoDatos?.formula || "";
+    const formulaFinal = escuela === "TM" ? "055,030,015" : alumnoDatos?.formula || "";
+
+    // Convertimos a número y redondeamos, si es NaN ponemos 0
+    const ec = parseFloat(notas.ec ?? alumnoDatos?.ec ?? 0) || 0;
+    const ep = parseFloat(notas.ep ?? alumnoDatos?.ep ?? 0) || 0;
+    const ea = parseFloat(notas.ea ?? alumnoDatos?.ea ?? 0) || 0;
 
     return {
       alumno,
-      ...notas,
+      persona: alumnoDatos?.persona || '',
+      ec: parseFloat(ec.toFixed(2)),
+      ep: parseFloat(ep.toFixed(2)),
+      ea: parseFloat(ea.toFixed(2)),
       formula: formulaFinal
     };
   });
@@ -91,10 +96,10 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     curso,
     seccion,
     unidad,
+    persona: usuario.docente.persona,
+    usuario: usuario.docente.numerodocumento,
     calificaciones: calificacionesModificadas
   };
-
-  console.log("📤 Enviando payload:", payload);
 
   try {
     const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {
@@ -105,9 +110,11 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       }
     });
 
+    console.log(response);
+    console.log(response.data);
     if (!response.data.error) {
       Swal.fire("✅ Éxito", response.data.mensaje, "success");
-      setCambios({});
+      setCambios({}); // Limpiamos cambios
     } else {
       Swal.fire("⚠️ Error", response.data.mensaje, "error");
     }
@@ -116,6 +123,8 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     Swal.fire("Error", "No se pudo guardar las notas. Intenta de nuevo.", "error");
   }
 };
+
+
 
 
 
