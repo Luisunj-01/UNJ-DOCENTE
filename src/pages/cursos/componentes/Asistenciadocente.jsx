@@ -167,7 +167,7 @@ function Asistenciadocente({ datoscurso }) {
             title={`Imprimir Asistencia: ${nombrecurso}`}
             onClick={() => {
               const codigo = btoa(btoa(
-                `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`
+                `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${fila.sesion}`
               ));
 
               window.open(
