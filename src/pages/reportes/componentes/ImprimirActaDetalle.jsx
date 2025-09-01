@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useUsuario } from '../../../context/UserContext';
 import { useLocation } from 'react-router-dom';
-
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenerActaDetalle, obtenerAsistenciasemana, obtenerNombreConfiguracion } from '../logica/Reportes';
+import { obtenerActaDetalle, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 
-// 🔹 Reutilizamos el mismo estilo de Cabecera
-const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre, objetos }) => (
+// 🔹 Cabecera del acta
+const CabeceraActa = ({ titulomat, sede, nombredocente, nombreCurso, nombreEscuela, semestre, objetos }) => (
   <>
     <Cabecerareporte titulomat={titulomat} />
     <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
@@ -30,8 +29,10 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
         <tr>
           <td><strong>Curricula:</strong></td>
           <td>{objetos.curricula}</td>
-          <td><strong>Curso:</strong></td>
-          <td>{objetos.curso}</td>
+            <td><strong>Curso:</strong></td>
+            <td >{objetos.curso}</td>
+            
+
         </tr>
         <tr>
           <td><strong>Escuela:</strong></td>
@@ -47,25 +48,25 @@ const ImprimirActaDetalle = () => {
   const [loading, setLoading] = useState(true);
   const [nombresede, setNombresede] = useState('');
   const [nombreescuela, setNombreescuela] = useState('');
+
+
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('ACTA  DE EVALUACIONES');
+  const [titulomat] = useState('ACTA DE EVALUACIONES');
 
-  const queryParams2 = new URLSearchParams(search);
-  const codigo2Param = queryParams2.get('codigo');
+  const queryParams = new URLSearchParams(search);
+  const codigoParam = queryParams.get('codigo');
 
+  // 🔹 Decodificación de parámetros
   let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '';
   try {
-    if (codigo2Param) {
-      const decoded2 = atob(atob(codigo2Param));
-      [sede, semestre, escuela, curricula, curso, seccion] = decoded2.split('|');
+    if (codigoParam) {
+      const decoded = atob(atob(codigoParam));
+      [sede, semestre, escuela, curricula, curso, seccion] = decoded.split('|');
     }
   } catch (error) {
     console.error("❌ Error decodificando parámetros:", error);
   }
-
-  // 🔹 Logs de depuración
-  console.log("⚡ Parámetros crudos:", { sede, semestre, escuela, curricula, curso, seccion });
 
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
@@ -73,38 +74,32 @@ const ImprimirActaDetalle = () => {
 
   useEffect(() => {
     if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
-      console.warn("⚠️ Faltan parámetros obligatorios:", { sede, semestre, escuela, curricula, curso, seccion });
       setLoading(false);
       return;
     }
 
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerAsistenciasemana(sede, semestre, escuela, curricula, curso, seccion);
-        //console.log("resultado ActaDetalle:", resultado);
+        // 🔹 Obtener los datos del acta
+        const resultado = await obtenerActaDetalle(sede, semestre, escuela, curricula, curso, seccion);
+        setDatos(resultado?.datos || []);
+     
 
-        const lista = resultado?.datos || [];
-        setDatos(lista);
-
-        // 🔹 Obtener nombres de sede y escuela
+        // 🔹 Obtener nombre descriptivo de la sede
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
+        setNombresede(typeof nombresedeResp === 'object' ? nombresedeResp?.valor || sede : nombresedeResp || sede);
+
+        // 🔹 Obtener nombre descriptivo de la escuela (igual que en módulo de asistencia)
         const nombreescuelaResp = await obtenerNombreConfiguracion('nombreescuela', { escuela });
+        setNombreescuela(typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || '' : nombreescuelaResp || '');
 
-
-        setNombresede(
-          typeof nombresedeResp === 'object'
-            ? nombresedeResp?.valor || sede
-            : nombresedeResp || sede
-        );
-
-        setNombreescuela(
-          typeof nombreescuelaResp === 'object'
-            ? nombreescuelaResp?.valor || escuela
-            : nombreescuelaResp || escuela
-        );
+ 
 
       } catch (err) {
         console.error('❌ Error al cargar datos de acta:', err);
+        setNombresede(sede);
+        setNombreescuela('');
+        setDatos([]);
       } finally {
         setLoading(false);
       }
@@ -113,7 +108,7 @@ const ImprimirActaDetalle = () => {
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, departamentoacademico]);
 
-  // ✅ Columnas del acta (ejemplo: Código, Nombre, Nota1, Nota2, Promedio)
+  // ✅ Columnas del acta
   const columnasEncabezado = [
     [
       { titulo: 'No.', rowSpan: 2 },
@@ -149,7 +144,8 @@ const ImprimirActaDetalle = () => {
                 titulomat={titulomat}
                 sede={nombresede || sede}
                 nombredocente={nombredocente}
-                nombreEscuela={nombreescuela || escuela}
+                nombreEscuela={nombreescuela}
+                //nombreCurso={nombrecurso}
                 semestre={semestre}
                 objetos={objetos}
               />
@@ -164,6 +160,7 @@ const ImprimirActaDetalle = () => {
             {loading ? (
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
+                
               <TablaCursos datos={datos} columnasEncabezado={columnasEncabezado} columnas={columnas} />
             )}
           </div>

@@ -31,6 +31,8 @@ import Imprimirhorariodocente from './pages/reportes/componentes/Imprimirhorario
 import Imprimirguiasemana from './pages/reportes/componentes/Imprimirguiasemana.jsx';
 import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsistenciaSemana';
 
+import ImprimirActaDetalle from './pages/reportes/componentes/ImprimirActaDetalle.jsx';
+
 
 function AppRoutes() {
  const { usuario, logout } = useUsuario();
@@ -88,6 +90,7 @@ function AppRoutes() {
           <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
           <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}   />
           <Route path='ImprimirAsistenciaSemana' element={<ImprimirAsistenciaSemana />}   />
+          <Route path="ImprimirActaDetalle" element={<ImprimirActaDetalle />} />
 
 
 

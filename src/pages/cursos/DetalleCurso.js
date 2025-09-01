@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, Link, useParams } from 'react-router-dom';
 import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 import { useUsuario } from '../../context/UserContext';
-import { FaUsers, FaStar, FaBookOpen } from 'react-icons/fa';
+import { FaUsers, FaStar, FaBookOpen, FaFileAlt, FaBook, FaThumbsUp, FaClipboardList, FaLock, FaFileExcel, FaAnchor, FaAlignJustify } from 'react-icons/fa';
 import { obtenerdatdocente } from './logica/Curso';
 import BotonPDF from '../asignatura/componentes/BotonPDF';
 import { obtenerConfiguracion, obtenerCursosPrematricula } from '../reutilizables/logica/docente';
@@ -10,10 +10,14 @@ import Asistenciadocente from './componentes/Asistenciadocente';
 import DetalleGuias from './componentes/DetalleGuias';
 import Detallecursoprincipal from './componentes/Detallecursoprincipal';
 import CalificacionesDocente from './componentes/CalificacionesDocente';
+import { FaHome} from 'react-icons/fa';
+
+
 //import CalificacionesDocente from './componentes/CalificacionesDocente';
 
 function Detallecursos() {
   const [activeTab, setActiveTab] = useState('principal');
+  const [showSubmenu, setShowSubmenu] = useState(false);
   const [datos, setDatos] = useState([]);
   const [validarfechasilabu, setValidarfechasilabu] = useState(null);
 
@@ -172,7 +176,7 @@ function Detallecursos() {
                 }`}
                 onClick={() => setActiveTab('principal')}
               >
-                <FaBookOpen className="me-2" /> Principal
+                <FaHome className="me-2" /> Principal
               </button>
 
               <button
@@ -193,14 +197,119 @@ function Detallecursos() {
                 <FaUsers className="me-2" /> Asistencia
               </button>
 
+              {/* Calificaciones con submenú */}
               <button
-                className={`list-group-item list-group-item-action ${
-                  activeTab === 'calificaciones' ? 'active' : ''
+                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
+                  activeTab.startsWith('calificaciones') ? 'active' : ''
                 }`}
-                onClick={() => setActiveTab('calificaciones')}
+                onClick={() => setShowSubmenu(!showSubmenu)}
               >
-                <FaStar className="me-2" /> Calificaciones
+                <span>
+                  <FaStar className="me-2" /> Calificaciones
+                </span>
+                <span>{showSubmenu ? '▲' : '▼'}</span>
               </button>
+
+              {showSubmenu && (
+                <div className="list-group ms-3">
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-informe' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-informe')}
+                  >
+                    <FaFileAlt className="me-2" /> Registro de Notas
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-excel' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-excel')}
+                  >
+                    <FaBook className="me-2" /> Listado de matriculados (excel)
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-lista' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-lista')}
+                  >
+                    <FaThumbsUp className="me-2" /> Lista de matriculados
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-registro' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-registro')}
+                  >
+                    <FaClipboardList className="me-2" /> Registro de notas
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-excel1' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-excel1')}
+                  >
+                    <FaFileExcel className="me-2 text-danger" /> Registro de notas excel (formato 1)
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-excel2' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-excel2')}
+                  >
+                    <FaFileExcel className="me-2 text-success" /> Registro de notas excel (formato 2)
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-guia' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-guia')}
+                  >
+                    <FaLock className="me-2" /> Formato Guia
+                  </button>
+
+                  
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-preacta' ? 'active' : ''
+                    }`}
+                    onClick={() => {
+                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
+
+                      // 🔹 Armamos el código base64
+                      const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+                      const codigo = btoa(btoa(cadena));
+
+                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
+                      window.open(`/imprimiractadetalle?codigo=${codigo}`, "PreActa", opciones);
+                    }}
+                  >
+                    <FaAlignJustify className="me-2 text-danger" /> Pre Acta (Importante)
+                  </button>
+
+
+
+                
+
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-preacta-adicional' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-preacta-adicional')}
+                  >
+                    <FaAlignJustify className="me-2 text-purple-500" /> Pre Acta Adicional
+                  </button>
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-cerrar' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-cerrar')}
+                  >
+                    <FaAnchor className="me-2" /> Cerrar curso
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -210,7 +319,7 @@ function Detallecursos() {
               {activeTab === 'principal' && <Detallecursoprincipal datos={datoscurso} />}
               {activeTab === 'Asistencia' && <Asistenciadocente datos={datos} />}
               {activeTab === 'Guias' && <DetalleGuias datos={datos} />}
-              {activeTab === 'calificaciones' && <CalificacionesDocente datosprincipal={datos} />}
+              {activeTab.startsWith('calificaciones') && <CalificacionesDocente datosprincipal={datos} />}
               {/*{activeTab === 'personales' && <Datospersonalesdocente datosdocente={datosdocente} />}
               {activeTab === 'participantes' && <ParticipantesCurso curso={curso} seccion={seccion} />}
               {activeTab === 'calificaciones' && <CalificacionesCurso curso={curso} />} */}

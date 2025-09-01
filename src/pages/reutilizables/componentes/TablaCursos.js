@@ -15,6 +15,8 @@ const TablaCursos = ({
   colorFondoEncabezado = "",
   colorTextoEncabezado = "",
 }) => {
+
+  
   const [busqueda, setBusqueda] = useState("");
 
   const datosConContador = useMemo(() => {
