@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenerActaDetalle, obtenerNombreConfiguracion } from '../logica/Reportes';
+import { obtenerReportenotas, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
 import './acta.css';
 
@@ -86,7 +86,7 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
   </>
 );
 
-const ImprimirActaDetalle = () => {
+const ImprimirReporteNota = () => {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [nombresede, setNombresede] = useState('');
@@ -96,7 +96,7 @@ const ImprimirActaDetalle = () => {
 
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('ACTA DE EVALUACIONES');
+  const [titulomat] = useState('REGISTRO DE EVALUACION');
 
   const queryParams = new URLSearchParams(search);
   const codigoParam = queryParams.get('codigo');
@@ -127,7 +127,9 @@ const ImprimirActaDetalle = () => {
     
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion, token);
+        const resultado = await obtenerReportenotas(sede, semestre, escuela, curricula, curso, seccion, '2');
+
+        //console.log(resultado);
         setDatos(resultado?.datos || []);
 
         if (resultado?.datos?.length > 0) {
@@ -156,23 +158,55 @@ const ImprimirActaDetalle = () => {
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, departamentoacademico]);
 
-  const columnasEncabezado = [
-    [
-      { titulo: 'No.', rowSpan: 2 },
-      { titulo: 'CODIGO.', rowSpan: 2 },
-      { titulo: 'NOMBRE Y APELLIDO', rowSpan: 2 },
-      { titulo: 'PROMEDIO', colSpan: 2 },
-    ],
-    [
-      { titulo: 'N°.' }, { titulo: 'Letras' },
-    ]
-  ];
+  //console.log(datos);
 
-  const columnas = [
-    { clave: 'alumno' },
-    { clave: 'nombrealumno' },
-    { clave: 'promediomascara' }, { clave: 'promedioletras' },
-  ];
+  const columnasEncabezado = [
+  [
+    { titulo: 'No.', rowSpan: 2 },
+    { titulo: 'CÓDIGO', rowSpan: 2 },
+    { titulo: 'APELLIDOS Y NOMBRES', rowSpan: 2 },
+    { titulo: 'PRIMER PROMEDIO', colSpan: 4 },
+    { titulo: 'SEGUNDO PROMEDIO', colSpan: 4 },
+    { titulo: 'TERCER PROMEDIO', colSpan: 4 },
+    { titulo: 'NF', rowSpan: 2 },
+    { titulo: 'SUS', rowSpan: 2 },
+    { titulo: 'APLA', rowSpan: 2 },
+    { titulo: 'PF', rowSpan: 2 },
+  ],
+  [
+    { titulo: 'EC' }, { titulo: 'EP' }, { titulo: 'EA' }, { titulo: 'Prom' },
+    { titulo: 'EC' }, { titulo: 'EP' }, { titulo: 'EA' }, { titulo: 'Prom' },
+    { titulo: 'EC' }, { titulo: 'EP' }, { titulo: 'EA' }, { titulo: 'Prom' },
+  ]
+];
+
+
+ const columnas = [
+  { clave: 'alumno' },
+  { clave: 'nombrecompleto' },
+
+  { clave: 'u01ec' },
+  { clave: 'u01ep' },
+  { clave: 'u01ea' },
+  { clave: 'u01pr', estilo: 'promedio' },
+
+  { clave: 'u02ec' },
+  { clave: 'u02ep' },
+  { clave: 'u02ea' },
+  { clave: 'u02pr', estilo: 'promedio' },
+
+  { clave: 'u03ec' },
+  { clave: 'u03ep' },
+  { clave: 'u03ea' },
+  { clave: 'u03pr', estilo: 'promedio' },
+
+  { clave: 'promedioantes', estilo: 'promedio' },
+  { clave: 'sus', estilo: 'final-rojo' },
+  { clave: 'aplazado', estilo: 'final-rojo' },
+  { clave: 'promedio', estilo: 'final-rojo' },
+];
+
+
 
   return (
     <>
@@ -217,7 +251,8 @@ const ImprimirActaDetalle = () => {
         </div>
       </div>
 
-      {/* 🔹 Resumen de acta */}
+      {/* 🔹 Resumen de acta 
+      
       <div className="row mt-4 text-center resumen-acta">
         <div className="col">
           <p><strong>Matriculados:</strong> {datos.length}</p>
@@ -235,12 +270,12 @@ const ImprimirActaDetalle = () => {
           <p><strong>Verificación:</strong> 251</p>
         </div>
       </div>
+      
+      */}
+      
 
       <div className="row mt-5 text-center firmas-acta">
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><small>Responsable de Registros y Asuntos Académicos</small></p>
-        </div>
+        
 
         <div className="col-4">
           <p>.......................................</p>
@@ -248,10 +283,6 @@ const ImprimirActaDetalle = () => {
           <p><small>DOCENTE UNJ</small></p>
         </div>
 
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><small>RESPONSABLE DE ESCUELA PROFESIONAL</small></p>
-        </div>
       </div>
 
       {/* 🔹 Pie de última actualización */}
@@ -268,4 +299,4 @@ const ImprimirActaDetalle = () => {
   );
 };
 
-export default ImprimirActaDetalle;
+export default ImprimirReporteNota;

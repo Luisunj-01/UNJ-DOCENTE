@@ -38,5 +38,25 @@
   font-size: 0.9rem;
   color: #333;
 }
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #000 !important;
+}
 
+.table th,
+.table td {
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Promedios normales: en negrita */
+.col-promedio {
+  font-weight: bold;
+}
+
+/* NF, SUS, APLA, PF: en negrita y rojo */
+.col-final-rojo {
+  font-weight: bold;
+  color: rgb(143, 47, 47);
+}
 

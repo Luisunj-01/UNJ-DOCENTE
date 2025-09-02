@@ -40,7 +40,7 @@ function Detallecursos() {
     console.error('Error al decodificar id:', id, error);
   }
 
-  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] =
+  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente,unidad] =
     decoded.split('|') ?? [];
 
   const persona = usuario.docente.persona;
@@ -236,14 +236,26 @@ function Detallecursos() {
                   >
                     <FaThumbsUp className="me-2" /> Lista de matriculados
                   </button>
+
+
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-registro' ? 'active' : ''
                     }`}
-                    onClick={() => setActiveTab('calificaciones-registro')}
+                    onClick={() => {
+                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
+
+                      // 🔹 Armamos el código base64
+                      const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${unidad}`;
+                      const codigo = btoa(btoa(cadena));
+
+                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
+                      window.open(`/imprimirreportenota?codigo=${codigo}`, "PreRegistro", opciones);
+                    }}
                   >
                     <FaClipboardList className="me-2" /> Registro de notas
                   </button>
+
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel1' ? 'active' : ''
@@ -288,10 +300,6 @@ function Detallecursos() {
                     <FaAlignJustify className="me-2 text-danger" /> Pre Acta (Importante)
                   </button>
 
-
-
-                
-
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-preacta-adicional' ? 'active' : ''
@@ -300,6 +308,7 @@ function Detallecursos() {
                   >
                     <FaAlignJustify className="me-2 text-purple-500" /> Pre Acta Adicional
                   </button>
+
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-cerrar' ? 'active' : ''
