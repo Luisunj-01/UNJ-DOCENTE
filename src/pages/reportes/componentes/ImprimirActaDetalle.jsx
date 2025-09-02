@@ -112,19 +112,10 @@ const ImprimirActaDetalle = () => {
 
   console.log(datos);
   // ✅ Columnas del acta
-  const columnasEncabezado = [
-    [
-      { titulo: 'No.', rowSpan: 2 },
-      { titulo: 'Código', rowSpan: 2 },
-      { titulo: 'Apellidos y Nombres', rowSpan: 2 },
-      { titulo: 'Nota 1' },
-      { titulo: 'Nota 2' },
-      { titulo: 'Promedio' }
-    ]
-  ];
+
 
   const columnas = [
-    { clave: 'alumno' },
+    { clave: 'alumno', titulo: 'alumno' },
     { clave: 'nombrecompleto' },
     { clave: 'nota1' },
     { clave: 'nota2' },
@@ -164,7 +155,7 @@ const ImprimirActaDetalle = () => {
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
                 
-              <TablaCursos datos={datos} columnasEncabezado={columnasEncabezado} columnas={columnas} />
+              <TablaCursos datos={datos}  columnas={columnas} />
             )}
           </div>
         </div>
