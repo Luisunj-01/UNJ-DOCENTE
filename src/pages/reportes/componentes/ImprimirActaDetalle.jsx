@@ -72,6 +72,7 @@ const ImprimirActaDetalle = () => {
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
   const objetos = { sede, semestre, escuela, curricula, curso, seccion };
 
+  //console.log(seccion);
   useEffect(() => {
     if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
       setLoading(false);
@@ -81,7 +82,8 @@ const ImprimirActaDetalle = () => {
     const fetchDatos = async () => {
       try {
         // 🔹 Obtener los datos del acta
-        const resultado = await obtenerActaDetalle(sede, semestre, escuela, curricula, curso, seccion);
+        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion);
+        
         setDatos(resultado?.datos || []);
      
 
@@ -108,6 +110,7 @@ const ImprimirActaDetalle = () => {
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, departamentoacademico]);
 
+  console.log(datos);
   // ✅ Columnas del acta
   const columnasEncabezado = [
     [

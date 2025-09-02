@@ -237,7 +237,9 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       clave: 'ea',
       titulo: 'EA',
       render: (row) => (
-        <input
+        
+       
+          <input
           type="text"
           inputMode="decimal"
           maxLength="5"
@@ -282,6 +284,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
             }));
           }}
         />
+        
       )
     },
 

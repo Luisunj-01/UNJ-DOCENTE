@@ -60,7 +60,9 @@ const TablaCursos = ({
       datosFiltrados.map((item) => {
         let fila = {};
         columnas.forEach((col) => {
-          fila[col.titulo] = col.render ? col.render(item) : item[col.clave];
+          fila[col.titulo] = col.exportar
+            ? col.exportar(item)
+            : item[col.clave];
         });
         return fila;
       })
@@ -75,7 +77,9 @@ const TablaCursos = ({
       datosFiltrados.map((item) => {
         let fila = {};
         columnas.forEach((col) => {
-          fila[col.titulo] = col.render ? col.render(item) : item[col.clave];
+          fila[col.titulo] = col.exportar
+            ? col.exportar(item) // 👉 valor definido para exportación
+            : item[col.clave];
         });
         return fila;
       })
@@ -88,21 +92,27 @@ const TablaCursos = ({
     link.click();
   };
 
+
   const exportToPDF = () => {
-  const doc = new jsPDF();
+    const doc = new jsPDF();
 
-  const tableColumn = columnas.map((col) => col.titulo);
-  const tableRows = datosFiltrados.map((item) =>
-    columnas.map((col) => (col.render ? col.render(item) : item[col.clave]))
-  );
+    const tableColumn = columnas.map((col) => col.titulo);
+    const tableRows = datosFiltrados.map((item) =>
+      columnas.map((col) =>
+        col.exportar
+          ? col.exportar(item) // 👉 valor definido para exportación
+          : item[col.clave]
+      )
+    );
 
-  autoTable(doc, {
-    head: [tableColumn],
-    body: tableRows,
-  });
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+    });
 
-  doc.save(`${tituloArchivo}.pdf`);
-};
+    doc.save(`${tituloArchivo}.pdf`);
+  };
+
 
   const customStyles = {
     headCells: {

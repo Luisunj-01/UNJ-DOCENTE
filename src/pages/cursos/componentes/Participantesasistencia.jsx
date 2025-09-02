@@ -217,14 +217,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
     {
       clave: "asistencia",
-      titulo: (
-        <div className="d-flex align-items-center justify-content-between">
-          <span>Asistencia &nbsp;&nbsp;</span>
-          <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}>
-            <FaChalkboardTeacher />
-          </Button>
-        </div>
-      ),
+      titulo: "Asistencia",
       render: (fila) => {
         if (fila.totalFaltas >= maxFaltasPermitidas) {
           // 🔴 Inhabilitado
@@ -260,8 +253,22 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
             <option value="J">Tardanza</option>
           </Form.Select>
         );
-      }
+      },
+      exportar: (row) => {
+        if (row.totalFaltas >= maxFaltasPermitidas) return "Inhabilitado";
+
+        switch (row.asistencia) {
+          case "A": return "Asistencia";
+          case "F": return "Falta Justificada";
+          case "I": return "Falta";
+          case "T": return "Tardanza Justificada";
+          case "J": return "Tardanza";
+          case "0": 
+          default: return "Sin seleccionar";
+        }
+      },
     },
+
     {
       clave: "totalFaltas",
       titulo: "Faltas acumuladas",
@@ -275,6 +282,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
       clave: "existe",
       titulo: "Asistencia Existente",
       render: (fila) => fila.existe ? <FaCheckCircle style={{ color: "green" }} /> : <FaTimesCircle style={{ color: "red" }} />
+      
     }
   ];
 
@@ -319,11 +327,22 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
           </Form.Select>
         </div>
 
-        <div className="col-lg-4 d-flex align-items-end justify-content-end">
+         <div className="col-lg-4 d-flex align-items-end justify-content-end gap-2">
+          {/* 🔹 Nuevo botón para marcar todos */}
+          <Button variant="primary" size="sm" onClick={marcarTodosComoAsistencia}>
+            <FaChalkboardTeacher /> Marcar todos
+          </Button>
+
           <Button variant="success" size="sm" onClick={() => setShowModalConfirmar(true)}>
             {datos.length === 0 ? "Nueva Asistencia" : "Modificar Asistencia"}
           </Button>
         </div>
+
+        {/*<div className="col-lg-4 d-flex align-items-end justify-content-end">
+          <Button variant="success" size="sm" onClick={() => setShowModalConfirmar(true)}>
+            {datos.length === 0 ? "Nueva Asistencia" : "Modificar Asistencia"}
+          </Button>
+        </div> */}
       </div>
 
       {loading ? <TablaSkeleton filas={5} columnas={5} /> : <TablaCursos datos={datosFiltrados} columnas={columnas} />}
