@@ -115,15 +115,18 @@ const ImprimirActaDetalle = () => {
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
   const objetos = { sede, semestre, escuela, curricula, curso, seccion };
 
+  
   useEffect(() => {
     if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
       setLoading(false);
       return;
     }
 
+    const token = usuario.codigotokenautenticadorunj;
+    
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion);
+        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion, token);
         setDatos(resultado?.datos || []);
 
         if (resultado?.datos?.length > 0) {

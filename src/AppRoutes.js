@@ -57,7 +57,8 @@ function AppRoutes() {
         <>
           <Route path="/" element={<Login />} />
           <Route path="*" element={<Error404 />} />
-          <Route path="ImprimirActaDetalle" element={<ImprimirActaDetalle />} />
+          
+          
 
         </>
       ) : (
