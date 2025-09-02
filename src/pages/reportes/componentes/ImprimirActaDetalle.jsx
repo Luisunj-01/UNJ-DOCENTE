@@ -119,7 +119,7 @@ const ImprimirActaDetalle = () => {
   useEffect(() => {
     if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
       setLoading(false);
-      return;
+      return; 
     }
 
     const token = usuario.codigotokenautenticadorunj;
