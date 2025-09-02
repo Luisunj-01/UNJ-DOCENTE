@@ -30,7 +30,7 @@ import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import config from "../../../config"; // 🔹 Asegúrate que la ruta de tu API esté aquí
 import ModalEditarGuia from "./ModalEditarGuia";
 import AccionesMenu from './AccionesMenu';
-
+import { io } from "socket.io-client";  // 👈 IMPORTANTE: agrega esta línea
 
 function DetalleGuias({ datoscurso = [] }) {
 
@@ -85,25 +85,36 @@ function DetalleGuias({ datoscurso = [] }) {
     }
   ];
 
-  useEffect(() => {
-    //let interval;
-    cargarDatos();
+    useEffect(() => {
+      cargarDatos(); // primera carga de datos
 
-    setDatos2({
-      escuela,
-      curso,
-      seccion,
-      nombre,
-      nombredocente,
-    });
+      // 🔹 Conexión al socket
+      const socket = io("https://pruebas.unj.edu.pe", {
+        path: "/socket.io/",
+      });
 
-    /*interval = setInterval(cargarDatos, 2000);
-      return () => clearInterval(interval);*/
-    }, []);
+      // 🔹 Escuchar evento del servidor
+      socket.on("procesardetalleguias", (msg) => {
+        console.log("📩 Mensaje recibido del servidor:", msg);
+        Swal.fire({
+          icon: "info", 
+          title: "Nueva actualización",
+          text: "Se actualizó el detalle de guías.",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        cargarDatos(); // refresca la tabla automáticamente
+      });
+
+      // 🔹 Cleanup al desmontar componente
+      return () => {
+        socket.disconnect();
+      };
+    }, []); // 👈 se ejecuta una sola vez al montar
 
     const ventanaSecundaria = (url) => {
-    window.open(url, 'Certificado', 'width=1200,height=700,scrollbars=yes');
-  };
+      window.open(url, 'Certificado', 'width=1200,height=700,scrollbars=yes');
+    };
 
   const cargarDatos = async () => {
     setLoading(true);

@@ -8,18 +8,44 @@ import { obtenerActaDetalle, obtenerNombreConfiguracion } from '../logica/Report
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
 import './acta.css';
 
-
+const fecha = new Date();
+    const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
+    const horaActual = fecha.toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 // 🔹 Cabecera del acta
 const CabeceraActa = ({ titulomat, sede, nombredocente, nombreCurso, nombreEscuela, semestre, objetos }) => (
+  
   <>
-    <Cabecerareporte titulomat={titulomat} />
+  <table className="table w-100">
+            <tbody>
+                <tr className="align-middle">
+                {/* Columna izquierda - LOGO */}
+                <td className="text-start" style={{ width: '25%' }}>
+                    <img src="/image/logo/logo-unj-v1.svg" alt="Logo" width="111" />
+                </td>
+
+                {/* Columna del medio - TÍTULO */}
+                <td className="text-center" style={{ width: '50%' }}>
+                    <h4 className="titulozet mb-0"><strong>{titulomat}</strong></h4>
+                    <td style={{ width: '25%', fontSize: '0.9rem', marginTop:'8px' }}>
+                      <div><strong>Fecha:</strong> {fechaFormateada} | <strong>Hora:</strong> {horaActual}</div>
+                      
+                  </td>
+                </td>
+
+                {/* Columna derecha - FECHA Y HORA */}
+                <td className="text-end" style={{ width: '25%', fontSize: '0.9rem' }}>
+                    
+                </td>
+                </tr>
+            </tbody>
+        </table>
+  
 
     {/* 🔹 Fecha y hora debajo del título */}
-    <div className="text-center mt-2">
-      <small><strong>Fecha:</strong> {new Date().toLocaleDateString()} &nbsp; 
-      <strong>Hora:</strong> {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
-    </div>
-
+  
 
     <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
     <table className="table">
@@ -171,6 +197,7 @@ const ImprimirActaDetalle = () => {
                 //nombreCurso={nombrecurso}
                 semestre={semestre}
                 objetos={objetos}
+                
               />
             )}
           </div>

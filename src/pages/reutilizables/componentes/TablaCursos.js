@@ -15,8 +15,6 @@ const TablaCursos = ({
   colorFondoEncabezado = "",
   colorTextoEncabezado = "",
 }) => {
-
-  
   const [busqueda, setBusqueda] = useState("");
 
   const datosConContador = useMemo(() => {
@@ -55,6 +53,7 @@ const TablaCursos = ({
     );
   }, [busqueda, datosConContador, columnas, mostrarBuscador]);
 
+  // 📌 Exportar a Excel
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
       datosFiltrados.map((item) => {
@@ -72,14 +71,13 @@ const TablaCursos = ({
     XLSX.writeFile(wb, `${tituloArchivo}.xlsx`);
   };
 
+  // 📌 Exportar a CSV
   const exportToCSV = () => {
     const ws = XLSX.utils.json_to_sheet(
       datosFiltrados.map((item) => {
         let fila = {};
         columnas.forEach((col) => {
-          fila[col.titulo] = col.exportar
-            ? col.exportar(item) // 👉 valor definido para exportación
-            : item[col.clave];
+          fila[col.titulo] = col.exportar ? col.exportar(item) : item[col.clave];
         });
         return fila;
       })
@@ -92,16 +90,14 @@ const TablaCursos = ({
     link.click();
   };
 
-
+  // 📌 Exportar a PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
 
     const tableColumn = columnas.map((col) => col.titulo);
     const tableRows = datosFiltrados.map((item) =>
       columnas.map((col) =>
-        col.exportar
-          ? col.exportar(item) // 👉 valor definido para exportación
-          : item[col.clave]
+        col.exportar ? col.exportar(item) : item[col.clave]
       )
     );
 
@@ -112,7 +108,6 @@ const TablaCursos = ({
 
     doc.save(`${tituloArchivo}.pdf`);
   };
-
 
   const customStyles = {
     headCells: {
@@ -175,6 +170,8 @@ const TablaCursos = ({
           data={datosFiltrados}
           customStyles={customStyles}
           pagination={paginacion}
+          paginationPerPage={10} // 👉 por defecto 10
+          paginationRowsPerPageOptions={[10, 20, 50, datosFiltrados.length]} // 👉 incluye "Todos"
           noDataComponent={<span>No hay información por mostrar</span>}
           persistTableHead
           responsive

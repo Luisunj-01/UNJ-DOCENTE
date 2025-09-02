@@ -4,6 +4,7 @@ import { Modal, Button, Form, Row, Col } from "react-bootstrap";
 import Swal from "sweetalert2";
 import config from "../../../config";
 import { useUsuario } from "../../../context/UserContext";
+import { io } from "socket.io-client";
 
 function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
   const { usuario } = useUsuario();
@@ -130,8 +131,11 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
 
       if (!response.data.error) {
         Swal.fire("✅ Éxito", response.data.mensaje, "success");
-        onUpdated();
-        onClose();
+        //onUpdated();
+        //onClose();
+        const socket = io(config.socketUrl, {
+        query: { establishmentId: datoscursos.escuela }, // si usas salas
+      });
       } else {
         Swal.fire("Error", response.data.mensaje, "error");
       }
