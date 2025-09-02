@@ -5,12 +5,22 @@ import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
 import { obtenerActaDetalle, obtenerNombreConfiguracion } from '../logica/Reportes';
-import TablaCursos from '../../reutilizables/componentes/TablaCursos';
+import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
+import './acta.css';
+
 
 // 🔹 Cabecera del acta
 const CabeceraActa = ({ titulomat, sede, nombredocente, nombreCurso, nombreEscuela, semestre, objetos }) => (
   <>
     <Cabecerareporte titulomat={titulomat} />
+
+    {/* 🔹 Fecha y hora debajo del título */}
+    <div className="text-center mt-2">
+      <small><strong>Fecha:</strong> {new Date().toLocaleDateString()} &nbsp; 
+      <strong>Hora:</strong> {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+    </div>
+
+
     <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
     <table className="table">
       <tbody>
@@ -48,6 +58,8 @@ const ImprimirActaDetalle = () => {
   const [loading, setLoading] = useState(true);
   const [nombresede, setNombresede] = useState('');
   const [nombreescuela, setNombreescuela] = useState('');
+  const [usuarioRegistro, setUsuarioRegistro] = useState('');
+  const [fechaRegistro, setFechaRegistro] = useState('');
 
 
   const { usuario } = useUsuario();
@@ -85,8 +97,11 @@ const ImprimirActaDetalle = () => {
         const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion);
         
         setDatos(resultado?.datos || []);
-     
 
+       if (resultado?.datos?.length > 0) {
+        setUsuarioRegistro(resultado.datos[0].ur || '');
+        setFechaRegistro(resultado.datos[0].fr || '');
+      }
         // 🔹 Obtener nombre descriptivo de la sede
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
         setNombresede(typeof nombresedeResp === 'object' ? nombresedeResp?.valor || sede : nombresedeResp || sede);
@@ -95,13 +110,15 @@ const ImprimirActaDetalle = () => {
         const nombreescuelaResp = await obtenerNombreConfiguracion('nombreescuela', { escuela });
         setNombreescuela(typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || '' : nombreescuelaResp || '');
 
- 
 
       } catch (err) {
         console.error('❌ Error al cargar datos de acta:', err);
         setNombresede(sede);
         setNombreescuela('');
         setDatos([]);
+        setUsuarioRegistro('');
+        setFechaRegistro('');
+
       } finally {
         setLoading(false);
       }
@@ -113,13 +130,25 @@ const ImprimirActaDetalle = () => {
   console.log(datos);
   // ✅ Columnas del acta
 
+  const columnasEncabezado = [
+    [
+       { titulo: 'No.', rowSpan: 2 },
+      { titulo: 'CODIGO.', rowSpan: 2 },
+      { titulo: 'NOMBRE Y APELLIDO', rowSpan: 2 },
+      { titulo: 'PROMEDIO', colSpan: 2 },
+      
+    ],
+    [
+      { titulo: 'N°.' }, { titulo: 'Letras' },
+      
+    ]
+  ];
 
   const columnas = [
-    { clave: 'alumno', titulo: 'alumno' },
-    { clave: 'nombrecompleto' },
-    { clave: 'nota1' },
-    { clave: 'nota2' },
-    { clave: 'promedio' }
+    { clave: 'alumno' },
+    { clave: 'nombrealumno' },
+    { clave: 'promediomascara' }, { clave: 'promedioletras' },
+    
   ];
 
   return (
@@ -155,11 +184,70 @@ const ImprimirActaDetalle = () => {
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
                 
-              <TablaCursos datos={datos}  columnas={columnas} />
+              <div className="tabla-acta">
+                <TablaCursoSub
+                  datos={datos}
+                  columnasEncabezado={columnasEncabezado}
+                  columnas={columnas}
+                />
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* 🔹 Resumen de acta */}
+        <div className="row mt-4 text-center resumen-acta">
+          <div className="col">
+            <p><strong>Matriculados:</strong> {datos.length}</p>
+          </div>
+          <div className="col">
+            <p><strong>Aprobados:</strong> {datos.filter(d => Number(d.promediomascara) >= 11).length}</p>
+          </div>
+          <div className="col">
+            <p><strong>Desaprobados:</strong> {datos.filter(d => Number(d.promediomascara) < 11).length}</p>
+          </div>
+          <div className="col">
+            <p><strong>Reserva:</strong> 0</p>
+          </div>
+          <div className="col">
+            <p><strong>Verificación:</strong> 251</p>
+          </div>
+        </div>
+
+      <div className="row mt-5 text-center firmas-acta">
+          <div className="col-4">
+            <p>.......................................</p>
+            <p><small>Responsable de Registros y Asuntos Académicos</small></p>
+          </div>
+
+          <div className="col-4">
+            <p>.......................................</p>
+            <p><strong>{nombredocente}</strong></p>
+            <p><small>DOCENTE UNJ</small></p>
+          </div>
+
+          <div className="col-4">
+            <p>.......................................</p>
+            <p><small>RESPONSABLE DE ESCUELA PROFESIONAL</small></p>
+          </div>
+        </div>
+
+      
+          {/* 🔹 Pie de última actualización 
+          */}
+          <div className="text-end mt-4 pie-actualizacion">
+          <small>
+            Última actualización: usuario: {usuarioRegistro || '---'}  
+            &nbsp; Fecha: {fechaRegistro || '---'}
+          </small>
+            <p>
+               Impreso por: usuario: {usuarioRegistro || '---'} 
+
+            </p>
+        </div>
+       
+
     </>
   );
 };

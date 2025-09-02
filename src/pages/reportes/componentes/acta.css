@@ -1,0 +1,42 @@
+/* acta.css */
+.tabla-acta table {
+  border: 2px solid #000;     /* Borde externo grueso */
+  border-collapse: collapse;  /* Evita bordes dobles */
+  width: 100%;
+}
+
+.tabla-acta th,
+.tabla-acta td {
+  border: 2px solid #000;     /* Bordes internos */
+  padding: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+.firmas-acta p {
+  margin: 2px 0;
+}
+
+.firmas-acta strong {
+  text-transform: uppercase;
+}
+
+.firmas-acta small {
+  font-size: 12px;
+}
+.resumen-acta p {
+  margin: 0;
+  font-size: 13px;
+}
+.pie-actualizacion {
+  font-size: 11px;
+  color: #222;
+  border-top: 1px solid #000;
+  padding-top: 4px;
+  margin-right: 40px; /* 🔹 mueve un poco hacia la izquierda */
+}
+.text-center small {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+
