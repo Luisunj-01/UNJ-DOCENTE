@@ -30,27 +30,38 @@ function TablaCursoSub({ datos, columnasEncabezado = [], columnas = [], notamini
               {columnas.map((col, i) => {
                 const raw = col.render ? col.render(fila) : fila[col.clave] ?? '';
                 const valorNumerico = col.esNota ? Number(raw) : null;
-                const notaBaja = col.esNota && !isNaN(valorNumerico) && valorNumerico < notaMin;
+
+                const notaBaja = !isNaN(valorNumerico) && valorNumerico < (notaMin || 11);
+                const aplicarRojo = notaBaja && ['promedio', 'final-rojo', 'promedioantes'].includes(col.estilo);
 
                 const estilo = {
-                  color: notaBaja ? 'red' : undefined,
-                  textDecoration: notaBaja && col.subrayar ? 'underline' : undefined,
+                  color: aplicarRojo ? 'red' : undefined,
+                  fontWeight: aplicarRojo ? 'bold' : undefined,
+                  textDecoration: aplicarRojo && col.subrayar ? 'underline' : undefined,
                 };
+
 
                 // Mostrar: redondeado si es nota, sino tal como viene
                 const contenidoMostrar = col.esNota && !isNaN(valorNumerico)
-                ? (valorNumerico % 1 === 0 ? parseInt(valorNumerico) : valorNumerico.toFixed(2))
-                : raw;
+                  ? (valorNumerico % 1 === 0 ? parseInt(valorNumerico) : valorNumerico.toFixed(2))
+                  : raw;
 
                 const usarStrong = col.esNota || col.negrita;
 
+                // 👇 Aquí agrego integración con tus clases CSS personalizadas
+                const extraClass = col.estilo ? `col-${col.estilo}` : '';
+
                 return (
-                  <td key={i} className={col.className || ''} style={estilo}>
+                  <td 
+                    key={i} 
+                    className={`${col.className || ''} ${extraClass}`.trim()} 
+                    style={estilo}
+                  >
                     {usarStrong ? (
                       <strong style={estilo}>{contenidoMostrar}</strong>
                     ) : (
                       contenidoMostrar
-                    )} 
+                    )}
                   </td>
                 );
               })}
