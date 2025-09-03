@@ -33,6 +33,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
   useEffect(() => {
     const cargarDatos = async () => {
       setLoading(true);
+      
       const response = await obtenerDetalleActa(sede, semestre, escuela, curricula, curso, seccion, unidad);
       //console.log(response);
       if (!response || !response.datos) {
@@ -100,6 +101,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
     usuario: usuario.docente.numerodocumento,
     calificaciones: calificacionesModificadas
   };
+  //console.log(payload);
 
   try {
     const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {

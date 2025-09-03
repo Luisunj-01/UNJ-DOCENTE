@@ -34,6 +34,7 @@ import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsist
 import ImprimirActaDetalle from './pages/reportes/componentes/ImprimirActaDetalle.jsx';
 import ImprimirReporteNota from './pages/reportes/componentes/ImprimirReporteNota.jsx';
 import ImprimirListaMatriculados from './pages/reportes/componentes/ImprimirListaMatriculados.jsx';
+import Tutoria from './pages/tutoria/Tutoria.js';
 
 
 function AppRoutes() {
@@ -84,7 +85,7 @@ function AppRoutes() {
             <Route path="Curso" element={<Cursos />} />
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
             <Route path="participantes/:id" element={<ParticipantesGuias />}/>
-
+            <Route path="tutoria" element={<Tutoria />} />
         
       
           </Route>
