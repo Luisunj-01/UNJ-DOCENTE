@@ -1,43 +1,84 @@
-/* acta.css */
+/* ===========================
+   TABLA PRINCIPAL (ACTA)
+=========================== */
 .tabla-acta table {
-  border: 2px solid #000;     /* Borde externo grueso */
-  border-collapse: collapse;  /* Evita bordes dobles */
-  width: 100%;
+  border: 2px solid #000;      /* Borde externo grueso */
+  border-collapse: collapse;   /* Evita bordes dobles */
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: fixed;         /* 👈 columnas equitativas */
+  word-wrap: break-word;       /* corta texto largo */
+  white-space: normal;         /* permite saltos de línea */
+  overflow-x: hidden;          /* evita scroll horizontal */
+}
+
+.tabla-acta {
+  overflow-x: hidden !important; /* elimina scroll horizontal */
 }
 
 .tabla-acta th,
 .tabla-acta td {
-  border: 2px solid #000;     /* Bordes internos */
+  border: 2px solid #000;      /* Bordes internos */
   padding: 8px;
   text-align: center;
-  font-size: 14px;
-}
-.firmas-acta p {
-  margin: 2px 0;
+  font-size: 14px;             /* tamaño base */
 }
 
-.firmas-acta strong {
-  text-transform: uppercase;
+/* ===========================
+   TABLA RESUMEN
+=========================== */
+.tabla-resumen-acta {
+  border: 1px solid #035aa6 !important;
+  font-size: 0.75rem;       /* fuente pequeña */
+  margin-left: 30px;
+  width: auto !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+  white-space: normal !important; /* permite salto */
+  overflow-x: hidden !important;
 }
 
-.firmas-acta small {
-  font-size: 12px;
+.tabla-resumen-acta th,
+.tabla-resumen-acta td {
+  border: 1px solid #035aa6 !important;
+  padding: 2px 6px;         /* menos espacio interno */
+  text-align: center;
+  line-height: 1.2;
 }
-.resumen-acta p {
-  margin: 0;
-  font-size: 13px;
+
+.tabla-resumen-acta th {
+  font-weight: bold;
+  background-color: #f4f9ff; /* opcional */
 }
+
+/* 🔹 Hace que columnas numéricas sean más angostas */
+.tabla-resumen-acta td:nth-child(n+2),
+.tabla-resumen-acta th:nth-child(n+2) {
+  width: 50px;   /* ajusta si quieres más o menos ancho */
+}
+
+/* ===========================
+   FIRMAS Y PIE DE PÁGINA
+=========================== */
+.firma-docente {
+  margin-left: 100px; /* más espacio a la derecha respecto a la tabla */
+  margin-top: 50px;   /* baja un poco la firma */
+  min-width: 220px;   /* asegura espacio fijo para la firma */
+}
+
 .pie-actualizacion {
   font-size: 11px;
   color: #222;
   border-top: 1px solid #000;
   padding-top: 4px;
-  margin-right: 40px; /* 🔹 mueve un poco hacia la izquierda */
+  margin-right: 40px; /* mueve un poco hacia la izquierda */
 }
+
 .text-center small {
   font-size: 0.9rem;
   color: #333;
 }
+
 .table-bordered th,
 .table-bordered td {
   border: 1px solid #000 !important;
@@ -60,3 +101,55 @@
   color: rgb(143, 47, 47);
 }
 
+/* ===========================
+   RESPONSIVE (AUTO AJUSTE)
+=========================== */
+
+/* 🔹 Cuando la pantalla es más pequeña (o tabla muy grande) */
+@media (max-width: 1200px) {
+  .tabla-acta th,
+  .tabla-acta td {
+    font-size: 12px;
+    padding: 6px;
+  }
+}
+
+@media (max-width: 992px) {
+  .tabla-acta th,
+  .tabla-acta td {
+    font-size: 11px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabla-acta th,
+  .tabla-acta td {
+    font-size: 10px;
+    padding: 3px;
+  }
+}
+
+/* 🔹 La tabla de resumen siempre compacta */
+.tabla-resumen-acta th,
+.tabla-resumen-acta td {
+  font-size: 0.7rem !important;
+  padding: 2px 4px !important;
+}
+/* ===========================
+   AJUSTE DE ANCHO DE COLUMNAS
+=========================== */
+
+/* Columna 2 = CÓDIGO */
+.tabla-acta table td:nth-child(2),
+.tabla-acta table th:nth-child(2) {
+  width: 120px;   /* 👈 más ancho */
+}
+
+/* Columna 3 = APELLIDOS Y NOMBRES */
+.tabla-acta table td:nth-child(3),
+.tabla-acta table th:nth-child(3) {
+  width: 300px;   /* 👈 bastante más ancho */
+  text-align: left; /* 👈 opcional: alinear a la izquierda */
+  padding-left: 8px;
+}

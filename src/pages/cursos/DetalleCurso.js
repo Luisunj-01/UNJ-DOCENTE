@@ -220,22 +220,38 @@ function Detallecursos() {
                   >
                     <FaFileAlt className="me-2" /> Registro de Notas
                   </button>
+
+
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel' ? 'active' : ''
                     }`}
-                    onClick={() => setActiveTab('calificaciones-excel')}
+
+                   onClick={() => {
+                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
+
+                      // 🔹 Armamos el código base64
+                      const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+                      const codigo = btoa(btoa(cadena));
+
+                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
+                      window.open(`/imprimirlistamatriculados?codigo=${codigo}`, "PreMatriculados", opciones);
+                    }}
+
                   >
-                    <FaBook className="me-2" /> Listado de matriculados (excel)
+                    <FaBook className="me-2" /> Listado de matriculados
                   </button>
-                  <button
-                    className={`list-group-item list-group-item-action ${
-                      activeTab === 'calificaciones-lista' ? 'active' : ''
-                    }`}
-                    onClick={() => setActiveTab('calificaciones-lista')}
-                  >
-                    <FaThumbsUp className="me-2" /> Lista de matriculados
-                  </button>
+
+                  {/*
+                    <button
+                      className={`list-group-item list-group-item-action ${
+                        activeTab === 'calificaciones-lista' ? 'active' : ''
+                      }`}
+                      onClick={() => setActiveTab('calificaciones-lista')}
+                    >
+                      <FaThumbsUp className="me-2" /> Lista de matriculados
+                    </button>
+                    */}
 
 
                   <button
@@ -256,6 +272,7 @@ function Detallecursos() {
                     <FaClipboardList className="me-2" /> Registro de notas
                   </button>
 
+                  {/*
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel1' ? 'active' : ''
@@ -264,7 +281,12 @@ function Detallecursos() {
                   >
                     <FaFileExcel className="me-2 text-danger" /> Registro de notas excel (formato 1)
                   </button>
-                  <button
+                   */}
+
+
+                   {/*
+
+                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel2' ? 'active' : ''
                     }`}
@@ -272,6 +294,9 @@ function Detallecursos() {
                   >
                     <FaFileExcel className="me-2 text-success" /> Registro de notas excel (formato 2)
                   </button>
+
+                   */}
+
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-guia' ? 'active' : ''
@@ -300,6 +325,9 @@ function Detallecursos() {
                     <FaAlignJustify className="me-2 text-danger" /> Pre Acta (Importante)
                   </button>
 
+
+                  {/*
+
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-preacta-adicional' ? 'active' : ''
@@ -309,6 +337,7 @@ function Detallecursos() {
                     <FaAlignJustify className="me-2 text-purple-500" /> Pre Acta Adicional
                   </button>
 
+                   */}
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-cerrar' ? 'active' : ''

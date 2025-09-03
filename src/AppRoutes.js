@@ -33,6 +33,7 @@ import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsist
 
 import ImprimirActaDetalle from './pages/reportes/componentes/ImprimirActaDetalle.jsx';
 import ImprimirReporteNota from './pages/reportes/componentes/ImprimirReporteNota.jsx';
+import ImprimirListaMatriculados from './pages/reportes/componentes/ImprimirListaMatriculados.jsx';
 
 
 function AppRoutes() {
@@ -96,6 +97,7 @@ function AppRoutes() {
           <Route path='ImprimirAsistenciaSemana' element={<ImprimirAsistenciaSemana />}   />
           <Route path="ImprimirActaDetalle" element={<ImprimirActaDetalle />} />
           <Route path="ImprimirReporteNota" element={<ImprimirReporteNota />} />
+          <Route path="ImprimirListaMatriculados" element={<ImprimirListaMatriculados />} />
 
 
 
