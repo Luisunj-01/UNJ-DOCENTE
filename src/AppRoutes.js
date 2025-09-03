@@ -34,6 +34,7 @@ import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsist
 import ImprimirActaDetalle from './pages/reportes/componentes/ImprimirActaDetalle.jsx';
 import ImprimirReporteNota from './pages/reportes/componentes/ImprimirReporteNota.jsx';
 import ImprimirListaMatriculados from './pages/reportes/componentes/ImprimirListaMatriculados.jsx';
+import ImprimirFichaGuia from './pages/reportes/componentes/ImprimirFichaGuia.jsx';
 
 
 function AppRoutes() {
@@ -98,6 +99,7 @@ function AppRoutes() {
           <Route path="ImprimirActaDetalle" element={<ImprimirActaDetalle />} />
           <Route path="ImprimirReporteNota" element={<ImprimirReporteNota />} />
           <Route path="ImprimirListaMatriculados" element={<ImprimirListaMatriculados />} />
+          <Route path="ImprimirFichaGuia" element={<ImprimirFichaGuia />} />
 
 
 
