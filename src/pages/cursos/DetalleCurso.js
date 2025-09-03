@@ -278,7 +278,7 @@ function Detallecursos() {
                       const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
 
                       // 🔹 Armamos el código base64
-                      const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+                      const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${nombrecurso}`;
                       const codigo = btoa(btoa(cadena));
 
                       // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel

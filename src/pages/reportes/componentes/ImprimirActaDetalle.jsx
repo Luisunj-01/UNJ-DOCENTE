@@ -101,7 +101,7 @@ const ImprimirActaDetalle = () => {
   const codigoParam = queryParams.get('codigo');
 
   // 🔹 Decodificación de parámetros
-  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '';
+  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '', nombrecurso="";
   try {
     if (codigoParam) {
       const decoded = atob(atob(codigoParam));
@@ -113,11 +113,11 @@ const ImprimirActaDetalle = () => {
 
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
-  const objetos = { sede, semestre, escuela, curricula, curso, seccion };
+  const objetos = { sede, semestre, escuela, curricula, curso, seccion, };
 
   
   useEffect(() => {
-    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
+    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion || !nombrecurso) {
       setLoading(false);
       return; 
     }
@@ -126,7 +126,7 @@ const ImprimirActaDetalle = () => {
     
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion, token);
+        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion);
         setDatos(resultado?.datos || []);
 
         if (resultado?.datos?.length > 0) {

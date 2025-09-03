@@ -6,11 +6,13 @@ import { Form } from 'react-bootstrap';
 import { ToastContext } from '../../../cuerpos/Layout';
 import config from '../../../config';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
-
+import { useUsuario } from '../../../context/UserContext';
+import Swal from "sweetalert2";
 
 const ParticipantesGuias = ({ datoscurso, semana }) => {
 
-  
+  const { usuario } = useUsuario();
+    const token = usuario?.codigotokenautenticadorunj;
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
@@ -123,7 +125,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
     curricula,
     curso,
     seccion,
-    semana: datoscurso.semana,
+    semana: datoscurso.semana, 
     registros: asistencias.map(a => ({
       persona: a.persona + a.alumno,
       minutos: a.minutos ?? 0,
@@ -134,17 +136,24 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
     }))
   };
 
-  //console.log(payload);
+  console.log(payload);
+  
   const response = await fetch(`${config.apiUrl}api/curso/GrabarParticipantes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
     body: JSON.stringify(payload)
   });
+
 
   const data = await response.json();
 
   if (!data.error) {
-    mostrarToast('Participantes guardados correctamente.', 'success');
+    Swal.fire("✅ Éxito", 'Participantes guardados correctamente.', "success");
+    //mostrarToast('Participantes guardados correctamente.', 'success');
     /*localStorage.removeItem(claveStorage);
     setDatos(prev =>
       prev.map(alumno => ({
@@ -261,7 +270,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
   return (
     <div>
       <div className="alert alert-info text-center">
-        <strong style={{ color: '#085a9b' }}>PARTICIPANTES</strong>
+        <strong style={{ color: '#085a9b' }}>PARTICIPANTESs</strong>
       </div>
 
       <div className="mb-3">
