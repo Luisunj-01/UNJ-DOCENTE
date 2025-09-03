@@ -78,7 +78,7 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
         </div> */}
 
         {/* Notas */}
-        <div className="menu-group">
+        {/*<div className="menu-group">
           <button className="menu-btn" onClick={() => toggleMenu('notas')}>
             <FaClipboardList className="me-2" /> Notas
             {openMenu === 'notas' ? <FaChevronDown className="ms-auto" /> : <FaChevronRight className="ms-auto" />}
@@ -89,7 +89,7 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
               <li className={`submenu-link ${location.pathname.startsWith('/IngresoRezaAplaz') ? 'active' : ''}`}><Link to="/IngresoRezaAplaz" onClick={toggleSidebar}> Ingreso Reza/Aplaz</Link></li>
             </ul>
           )}
-        </div>
+        </div> */}
 
         {/* Reportes */}
         <div className="menu-group">
@@ -113,11 +113,11 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
           </button>
           {openMenu === 'tutoria' && (
             <ul className="submenu">
-              <li className={`submenu-link ${location.pathname.startsWith('/ObsRendimiento') ? 'active' : ''}`}><Link to="/ObsRendimiento" onClick={toggleSidebar}> Obs.ObsRendimiento</Link></li>
-              <li className={`submenu-link ${location.pathname.startsWith('/Sesionciclo') ? 'active' : ''}`}><Link to="/Sesionciclo" onClick={toggleSidebar}> Sesion Ciclo</Link></li>
-              <li className={`submenu-link ${location.pathname.startsWith('/Sesionlibre') ? 'active' : ''}`}><Link to="/Sesionlibre" onClick={toggleSidebar}> Sesion Libre</Link></li>
-              <li className={`submenu-link ${location.pathname.startsWith('/SesionIndiv') ? 'active' : ''}`}><Link to="/SesionIndiv" onClick={toggleSidebar}> Sesion Individual</Link></li>
-              <li className={`submenu-link ${location.pathname.startsWith('/Reportes') ? 'active' : ''}`}><Link to="/Reportes" onClick={toggleSidebar}> Reportes</Link></li>
+              <li className={`submenu-link ${location.pathname.startsWith('/tutoria') ? 'active' : ''}`}><Link to="/tutoria" onClick={toggleSidebar}> Obs.ObsRendimiento</Link></li>
+              <li className={`submenu-link ${location.pathname.startsWith('/tutoria') ? 'active' : ''}`}><Link to="/tutoria" onClick={toggleSidebar}> Sesion Ciclo</Link></li>
+              <li className={`submenu-link ${location.pathname.startsWith('/tutoria') ? 'active' : ''}`}><Link to="/tutoria" onClick={toggleSidebar}> Sesion Libre</Link></li>
+              <li className={`submenu-link ${location.pathname.startsWith('/tutoria') ? 'active' : ''}`}><Link to="/tutoria" onClick={toggleSidebar}> Sesion Individual</Link></li>
+              <li className={`submenu-link ${location.pathname.startsWith('/tutoria') ? 'active' : ''}`}><Link to="/tutoria" onClick={toggleSidebar}> Reportes</Link></li>
 
             </ul>
           )}

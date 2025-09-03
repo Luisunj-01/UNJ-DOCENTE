@@ -46,6 +46,7 @@
   line-height: 1.2;
 }
 
+
 .tabla-resumen-acta th {
   font-weight: bold;
   background-color: #f4f9ff; /* opcional */
@@ -87,7 +88,7 @@
 .table th,
 .table td {
   vertical-align: middle;
-  text-align: center;
+  
 }
 
 /* Promedios normales: en negrita */
@@ -140,16 +141,59 @@
    AJUSTE DE ANCHO DE COLUMNAS
 =========================== */
 
+/* Columna 1 = NRO (número de orden) */
+.tabla-acta table td:nth-child(1),
+.tabla-acta table th:nth-child(1) {
+  width: 10px;   /* bien angosta */
+  text-align: center;
+}
+
 /* Columna 2 = CÓDIGO */
 .tabla-acta table td:nth-child(2),
 .tabla-acta table th:nth-child(2) {
-  width: 120px;   /* 👈 más ancho */
+  width: 50px;  /* ocupa espacio medio */
+  text-align: center;
+  white-space: nowrap;
 }
 
 /* Columna 3 = APELLIDOS Y NOMBRES */
 .tabla-acta table td:nth-child(3),
 .tabla-acta table th:nth-child(3) {
-  width: 300px;   /* 👈 bastante más ancho */
-  text-align: left; /* 👈 opcional: alinear a la izquierda */
-  padding-left: 8px;
+  width: 50px;  /* más ancha */
+  text-align: left;
+  padding-left: 6px;
+}
+
+/* Columnas 4 a N (Notas / Sesiones) */
+.tabla-acta table td:nth-child(n+4):nth-child(-n+8),
+.tabla-acta table th:nth-child(n+4):nth-child(-n+8) {
+  width: 60px;   /* iguales y angostas */
+  text-align: center;
+}
+
+/* Columna PROMEDIO NUMÉRICO */
+.tabla-acta table td:nth-child(9),
+.tabla-acta table th:nth-child(9) {
+  width: 70px;
+  text-align: center;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+/* Columna PROMEDIO LETRA */
+.tabla-acta table td:nth-child(10),
+.tabla-acta table th:nth-child(10) {
+  width: 70px;
+  text-align: center;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+/* Columna CONDICIÓN (Aprobado / Aplazado / etc.) */
+.tabla-acta table td:nth-child(11),
+.tabla-acta table th:nth-child(11) {
+  width: 100px;
+  text-align: center;
+  font-weight: bold;
+  white-space: nowrap;
 }

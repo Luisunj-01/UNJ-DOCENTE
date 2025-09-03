@@ -50,7 +50,7 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
               includeMargin={true}
             />
             
-              <p style={{ fontSize: '0.8rem', marginTop: '10px' }}><strong>Escanea para acceder al acta:</strong></p>
+              <p style={{ fontSize: '0.8rem', marginTop: '10px' }}><strong>Escanea para acceder:</strong></p>
             </div>
           </td>
         </tr>

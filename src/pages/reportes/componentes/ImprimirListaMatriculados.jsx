@@ -5,9 +5,9 @@ import { useLocation } from 'react-router-dom';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenerActaDetalle, obtenerNombreConfiguracion } from '../logica/Reportes';
+import { obtenerListamatriculados, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
-import './acta.css';
+import './matriculados.css';
 
 const fecha = new Date();
 const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
@@ -50,7 +50,7 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
               includeMargin={true}
             />
             
-              <p style={{ fontSize: '0.8rem', marginTop: '10px' }}><strong>Escanea para acceder al acta:</strong></p>
+              <p style={{ fontSize: '0.8rem', marginTop: '10px' }}><strong>Escanea para acceder:</strong></p>
             </div>
           </td>
         </tr>
@@ -62,25 +62,25 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
       <tbody>
         <tr>
           <td><strong>Sede:</strong></td>
-          <td>{sede}</td>
+          <td style={{textAlign: 'left'}}>{sede}</td>
           <td><strong>Docente:</strong></td>
-          <td>{nombredocente}</td>
+          <td style={{textAlign: 'left'}}>{nombredocente}</td>
         </tr>
         <tr>
           <td><strong>Semestre:</strong></td>
-          <td>{semestre}</td>
+          <td style={{textAlign: 'left'}}>{semestre}</td>
           <td><strong>Sección:</strong></td>
-          <td>{objetos.seccion}</td>
+          <td style={{textAlign: 'left'}}>{objetos.seccion}</td>
         </tr>
         <tr>
           <td><strong>Curricula:</strong></td>
-          <td>{objetos.curricula}</td>
+          <td style={{textAlign: 'left'}}>{objetos.curricula}</td>
           <td><strong>Curso:</strong></td>
-          <td>{objetos.curso}</td>
+          <td style={{textAlign: 'left'}}>{objetos.curso}</td>
         </tr>
         <tr>
           <td><strong>Escuela:</strong></td>
-          <td colSpan={3}>{nombreEscuela}</td>
+          <td style={{textAlign: 'left'}} >{nombreEscuela}</td>
         </tr>
       </tbody>
     </table>
@@ -93,11 +93,10 @@ const ImprimirListaMatriculados = () => {
   const [nombresede, setNombresede] = useState('');
   const [nombreescuela, setNombreescuela] = useState('');
   const [usuarioRegistro, setUsuarioRegistro] = useState('');
-  const [fechaRegistro, setFechaRegistro] = useState('');
-
+  
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('ACTA DE EVALUACIONES');
+  const [titulomat] = useState('LISTADO OFICIAL DE ALUMNOS MATRICULADOS');
 
   const queryParams = new URLSearchParams(search);
   const codigoParam = queryParams.get('codigo');
@@ -128,12 +127,12 @@ const ImprimirListaMatriculados = () => {
     
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion, token);
+        const resultado = await obtenerListamatriculados(semestre, sede, escuela, curricula, curso, seccion, token);
         setDatos(resultado?.datos || []);
 
         if (resultado?.datos?.length > 0) {
-          setUsuarioRegistro(resultado.datos[0].ur || '');
-          setFechaRegistro(resultado.datos[0].fr || '');
+          setUsuarioRegistro(resultado.datos[0].docente || '');
+         
         }
 
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
@@ -148,7 +147,7 @@ const ImprimirListaMatriculados = () => {
         setNombreescuela('');
         setDatos([]);
         setUsuarioRegistro('');
-        setFechaRegistro('');
+        
       } finally {
         setLoading(false);
       }
@@ -164,12 +163,11 @@ const ImprimirListaMatriculados = () => {
       { titulo: 'No.', rowSpan: 2 },
       { titulo: 'CODIGO.', rowSpan: 2 },
       { titulo: 'NOMBRE Y APELLIDO', rowSpan: 2 },
+      { titulo: 'IMAIL PERSONAL', rowSpan: 2 },
       { titulo: 'IMAIL INSTITUCIONAL', colSpan: 1 },
       { titulo: 'DNI', colSpan: 1 },
       { titulo: 'CELULAR', colSpan: 1 },
       { titulo: 'PROCEDENCIA', colSpan: 1 },
-
-
 
     ],
     
@@ -178,10 +176,11 @@ const ImprimirListaMatriculados = () => {
   const columnas = [
     { clave: 'alumno' },
     { clave: 'nombrealumno' },
-    { clave: 'promediomascara' },
-    { clave: 'promediomascara' },
-    { clave: 'promediomascara' },
-    { clave: 'promediomascara' },
+    { clave: 'email' },
+    { clave: 'email_institucional' },
+    { clave: 'dni' },
+    { clave: 'telefono' },
+    { clave: 'procedencia' },
 
   ];
 
@@ -228,49 +227,9 @@ const ImprimirListaMatriculados = () => {
         </div>
       </div>
 
-      {/* 🔹 Resumen de acta */}
-      <div className="row mt-4 text-center resumen-acta">
-        <div className="col">
-          <p><strong>Matriculados:</strong> {datos.length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Aprobados:</strong> {datos.filter(d => Number(d.promediomascara) >= 11).length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Desaprobados:</strong> {datos.filter(d => Number(d.promediomascara) < 11).length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Reserva:</strong> 0</p>
-        </div>
-        <div className="col">
-          <p><strong>Verificación:</strong> 251</p>
-        </div>
-      </div>
-
-      <div className="row mt-5 text-center firmas-acta">
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><small>Responsable de Registros y Asuntos Académicos</small></p>
-        </div>
-
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><strong>{nombredocente}</strong></p>
-          <p><small>DOCENTE UNJ</small></p>
-        </div>
-
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><small>RESPONSABLE DE ESCUELA PROFESIONAL</small></p>
-        </div>
-      </div>
 
       {/* 🔹 Pie de última actualización */}
       <div className="text-end mt-4 pie-actualizacion">
-        <small>
-          Última actualización: usuario: {usuarioRegistro || '---'}  
-          &nbsp; Fecha: {fechaRegistro || '---'}
-        </small>
         <p>
           Impreso por: usuario: {usuarioRegistro || '---'} 
         </p>

@@ -301,7 +301,18 @@ function Detallecursos() {
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-guia' ? 'active' : ''
                     }`}
-                    onClick={() => setActiveTab('calificaciones-guia')}
+
+                    onClick={() => {
+                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
+
+                      // 🔹 Armamos el código base64
+                      const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+                      const codigo = btoa(btoa(cadena));
+
+                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
+                      window.open(`/imprimirfichaguia?codigo=${codigo}`, "Ficha", opciones);
+                    }}
+
                   >
                     <FaLock className="me-2" /> Formato Guia
                   </button>

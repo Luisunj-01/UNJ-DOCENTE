@@ -113,6 +113,22 @@ export const obtenerActaDetalle = async (semestre, sede, escuela, curricula, cur
   }
 };
 
+export const obtenerListamatriculados = async (semestre, sede, escuela, curricula, curso, seccion) => {
+  try {
+    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
+      const res = await axios.get(`${config.apiUrl}api/reportes/reportelistamatriculados/${semestre}/${sede}/${escuela}/${curricula}/${curso}/${seccion}`);
+      //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron datos.' };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos:', err);
+    return null;
+  }
+};
+
 export const obtenerReportenotas = async (sede, semestre, escuela, curricula, curso, seccion, unidad) => {
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);

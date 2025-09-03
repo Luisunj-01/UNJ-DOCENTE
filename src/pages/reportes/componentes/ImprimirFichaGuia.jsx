@@ -5,12 +5,13 @@ import { useLocation } from 'react-router-dom';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenerReportenotas, obtenerNombreConfiguracion } from '../logica/Reportes';
+import { obtenerListamatriculados, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
-import './nota.css';
+import './ficha.css';
 
 const fecha = new Date();
 const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
+
 
 const horaActual = fecha.toLocaleTimeString('es-PE', {
   hour: '2-digit',
@@ -57,7 +58,6 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
     </table>
 
     <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
-    
     <table className="table">
       <tbody>
         <tr>
@@ -87,17 +87,16 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
   </>
 );
 
-const ImprimirReporteNota = () => {
+const ImprimirFichaGuia = () => {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [nombresede, setNombresede] = useState('');
   const [nombreescuela, setNombreescuela] = useState('');
   const [usuarioRegistro, setUsuarioRegistro] = useState('');
-  const [fechaRegistro, setFechaRegistro] = useState('');
-
+  
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('REGISTRO DE EVALUACION');
+  const [titulomat] = useState('FICHA DE SEGUIMIENTO DOCENTE AL ACCIONAR ESTUDIANTIL RESPECTO A LA GUÍA DE APRENDIZAJE');
 
   const queryParams = new URLSearchParams(search);
   const codigoParam = queryParams.get('codigo');
@@ -128,14 +127,12 @@ const ImprimirReporteNota = () => {
     
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerReportenotas(sede, semestre, escuela, curricula, curso, seccion, '2');
-
-        //console.log(resultado);
+        const resultado = await obtenerListamatriculados(semestre, sede, escuela, curricula, curso, seccion, token);
         setDatos(resultado?.datos || []);
 
         if (resultado?.datos?.length > 0) {
-          setUsuarioRegistro(resultado.datos[0].ur || '');
-          setFechaRegistro(resultado.datos[0].fr || '');
+          setUsuarioRegistro(resultado.datos[0].docente || '');
+         
         }
 
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
@@ -150,7 +147,7 @@ const ImprimirReporteNota = () => {
         setNombreescuela('');
         setDatos([]);
         setUsuarioRegistro('');
-        setFechaRegistro('');
+        
       } finally {
         setLoading(false);
       }
@@ -159,55 +156,40 @@ const ImprimirReporteNota = () => {
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, departamentoacademico]);
 
-  //console.log(datos);
+  console.log(datos);
 
   const columnasEncabezado = [
-  [
-    { titulo: 'No.', rowSpan: 2 },
-    { titulo: 'CÓDIGO', rowSpan: 2 },
-    { titulo: 'APELLIDOS Y NOMBRES', rowSpan: 2 },
-    { titulo: 'PRIMER PROMEDIO', colSpan: 4 },
-    { titulo: 'SEGUNDO PROMEDIO', colSpan: 4 },
-    { titulo: 'TERCER PROMEDIO', colSpan: 4 },
-    { titulo: 'NF', rowSpan: 2 },
-    { titulo: 'SUS', rowSpan: 2 },
-    { titulo: 'APLA', rowSpan: 2 },
-    { titulo: 'PF', rowSpan: 2 },
-  ],
-  [
-    { titulo: 'EC' }, { titulo: 'EP' }, { titulo: 'EA' }, { titulo: 'Prom' },
-    { titulo: 'EC' }, { titulo: 'EP' }, { titulo: 'EA' }, { titulo: 'Prom' },
-    { titulo: 'EC' }, { titulo: 'EP' }, { titulo: 'EA' }, { titulo: 'Prom' },
-  ]
-];
+    [
+      { titulo: 'No.', rowSpan: 2 },
+      { titulo: 'DATOS DEL ESTUDIANTE', colSpan: 4 },
+      { titulo: 'ACTIVIDADES REALIZADAS POR EL ESTUDIANTE', colSpan: 4 },
+      { titulo: 'RETROALIMENTACION', colSpan: 3 },
+      { titulo: 'OBSERVACION', rowSpan: 2 },
 
 
- const columnas = [
-  { clave: 'alumno' },
-  { clave: 'nombrecompleto' },
+    ],
+    [
+      { titulo: 'CODIGO' }, { titulo: 'NOMBRE Y APELLIDO' }, { titulo: 'TELEFONO' }, { titulo: 'EMAIL INSTITUCIONAL' },
+      { titulo: 'CONFIRMO RECEPCION DE GUIA' }, { titulo: 'CUMPLIO ACTIVIDAD' }, { titulo: 'CUMPLIO EVALUACION' }, { titulo: 'EVIDENCIA EVALUACION' },
+      { titulo: 'PARTICIPO SI / NO' }, { titulo: 'FECHA' }, { titulo: 'TEMA' },
 
-  { clave: 'u01ec' },
-  { clave: 'u01ep' },
-  { clave: 'u01ea' },
-  { clave: 'u01pr', estilo: 'promedio' },
+      
+    ],
 
-  { clave: 'u02ec' },
-  { clave: 'u02ep' },
-  { clave: 'u02ea' },
-  { clave: 'u02pr', estilo: 'promedio' },
+    
+  ];
 
-  { clave: 'u03ec' },
-  { clave: 'u03ep' },
-  { clave: 'u03ea' },
-  { clave: 'u03pr', estilo: 'promedio' },
-
-  { clave: 'promedioantes', estilo: 'promedio' },
-  { clave: 'sus', estilo: 'final-rojo' },
-  { clave: 'aplazado', estilo: 'final-rojo' },
-  { clave: 'promedio', estilo: 'final-rojo' },
-];
+  const columnas = [
+    
+    { clave: 'alumno' }, { clave: 'nombrealumno' },{ clave: 'telefono' },{ clave: 'email_institucional' },
+    { clave: '' }, { clave: '' },{ clave: '' },{ clave: '' },
+    { clave: '' }, { clave: '' },{ clave: '' },
+    { clave: '' },
 
 
+
+
+  ];
 
   return (
     <>
@@ -250,93 +232,17 @@ const ImprimirReporteNota = () => {
             )}
           </div>
         </div>
-
-
-        <div className="row mt-8 firmas-acta mt-4">
-  <div className="col-12 d-flex justify-content-start align-items-start">
-    {/* Tabla resumen */}
-    {datos.length > 0 && (
-      <table className="table table-bordered tabla-resumen-acta">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Apro.</th>
-            <th>Des.</th>
-            <th>% Apro.</th>
-            <th>% Des.</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Primer promedio</td>
-            <td>{datos[0].a01}</td>
-            <td>{datos[0].d01}</td>
-            <td>{datos[0].pa01}</td>
-            <td>{datos[0].pd01}</td>
-          </tr>
-          <tr>
-            <td>Segundo promedio</td>
-            <td>{datos[0].a02}</td>
-            <td>{datos[0].d02}</td>
-            <td>{datos[0].pa02}</td>
-            <td>{datos[0].pd02}</td>
-          </tr>
-          <tr>
-            <td>Tercer promedio</td>
-            <td>{datos[0].a03}</td>
-            <td>{datos[0].d03}</td>
-            <td>{datos[0].pa03}</td>
-            <td>{datos[0].pd03}</td>
-          </tr>
-          <tr>
-            <td><strong>Promedio final</strong></td>
-            <td><strong>{datos[0].a04}</strong></td>
-            <td><strong>{datos[0].d04}</strong></td>
-            <td><strong>{datos[0].pa04}</strong></td>
-            <td><strong>{datos[0].pd04}</strong></td>
-          </tr>
-        </tbody>
-      </table>
-    )}
-
-    {/* Firma docente */}
-    <div className="firma-docente text-center ms-12">
-      <p>...........................................................</p>
-      <p><strong>{nombredocente}</strong></p>
-      <p><small>DOCENTE UNJ</small></p>
-    </div>
-  </div>
-</div>
       </div>
 
-      {/* 🔹 Resumen de acta 
-      
-      <div className="row mt-4 text-center resumen-acta">
-        <div className="col">
-          <p><strong>Matriculados:</strong> {datos.length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Aprobados:</strong> {datos.filter(d => Number(d.promediomascara) >= 11).length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Desaprobados:</strong> {datos.filter(d => Number(d.promediomascara) < 11).length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Reserva:</strong> 0</p>
-        </div>
-        <div className="col">
-          <p><strong>Verificación:</strong> 251</p>
-        </div>
+
+      {/* 🔹 Pie de última actualización */}
+      <div className="text-end mt-4 pie-actualizacion">
+        <p>
+          Impreso por: usuario: {usuarioRegistro || '---'} 
+        </p>
       </div>
-      
-      */}
-      
-
-
-
-
     </>
   );
 };
 
-export default ImprimirReporteNota;
+export default ImprimirFichaGuia;

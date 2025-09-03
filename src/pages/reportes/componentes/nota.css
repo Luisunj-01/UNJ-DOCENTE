@@ -1,0 +1,110 @@
+/* ==========================
+   ANCHO DE COLUMNAS TABLA ACTA
+========================== */
+
+/* Columna 1 = No */
+.tabla-acta td:nth-child(1),
+.tabla-acta th:nth-child(1) {
+  width: 40px;
+  text-align: center;
+}
+
+/* Columna 2 = CÓDIGO */
+.tabla-acta td:nth-child(2),
+.tabla-acta th:nth-child(2) {
+  width: 120px;
+  text-align: center;
+}
+
+/* Columna 3 = APELLIDOS Y NOMBRES */
+.tabla-acta td:nth-child(3),
+.tabla-acta th:nth-child(3) {
+  width: 280px;
+  text-align: left;
+  padding-left: 6px;
+  white-space: normal;
+}
+
+/* ==========================
+   PRIMER PROMEDIO (EC, EP, EA, Prom)
+========================== */
+.tabla-acta td:nth-child(4),
+.tabla-acta th:nth-child(4),
+.tabla-acta td:nth-child(5),
+.tabla-acta th:nth-child(5),
+.tabla-acta td:nth-child(6),
+.tabla-acta th:nth-child(6),
+.tabla-acta td:nth-child(7),
+.tabla-acta th:nth-child(7) {
+  width: 55px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ==========================
+   SEGUNDO PROMEDIO (EC, EP, EA, Prom)
+========================== */
+.tabla-acta td:nth-child(8),
+.tabla-acta th:nth-child(8),
+.tabla-acta td:nth-child(9),
+.tabla-acta th:nth-child(9),
+.tabla-acta td:nth-child(10),
+.tabla-acta th:nth-child(10),
+.tabla-acta td:nth-child(11),
+.tabla-acta th:nth-child(11) {
+  width: 55px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ==========================
+   TERCER PROMEDIO (EC, EP, EA, Prom)
+========================== */
+.tabla-acta td:nth-child(12),
+.tabla-acta th:nth-child(12),
+.tabla-acta td:nth-child(13),
+.tabla-acta th:nth-child(13),
+.tabla-acta td:nth-child(14),
+.tabla-acta th:nth-child(14),
+.tabla-acta td:nth-child(15),
+.tabla-acta th:nth-child(15) {
+  width: 55px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ==========================
+   NF, SUS, APLA, PF
+========================== */
+
+/* NF */
+.tabla-acta td:nth-child(16),
+.tabla-acta th:nth-child(16) {
+  width: 50px;
+  text-align: center;
+  font-weight: bold;
+  color: rgb(143, 47, 47);
+}
+
+/* SUS */
+.tabla-acta td:nth-child(17),
+.tabla-acta th:nth-child(17) {
+  width: 50px;
+  text-align: center;
+}
+
+/* APLA */
+.tabla-acta td:nth-child(18),
+.tabla-acta th:nth-child(18) {
+  width: 60px;
+  text-align: center;
+}
+
+/* PF */
+.tabla-acta td:nth-child(19),
+.tabla-acta th:nth-child(19) {
+  width: 60px;
+  text-align: center;
+  font-weight: bold;
+  color: rgb(143, 47, 47);
+}
