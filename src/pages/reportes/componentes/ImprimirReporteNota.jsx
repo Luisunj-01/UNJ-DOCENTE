@@ -275,13 +275,51 @@ const ImprimirReporteNota = () => {
       
 
       <div className="row mt-5 text-center firmas-acta">
-        
-
+        <div className="col-4">
+          <table border="1" width="350" align="center">
+                <tbody><tr>
+                    <td>&nbsp;</td>
+                    <td align="center"><strong>Apro.</strong></td>
+                    <td align="center"><strong>Des.</strong></td>
+                    <td align="center"><strong>% Apro.</strong></td>
+                    <td align="center"><strong>% Des.</strong></td>
+                </tr>
+                <tr>
+                    <td>Primer promedio</td>
+                    <td align="right">12</td>
+                    <td align="right">24</td>
+                    <td align="right">33.33</td>
+                    <td align="right">66.67</td>
+                </tr>
+                <tr>
+                    <td>Segundo promedio</td>
+                    <td align="right">28</td>
+                    <td align="right">8</td>
+                    <td align="right">77.78</td>
+                    <td align="right">22.22</td>
+                </tr> 
+                <tr>
+                    <td>Tercer promedio</td>
+                    <td align="right">0</td>
+                    <td align="right">36</td>
+                    <td align="right">0.00</td>
+                    <td align="right">100.00</td>
+                </tr> 
+                <tr>
+                    <td>Promedio final</td>
+                    <td align="right">1</td>
+                    <td align="right">35</td>
+                    <td align="right">2.78</td>
+                    <td align="right">97.22</td>
+                </tr>        
+            </tbody></table>
+        </div>
         <div className="col-4">
           <p>.......................................</p>
           <p><strong>{nombredocente}</strong></p>
           <p><small>DOCENTE UNJ</small></p>
         </div>
+       
 
       </div>
 

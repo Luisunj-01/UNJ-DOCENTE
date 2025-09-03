@@ -12,6 +12,7 @@ import './acta.css';
 const fecha = new Date();
 const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
 
+
 const horaActual = fecha.toLocaleTimeString('es-PE', {
   hour: '2-digit',
   minute: '2-digit',
@@ -102,7 +103,7 @@ const ImprimirActaDetalle = () => {
   const codigoParam = queryParams.get('codigo');
 
   // 🔹 Decodificación de parámetros
-  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '', nombrecurso="";
+  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '';
   try {
     if (codigoParam) {
       const decoded = atob(atob(codigoParam));
@@ -114,19 +115,11 @@ const ImprimirActaDetalle = () => {
 
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
-<<<<<<< HEAD
-  const objetos = { sede, semestre, escuela, curricula, curso, seccion, };
-
-  
-  useEffect(() => {
-    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion || !nombrecurso) {
-=======
   const objetos = { sede, semestre, escuela, curricula, curso, seccion};
 
   
   useEffect(() => {
     if (!sede || !semestre || !escuela || !curricula || !curso || !seccion ) {
->>>>>>> e980b188ceb9a09fa5cbe5da8eace419170c7361
       setLoading(false);
       return; 
     }
@@ -135,7 +128,7 @@ const ImprimirActaDetalle = () => {
     
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion);
+        const resultado = await obtenerActaDetalle(semestre, sede, escuela, curricula, curso, seccion, token);
         setDatos(resultado?.datos || []);
 
         if (resultado?.datos?.length > 0) {
