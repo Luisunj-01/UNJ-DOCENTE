@@ -155,61 +155,105 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   // --- Guardar asistencia final ---
   // --- Guardar asistencia final ---
   const guardarAsistenciaFinal = async () => {
-    const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
-    if (asistencias.length === 0) {
-      mostrarToast("No hay asistencias seleccionadas.", "info");
-      return;
-    }
+  const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
+  if (asistencias.length === 0) {
+    mostrarToast("No hay asistencias seleccionadas.", "info");
+    return;
+  }
 
-    const asistenciasConTipo = asistencias.map(a => {
-      const alumnoEncontrado = datos.find(d => d.alumno === a.alumno);
-      return {
-        alumno: a.alumno,
-        persona: a.persona,
-        asistencia: a.asistencia,
-        observacion: a.observacion || "",
-        usuarioregistro: usuario.docente.numerodocumento,
-        txttipo: alumnoEncontrado?.existe ? "U" : "N"
-      };
-    });
+  // 👀 Verificar si hay al menos un archivo
+  const hayArchivo = asistencias.some(a => a.archivo);
 
-    const payload = {
-      clave: "01",
-      txtFecha: fechaSeleccionada,
-      sede, semestre, escuela, curricula, curso, seccion,
-      semana: datoscurso.sesion,
-      asistencias: asistenciasConTipo
-    };
+  try {
+    let response;
 
-    console.log("Payload final 👉", payload);
+    if (hayArchivo) {
+      // 🚀 Usar FormData
+      const formData = new FormData();
+      formData.append("clave", "01");
+      formData.append("txtFecha", fechaSeleccionada);
+      formData.append("sede", sede);
+      formData.append("semestre", semestre);
+      formData.append("escuela", escuela);
+      formData.append("curricula", curricula);
+      formData.append("curso", curso);
+      formData.append("seccion", seccion);
+      formData.append("semana", datoscurso.sesion);
 
-    try {
-      const response = await axios.post(
+      asistencias.forEach((a, index) => {
+        console.log(a.persona+ "tipo formdata");
+        formData.append(`asistencias[${index}][alumno]`, a.alumno);
+        formData.append(`asistencias[${index}][persona]`, a.persona || "");
+        formData.append(`asistencias[${index}][asistencia]`, a.asistencia);
+        formData.append(`asistencias[${index}][observacion]`, a.observacion || "");
+        formData.append(`asistencias[${index}][usuarioregistro]`, usuario.docente.numerodocumento);
+        formData.append(
+          `asistencias[${index}][txttipo]`,
+          datos.find(d => d.alumno === a.alumno)?.existe ? "U" : "N"
+        );
+
+        if (a.archivo) {
+          formData.append(`asistencias[${index}][archivo]`, a.archivo);
+        }
+      });
+
+      response = await axios.post(
         `${config.apiUrl}api/curso/GrabarAsistencia`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // ❌ no pongas Content-Type, axios lo pone solo
+          }
+        }
+      );
+    } else {
+      // 🚀 Usar JSON normal
+      const asistenciasConTipo = asistencias.map(a => {
+        const alumnoEncontrado = datos.find(d => d.alumno === a.alumno);
+        return {
+          
+          alumno: a.alumno,
+          persona: a.persona,
+          asistencia: a.asistencia,
+          observacion: a.observacion || "",
+          usuarioregistro: usuario.docente.numerodocumento,
+          txttipo: alumnoEncontrado?.existe ? "U" : "N"
+        };
+      });
+
+      const payload = {
+        clave: "01",
+        txtFecha: fechaSeleccionada,
+        sede, semestre, escuela, curricula, curso, seccion,
+        semana: datoscurso.sesion,
+        asistencias: asistenciasConTipo
+      };
+
+      console.log(payload+ "tipo formdata");
+
+      response = await axios.post(
+        `${config.apiUrl}api/curso/GrabarAsistencia2`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+    }
 
-
-      //console.log(response)
-      if (!response.data.error) {
-        Swal.fire("Éxito", response.data.mensaje, "success");
-      } else {
-        Swal.fire("Error", response.data.mensaje, "error");
-      }
-
-      // ✅ limpiar siempre, pase lo que pase
+    if (!response.data.error) {
+      Swal.fire("Éxito", response.data.mensaje, "success");
       localStorage.removeItem("asistenciasSeleccionadas");
       cargarDatos(fechaSeleccionada);
-
-    } catch (error) {
-      console.error(error);
-      mostrarToast("Ocurrió un error al guardar.", "danger");
-
-      // ✅ también limpiar en error
-      localStorage.removeItem("asistenciasSeleccionadas");
+    } else {
+      Swal.fire("Error", response.data.mensaje, "error");
     }
-  };
+
+  } catch (error) {
+    console.error(error);
+    mostrarToast("Ocurrió un error al guardar.", "danger");
+    localStorage.removeItem("asistenciasSeleccionadas");
+  }
+};
+
 
 
   const columnas = [

@@ -34,11 +34,11 @@ import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsist
 import ImprimirActaDetalle from './pages/reportes/componentes/ImprimirActaDetalle.jsx';
 import ImprimirReporteNota from './pages/reportes/componentes/ImprimirReporteNota.jsx';
 import ImprimirListaMatriculados from './pages/reportes/componentes/ImprimirListaMatriculados.jsx';
-<<<<<<< HEAD
+
 import ImprimirFichaGuia from './pages/reportes/componentes/ImprimirFichaGuia.jsx';
-=======
+
 import Tutoria from './pages/tutoria/Tutoria.js';
->>>>>>> 33dcc264572d6652a331e5db1fa6bee40377b435
+
 
 
 function AppRoutes() {
