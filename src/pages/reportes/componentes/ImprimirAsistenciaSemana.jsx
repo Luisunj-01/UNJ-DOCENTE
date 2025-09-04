@@ -7,7 +7,7 @@ import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
 import { obtenerAsistenciasemana, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
-import './acta.css';
+import './asistencia.css';
 
 const fecha = new Date();
 const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
@@ -47,25 +47,25 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
       <tbody>
         <tr>
           <td><strong>Sede:</strong></td>
-          <td>{sede}</td>
+          <td style={{textAlign: 'left'}}>{sede}</td>
           <td><strong>Docente:</strong></td>
-          <td>{nombredocente}</td>
+          <td style={{textAlign: 'left'}}>{nombredocente}</td>
         </tr>
         <tr>
           <td><strong>Semestre:</strong></td>
-          <td>{semestre}</td>
+          <td style={{textAlign: 'left'}}>{semestre}</td>
           <td><strong>Sección:</strong></td>
-          <td>{objetos.seccion}</td>
+          <td style={{textAlign: 'left'}}>{objetos.seccion}</td>
         </tr>
         <tr>
           <td><strong>Curricula:</strong></td>
-          <td>{objetos.curricula}</td>
+          <td style={{textAlign: 'left'}}>{objetos.curricula}</td>
           <td><strong>Curso:</strong></td>
-          <td>{objetos.curso}</td>
+          <td style={{textAlign: 'left'}}>{objetos.curso}</td>
         </tr>
         <tr>
           <td><strong>Escuela:</strong></td>
-          <td colSpan={3}>{nombreEscuela}</td>
+          <td style={{textAlign: 'left'}} >{nombreEscuela}</td>
         </tr>
       </tbody>
     </table>
@@ -233,49 +233,6 @@ const ImprimirAsistenciaSemana = () => {
             )}
           </div>
         </div>
-      </div>
-
-      {/* 🔹 Resumen de acta */}
-      <div className="row mt-4 text-center resumen-acta">
-        <div className="col">
-          <p><strong>Matriculados:</strong> {alumnos.length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Aprobados:</strong> {datos.filter(d => Number(d.promediomascara) >= 11).length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Desaprobados:</strong> {datos.filter(d => Number(d.promediomascara) < 11).length}</p>
-        </div>
-        <div className="col">
-          <p><strong>Reserva:</strong> 0</p>
-        </div>
-        <div className="col">
-          <p><strong>Verificación:</strong> 251</p>
-        </div>
-      </div>
-
-      <div className="row mt-5 text-center firmas-acta">
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><small>Responsable de Registros y Asuntos Académicos</small></p>
-        </div>
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><strong>{nombredocente}</strong></p>
-          <p><small>DOCENTE UNJ</small></p>
-        </div>
-        <div className="col-4">
-          <p>.......................................</p>
-          <p><small>RESPONSABLE DE ESCUELA PROFESIONAL</small></p>
-        </div>
-      </div>
-
-      {/* 🔹 Pie de última actualización */}
-      <div className="text-end mt-4 pie-actualizacion">
-        <small>
-          Última actualización: usuario: {usuarioRegistro || '---'} &nbsp; Fecha: {fechaRegistro || '---'}
-        </small>
-        <p> Impreso por: usuario: {usuarioRegistro || '---'} </p>
       </div>
     </>
   );

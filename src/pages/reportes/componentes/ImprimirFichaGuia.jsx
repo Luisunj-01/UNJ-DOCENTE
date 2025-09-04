@@ -62,25 +62,25 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
       <tbody>
         <tr>
           <td><strong>Sede:</strong></td>
-          <td>{sede}</td>
+          <td style={{textAlign: 'left'}}>{sede}</td>
           <td><strong>Docente:</strong></td>
-          <td>{nombredocente}</td>
+          <td style={{textAlign: 'left'}}>{nombredocente}</td>
         </tr>
         <tr>
           <td><strong>Semestre:</strong></td>
-          <td>{semestre}</td>
+          <td style={{textAlign: 'left'}}>{semestre}</td>
           <td><strong>Sección:</strong></td>
-          <td>{objetos.seccion}</td>
+          <td style={{textAlign: 'left'}}>{objetos.seccion}</td>
         </tr>
         <tr>
           <td><strong>Curricula:</strong></td>
-          <td>{objetos.curricula}</td>
+          <td style={{textAlign: 'left'}}>{objetos.curricula}</td>
           <td><strong>Curso:</strong></td>
-          <td>{objetos.curso}</td>
+          <td style={{textAlign: 'left'}}>{objetos.curso}</td>
         </tr>
         <tr>
           <td><strong>Escuela:</strong></td>
-          <td colSpan={3}>{nombreEscuela}</td>
+          <td style={{textAlign: 'left'}} >{nombreEscuela}</td>
         </tr>
       </tbody>
     </table>

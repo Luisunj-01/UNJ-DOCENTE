@@ -41,6 +41,31 @@ export const obtenerparticipantes = async (sede, semestre, escuela, curricula, c
   }
 };
 
+export const obtenervalidacion = async (semetre, persona, usuario, tipo) => {
+  
+  try {
+    //const usuario = JSON.parse(localStorage.getItem('usuario'));
+    //const token = usuario?.token;
+
+    const res = await axios.get(`${config.apiUrl}api/curso/validacion/${semetre}/${persona}/${usuario}/${tipo}`);
+
+    
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (error) {
+    console.error('Error al obtener cursos:', error);
+    return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
+  }
+};
+
+
+
+
+
+
 export const obtenerRevisionTrabajo = async (sede, semestre, escuela, curricula, curso, seccion, semana) => {
   
   try {
