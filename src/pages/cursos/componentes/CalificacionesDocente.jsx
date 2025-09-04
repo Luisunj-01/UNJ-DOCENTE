@@ -156,7 +156,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
             ) {
               e.preventDefault();
             }
-          }}
+          }} 
           onChange={(e) => {
             const nuevas = [...calificaciones];
             nuevas[row.index] = { ...row, ec: e.target.value };

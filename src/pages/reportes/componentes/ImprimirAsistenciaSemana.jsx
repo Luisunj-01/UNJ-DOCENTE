@@ -1,18 +1,48 @@
 import React, { useEffect, useState } from 'react';
+import { QRCodeSVG } from "qrcode.react";
 import { useUsuario } from '../../../context/UserContext';
 import { useLocation } from 'react-router-dom';
-
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
-import { obtenerActaDetalle, obtenerAsistenciasemana, obtenerNombreConfiguracion } from '../logica/Reportes';
-import TablaCursos from '../../reutilizables/componentes/TablaCursos';
+import { obtenerAsistenciasemana, obtenerNombreConfiguracion } from '../logica/Reportes';
+import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
+import './acta.css';
 
-// 🔹 Reutilizamos el mismo estilo de Cabecera
+const fecha = new Date();
+const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
+const horaActual = fecha.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', });
+const urlActual = window.location.href;
+
+// 🔹 Cabecera del acta
 const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre, objetos }) => (
   <>
-    <Cabecerareporte titulomat={titulomat} />
+    <table className="table w-100">
+      <tbody>
+        <tr className="align-middle">
+          {/* Columna izquierda - LOGO */}
+          <td className="text-start" style={{ width: '25%' }}>
+            <img src="/image/logo/logo-unj-v1.svg" alt="Logo" width="111" />
+          </td>
+
+          {/* Columna del medio - TÍTULO */}
+          <td className="text-center" style={{ width: '50%' }}>
+            <h4 className="titulozet mb-0"><strong>{titulomat}</strong></h4>
+          </td>
+
+          {/* Columna derecha - QR + FECHA Y HORA */}
+          <td className="text-end" style={{ width: '25%', fontSize: '0.9rem' }}>
+            <div className="col-12">
+              <QRCodeSVG value={urlActual} size={128} level="L" includeMargin={true} />
+              <p style={{ fontSize: '0.8rem', marginTop: '10px' }}><strong>Escanea para acceder:</strong></p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
     <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
+
     <table className="table">
       <tbody>
         <tr>
@@ -42,95 +72,124 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
   </>
 );
 
-const ImprimirActaDetalle = () => {
+// 🔹 Función para transformar los datos
+const transformarDatos = (data) => {
+  // Fechas únicas
+  const fechasUnicas = [...new Set(data.map(d => d.fecha))].sort(
+    (a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-'))
+  );
+
+  // Agrupar alumnos
+  const alumnosMap = {};
+  data.forEach(item => {
+    if (!alumnosMap[item.alumno]) {
+      alumnosMap[item.alumno] = {
+        alumno: item.alumno,
+        nombrecompleto: item.nombrecompleto,
+        asistencias: {}
+      };
+    }
+    alumnosMap[item.alumno].asistencias[item.fecha] = item.condicion;
+  });
+
+  // Convertir a array con columnas dinámicas
+  const alumnos = Object.values(alumnosMap).map(alumno => {
+    return {
+      ...alumno,
+      ...fechasUnicas.reduce((acc, fecha) => {
+        acc[fecha] = alumno.asistencias[fecha] || "";
+        return acc;
+      }, {})
+    };
+  });
+
+  return { alumnos, fechasUnicas };
+};
+
+const ImprimirAsistenciaSemana = () => {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [nombresede, setNombresede] = useState('');
   const [nombreescuela, setNombreescuela] = useState('');
+  const [usuarioRegistro, setUsuarioRegistro] = useState('');
+  const [fechaRegistro, setFechaRegistro] = useState('');
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('ACTA  DE EVALUACIONES');
+  const [titulomat] = useState('ASISTENCIA ESTUDIANTES');
 
-  const queryParams2 = new URLSearchParams(search);
-  const codigo2Param = queryParams2.get('codigo');
+  const queryParams = new URLSearchParams(search);
+  const codigoParam = queryParams.get('codigo');
 
-  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '';
+  // 🔹 Decodificación de parámetros
+  let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '', tipo = '', grupo = '', sesion = '', clave = '';
   try {
-    if (codigo2Param) {
-      const decoded2 = atob(atob(codigo2Param));
-      [sede, semestre, escuela, curricula, curso, seccion] = decoded2.split('|');
+    if (codigoParam) {
+      const decoded = atob(atob(codigoParam));
+      [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave] = decoded.split('|');
     }
   } catch (error) {
     console.error("❌ Error decodificando parámetros:", error);
   }
-
-  // 🔹 Logs de depuración
-  console.log("⚡ Parámetros crudos:", { sede, semestre, escuela, curricula, curso, seccion });
 
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
   const objetos = { sede, semestre, escuela, curricula, curso, seccion };
 
   useEffect(() => {
-    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion) {
-      console.warn("⚠️ Faltan parámetros obligatorios:", { sede, semestre, escuela, curricula, curso, seccion });
+    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion || !tipo || !grupo || !sesion || !clave) {
       setLoading(false);
       return;
     }
 
+    const token = usuario.codigotokenautenticadorunj;
+
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerAsistenciasemana(sede, semestre, escuela, curricula, curso, seccion);
-        //console.log("resultado ActaDetalle:", resultado);
+        const resultado = await obtenerAsistenciasemana(sede, semestre, escuela, curricula, curso, seccion, 'T', '1', '01', '01', token);
+        setDatos(resultado?.datos || []);
 
-        const lista = resultado?.datos || [];
-        setDatos(lista);
+        if (resultado?.datos?.length > 0) {
+          setUsuarioRegistro(resultado.datos[0].ur || '');
+          setFechaRegistro(resultado.datos[0].fr || '');
+        }
 
-        // 🔹 Obtener nombres de sede y escuela
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
+        setNombresede(typeof nombresedeResp === 'object' ? nombresedeResp?.valor || sede : nombresedeResp || sede);
+
         const nombreescuelaResp = await obtenerNombreConfiguracion('nombreescuela', { escuela });
-
-
-        setNombresede(
-          typeof nombresedeResp === 'object'
-            ? nombresedeResp?.valor || sede
-            : nombresedeResp || sede
-        );
-
-        setNombreescuela(
-          typeof nombreescuelaResp === 'object'
-            ? nombreescuelaResp?.valor || escuela
-            : nombreescuelaResp || escuela
-        );
-
+        setNombreescuela(typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || '' : nombreescuelaResp || '');
       } catch (err) {
         console.error('❌ Error al cargar datos de acta:', err);
+        setNombresede(sede);
+        setNombreescuela('');
+        setDatos([]);
+        setUsuarioRegistro('');
+        setFechaRegistro('');
       } finally {
         setLoading(false);
       }
     };
 
     fetchDatos();
-  }, [sede, semestre, escuela, curricula, curso, seccion, departamentoacademico]);
+  }, [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave, departamentoacademico]);
 
-  // ✅ Columnas del acta (ejemplo: Código, Nombre, Nota1, Nota2, Promedio)
+  // 🔹 Transformar datos en estructura de tabla dinámica
+  const { alumnos, fechasUnicas } = transformarDatos(datos);
+
   const columnasEncabezado = [
     [
       { titulo: 'No.', rowSpan: 2 },
-      { titulo: 'Código', rowSpan: 2 },
-      { titulo: 'Apellidos y Nombres', rowSpan: 2 },
-      { titulo: 'Nota 1' },
-      { titulo: 'Nota 2' },
-      { titulo: 'Promedio' }
-    ]
+      { titulo: 'CÓDIGO', rowSpan: 2 },
+      { titulo: 'NOMBRE Y APELLIDO', rowSpan: 2 },
+      { titulo: 'FECHAS DE ASISTENCIA', colSpan: fechasUnicas.length },
+    ],
+    fechasUnicas.map(fecha => ({ titulo: fecha }))
   ];
 
   const columnas = [
     { clave: 'alumno' },
     { clave: 'nombrecompleto' },
-    { clave: 'nota1' },
-    { clave: 'nota2' },
-    { clave: 'promedio' }
+    ...fechasUnicas.map(fecha => ({ clave: fecha }))
   ];
 
   return (
@@ -149,7 +208,7 @@ const ImprimirActaDetalle = () => {
                 titulomat={titulomat}
                 sede={nombresede || sede}
                 nombredocente={nombredocente}
-                nombreEscuela={nombreescuela || escuela}
+                nombreEscuela={nombreescuela}
                 semestre={semestre}
                 objetos={objetos}
               />
@@ -164,13 +223,62 @@ const ImprimirActaDetalle = () => {
             {loading ? (
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
-              <TablaCursos datos={datos} columnasEncabezado={columnasEncabezado} columnas={columnas} />
+              <div className="tabla-acta">
+                <TablaCursoSub
+                  datos={alumnos}
+                  columnasEncabezado={columnasEncabezado}
+                  columnas={columnas}
+                />
+              </div>
             )}
           </div>
         </div>
+      </div>
+
+      {/* 🔹 Resumen de acta */}
+      <div className="row mt-4 text-center resumen-acta">
+        <div className="col">
+          <p><strong>Matriculados:</strong> {alumnos.length}</p>
+        </div>
+        <div className="col">
+          <p><strong>Aprobados:</strong> {datos.filter(d => Number(d.promediomascara) >= 11).length}</p>
+        </div>
+        <div className="col">
+          <p><strong>Desaprobados:</strong> {datos.filter(d => Number(d.promediomascara) < 11).length}</p>
+        </div>
+        <div className="col">
+          <p><strong>Reserva:</strong> 0</p>
+        </div>
+        <div className="col">
+          <p><strong>Verificación:</strong> 251</p>
+        </div>
+      </div>
+
+      <div className="row mt-5 text-center firmas-acta">
+        <div className="col-4">
+          <p>.......................................</p>
+          <p><small>Responsable de Registros y Asuntos Académicos</small></p>
+        </div>
+        <div className="col-4">
+          <p>.......................................</p>
+          <p><strong>{nombredocente}</strong></p>
+          <p><small>DOCENTE UNJ</small></p>
+        </div>
+        <div className="col-4">
+          <p>.......................................</p>
+          <p><small>RESPONSABLE DE ESCUELA PROFESIONAL</small></p>
+        </div>
+      </div>
+
+      {/* 🔹 Pie de última actualización */}
+      <div className="text-end mt-4 pie-actualizacion">
+        <small>
+          Última actualización: usuario: {usuarioRegistro || '---'} &nbsp; Fecha: {fechaRegistro || '---'}
+        </small>
+        <p> Impreso por: usuario: {usuarioRegistro || '---'} </p>
       </div>
     </>
   );
 };
 
-export default ImprimirActaDetalle;
+export default ImprimirAsistenciaSemana;

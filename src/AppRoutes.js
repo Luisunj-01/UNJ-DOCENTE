@@ -54,7 +54,7 @@ function AppRoutes() {
         logout();
       }, 3000);*/
     }
-  }, 200000000);
+  }, 200000000); 
 
   return (
     <>
@@ -137,7 +137,7 @@ function AppRoutes() {
             </div>
             <div className="modal-body">
               <p>Sesión cerrada por inactividad.</p>
-            </div>
+            </div> 
             <div className="modal-footer">
               <button
                 type="button"
