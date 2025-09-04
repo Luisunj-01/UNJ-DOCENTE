@@ -41,7 +41,7 @@ export const obtenerparticipantes = async (sede, semestre, escuela, curricula, c
   }
 };
 
-export const obtenervalidacioncurso = async (semestre, persona, usuario, tipo) => {
+export const obtenervalidacioncurso = async (semestre, persona, usuario) => {
   
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));

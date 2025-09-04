@@ -90,13 +90,21 @@ function Detallecursos() {
           setDatosDocente(null);
         }
 
+        /*const { datos: cursos, mensaje } = await obtenerCursosPrematricula(
+          semestre,
+          persona,
+          dni,
+          tipo,
+          token
+        );*/
+
         const { datos: cursos, mensaje } = await obtenerCursosPrematricula(
           semestre,
           persona,
           dni,
           tipo,
           token
-        );
+        )
         setDatos(cursos);
 
         const validarfechasilabu = await obtenerConfiguracion('validarfechasilabu', {
@@ -121,7 +129,7 @@ function Detallecursos() {
     cargarDatosCompletos();
   }, []);
 
-  //console.log(validacioncurso);
+  console.log(datos);
 
   return (
     <>
