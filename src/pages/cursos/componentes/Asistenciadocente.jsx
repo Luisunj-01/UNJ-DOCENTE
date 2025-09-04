@@ -10,7 +10,7 @@ import { IconButton } from '@mui/material';
 import ParticipantesCurso from './Participantesasistencia';
 import { ToastContext } from '../../../cuerpos/Layout';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
-import ImprimirAsistenciaSemana from '../../reportes/componentes/ImprimirAsistenciaSemana';
+
 
 function Asistenciadocente() {
   const [datos, setDatos] = useState([]);
@@ -18,7 +18,7 @@ function Asistenciadocente() {
   const [mensajeApi, setMensajeApi] = useState('');
   const { id } = useParams();
   const decoded = atob(atob(id));
-  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente] = decoded.split('|');
+  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente, tipo, grupo, sesion, clave] = decoded.split('|');
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [datosCursoSeleccionado, setDatosCursoSeleccionado] = useState(null);
   const { mostrarToast } = useContext(ToastContext);
@@ -150,10 +150,11 @@ function Asistenciadocente() {
           <IconButton
             title={`Imprimir Asistencia: ${nombrecurso}`}
             onClick={() => {
-              const codigo = btoa(btoa(
-                `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${fila.sesion}`
-              ));
 
+              const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${tipo}|${grupo}|${sesion}|${clave}`;
+              const codigo = btoa(btoa(cadena));
+
+  
               window.open(
                 `/ImprimirAsistenciaSemana?codigo=${codigo}`,
                 'popupImpresion',
