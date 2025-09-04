@@ -1,19 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useLocation, Link, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 import { useUsuario } from '../../context/UserContext';
-import { FaUsers, FaStar, FaBookOpen, FaFileAlt, FaBook, FaThumbsUp, FaClipboardList, FaLock, FaFileExcel, FaAnchor, FaAlignJustify } from 'react-icons/fa';
-import { obtenerdatdocente } from './logica/Curso';
+import {
+  FaUsers,
+  FaStar,
+  FaBookOpen,
+  FaFileAlt,
+  FaBook,
+  FaThumbsUp,
+  FaClipboardList,
+  FaLock,
+  FaFileExcel,
+  FaAnchor,
+  FaAlignJustify,
+  FaHome,
+} from 'react-icons/fa';
+import { obtenerdatdocente, obtenervalidacioncurso } from './logica/Curso';
 import BotonPDF from '../asignatura/componentes/BotonPDF';
 import { obtenerConfiguracion, obtenerCursosPrematricula } from '../reutilizables/logica/docente';
 import Asistenciadocente from './componentes/Asistenciadocente';
 import DetalleGuias from './componentes/DetalleGuias';
 import Detallecursoprincipal from './componentes/Detallecursoprincipal';
 import CalificacionesDocente from './componentes/CalificacionesDocente';
-import { FaHome} from 'react-icons/fa';
-
-
-//import CalificacionesDocente from './componentes/CalificacionesDocente';
 
 function Detallecursos() {
   const [activeTab, setActiveTab] = useState('principal');
@@ -22,6 +31,8 @@ function Detallecursos() {
   const [validarfechasilabu, setValidarfechasilabu] = useState(null);
 
   const [datoscurso, setDatoscurso] = useState([]);
+  const [validacioncurso, setValidacionCurso] = useState([]);
+  
   const [datosdocente, setDatosDocente] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
@@ -30,7 +41,6 @@ function Detallecursos() {
   const location = useLocation();
   const cursoDesdeLink = location.state?.cursoSeleccionado;
 
-  // 🔹 Manejo seguro del parámetro id
   const { id } = useParams();
   let decoded = '';
   try {
@@ -40,7 +50,7 @@ function Detallecursos() {
     console.error('Error al decodificar id:', id, error);
   }
 
-  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente,unidad] =
+  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente, unidad] =
     decoded.split('|') ?? [];
 
   const persona = usuario.docente.persona;
@@ -60,6 +70,8 @@ function Detallecursos() {
     });
 
     async function cargarDatosCompletos() {
+      //const obtenervalidacion = await obtenervalidacioncurso(semestre, persona, dni);
+        //setValidacionCurso(obtenervalidacion);
       try {
         const respuesta = await obtenerdatdocente(
           cursoDesdeLink.persona,
@@ -68,6 +80,8 @@ function Detallecursos() {
           tipo,
           accion
         );
+
+        
 
         const datosDocenteArray = respuesta?.datos ?? [];
         if (Array.isArray(datosDocenteArray) && datosDocenteArray.length > 0) {
@@ -102,8 +116,12 @@ function Detallecursos() {
       }
     }
 
+    
+
     cargarDatosCompletos();
   }, []);
+
+  //console.log(validacioncurso);
 
   return (
     <>
@@ -112,7 +130,6 @@ function Detallecursos() {
       <div className="container mt-4">
         <div className="row justify-content-end">
           <div className="col-auto d-flex gap-2">
-            {/* Botón para PDF del Sílabo */}
             {Array.isArray(datos) &&
               datos
                 .filter((cursoItem) => cursoItem.curso === curso && cursoItem.seccion === seccion)
@@ -121,7 +138,6 @@ function Detallecursos() {
                     const pasa = validarfechasilabu[0].pasa?.toLowerCase() === 'si';
 
                     if (pasa) {
-                      // Caso habilitado
                       return (
                         <BotonPDF
                           key={index}
@@ -135,7 +151,6 @@ function Detallecursos() {
                         />
                       );
                     } else {
-                      // Caso deshabilitado
                       return (
                         <div key={index}>
                           <button
@@ -221,58 +236,43 @@ function Detallecursos() {
                     <FaFileAlt className="me-2" /> Registro de Notas
                   </button>
 
-
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel' ? 'active' : ''
                     }`}
-
-                   onClick={() => {
-                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
-
-                      // 🔹 Armamos el código base64
+                    onClick={() => {
+                      const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
                       const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
                       const codigo = btoa(btoa(cadena));
-
-                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
-                      window.open(`/imprimirlistamatriculados?codigo=${codigo}`, "PreMatriculados", opciones);
+                      window.open(`/imprimirlistamatriculados?codigo=${codigo}`, 'PreMatriculados', opciones);
                     }}
-
                   >
                     <FaBook className="me-2" /> Listado de matriculados
                   </button>
 
-                  {/*
-                    <button
-                      className={`list-group-item list-group-item-action ${
-                        activeTab === 'calificaciones-lista' ? 'active' : ''
-                      }`}
-                      onClick={() => setActiveTab('calificaciones-lista')}
-                    >
-                      <FaThumbsUp className="me-2" /> Lista de matriculados
-                    </button>
-                    */}
-
+                  <button
+                    className={`list-group-item list-group-item-action ${
+                      activeTab === 'calificaciones-lista' ? 'active' : ''
+                    }`}
+                    onClick={() => setActiveTab('calificaciones-lista')}
+                  >
+                    <FaThumbsUp className="me-2" /> Lista de matriculados
+                  </button>
 
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-registro' ? 'active' : ''
                     }`}
                     onClick={() => {
-                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
-
-                      // 🔹 Armamos el código base64
+                      const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
                       const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${unidad}`;
                       const codigo = btoa(btoa(cadena));
-
-                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
-                      window.open(`/imprimirreportenota?codigo=${codigo}`, "PreRegistro", opciones);
+                      window.open(`/imprimirreportenota?codigo=${codigo}`, 'PreRegistro', opciones);
                     }}
                   >
                     <FaClipboardList className="me-2" /> Registro de notas
                   </button>
 
-                  {/*
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel1' ? 'active' : ''
@@ -281,12 +281,8 @@ function Detallecursos() {
                   >
                     <FaFileExcel className="me-2 text-danger" /> Registro de notas excel (formato 1)
                   </button>
-                   */}
 
-
-                   {/*
-
-                   <button
+                  <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-excel2' ? 'active' : ''
                     }`}
@@ -295,49 +291,33 @@ function Detallecursos() {
                     <FaFileExcel className="me-2 text-success" /> Registro de notas excel (formato 2)
                   </button>
 
-                   */}
-
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-guia' ? 'active' : ''
                     }`}
-
                     onClick={() => {
-                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
-
-                      // 🔹 Armamos el código base64
+                      const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
                       const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
                       const codigo = btoa(btoa(cadena));
-
-                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
-                      window.open(`/imprimirfichaguia?codigo=${codigo}`, "Ficha", opciones);
+                      window.open(`/imprimirfichaguia?codigo=${codigo}`, 'Ficha', opciones);
                     }}
-
                   >
                     <FaLock className="me-2" /> Formato Guia
                   </button>
 
-                  
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-preacta' ? 'active' : ''
                     }`}
                     onClick={() => {
-                      const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
-
-                      // 🔹 Armamos el código base64
+                      const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
                       const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${nombrecurso}`;
                       const codigo = btoa(btoa(cadena));
-
-                      // 🔹 Abrimos nueva ventana apuntando a tu ruta Laravel
-                      window.open(`/imprimiractadetalle?codigo=${codigo}`, "PreActa", opciones);
+                      window.open(`/imprimiractadetalle?codigo=${codigo}`, 'PreActa', opciones);
                     }}
                   >
                     <FaAlignJustify className="me-2 text-danger" /> Pre Acta (Importante)
                   </button>
-
-
-                  {/*
 
                   <button
                     className={`list-group-item list-group-item-action ${
@@ -348,7 +328,6 @@ function Detallecursos() {
                     <FaAlignJustify className="me-2 text-purple-500" /> Pre Acta Adicional
                   </button>
 
-                   */}
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-cerrar' ? 'active' : ''
@@ -369,9 +348,6 @@ function Detallecursos() {
               {activeTab === 'Asistencia' && <Asistenciadocente datos={datos} />}
               {activeTab === 'Guias' && <DetalleGuias datos={datos} />}
               {activeTab.startsWith('calificaciones') && <CalificacionesDocente datosprincipal={datos} />}
-              {/*{activeTab === 'personales' && <Datospersonalesdocente datosdocente={datosdocente} />}
-              {activeTab === 'participantes' && <ParticipantesCurso curso={curso} seccion={seccion} />}
-              {activeTab === 'calificaciones' && <CalificacionesCurso curso={curso} />} */}
             </div>
           </div>
         </div>

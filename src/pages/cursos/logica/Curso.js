@@ -41,13 +41,13 @@ export const obtenerparticipantes = async (sede, semestre, escuela, curricula, c
   }
 };
 
-export const obtenervalidacion = async (semetre, persona, usuario, tipo) => {
+export const obtenervalidacioncurso = async (semestre, persona, usuario, tipo) => {
   
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));
     //const token = usuario?.token;
 
-    const res = await axios.get(`${config.apiUrl}api/curso/validacion/${semetre}/${persona}/${usuario}/${tipo}`);
+    const res = await axios.get(`${config.apiUrl}api/curso/validacion/${semestre}/${persona}/${usuario}`);
 
     
     if (Array.isArray(res.data) && res.data.length > 0) {
