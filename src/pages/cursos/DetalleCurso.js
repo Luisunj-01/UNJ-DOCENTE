@@ -258,15 +258,7 @@ function Detallecursos() {
                     <FaBook className="me-2" /> Listado de matriculados
                   </button>
 
-                  <button
-                    className={`list-group-item list-group-item-action ${
-                      activeTab === 'calificaciones-lista' ? 'active' : ''
-                    }`}
-                    onClick={() => setActiveTab('calificaciones-lista')}
-                  >
-                    <FaThumbsUp className="me-2" /> Lista de matriculados
-                  </button>
-
+                  
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-registro' ? 'active' : ''
@@ -281,23 +273,9 @@ function Detallecursos() {
                     <FaClipboardList className="me-2" /> Registro de notas
                   </button>
 
-                  <button
-                    className={`list-group-item list-group-item-action ${
-                      activeTab === 'calificaciones-excel1' ? 'active' : ''
-                    }`}
-                    onClick={() => setActiveTab('calificaciones-excel1')}
-                  >
-                    <FaFileExcel className="me-2 text-danger" /> Registro de notas excel (formato 1)
-                  </button>
+                  
 
-                  <button
-                    className={`list-group-item list-group-item-action ${
-                      activeTab === 'calificaciones-excel2' ? 'active' : ''
-                    }`}
-                    onClick={() => setActiveTab('calificaciones-excel2')}
-                  >
-                    <FaFileExcel className="me-2 text-success" /> Registro de notas excel (formato 2)
-                  </button>
+                  
 
                   <button
                     className={`list-group-item list-group-item-action ${
@@ -327,14 +305,7 @@ function Detallecursos() {
                     <FaAlignJustify className="me-2 text-danger" /> Pre Acta (Importante)
                   </button>
 
-                  <button
-                    className={`list-group-item list-group-item-action ${
-                      activeTab === 'calificaciones-preacta-adicional' ? 'active' : ''
-                    }`}
-                    onClick={() => setActiveTab('calificaciones-preacta-adicional')}
-                  >
-                    <FaAlignJustify className="me-2 text-purple-500" /> Pre Acta Adicional
-                  </button>
+                  
 
                   <button
                     className={`list-group-item list-group-item-action ${

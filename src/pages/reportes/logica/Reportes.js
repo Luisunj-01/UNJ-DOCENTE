@@ -91,7 +91,7 @@ export const obtenerAsistenciasemana = async (sede, semestre, escuela, curricula
       return { datos: [], mensaje: res.data.mensaje || 'No se encontraron datos.' };
     }
   } catch (err) {
-    console.error('Error al obtener datos:', err);
+    console.error('Error al obtener datos:', err); 
     return null;
   }
 };

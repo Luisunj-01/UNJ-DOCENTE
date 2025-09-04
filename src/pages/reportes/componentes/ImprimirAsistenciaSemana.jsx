@@ -109,7 +109,7 @@ const transformarDatos = (data) => {
 const ImprimirAsistenciaSemana = () => {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [nombresede, setNombresede] = useState('');
+  const [nombresede, setNombresede] = useState(''); 
   const [nombreescuela, setNombreescuela] = useState('');
   const [usuarioRegistro, setUsuarioRegistro] = useState('');
   const [fechaRegistro, setFechaRegistro] = useState('');
