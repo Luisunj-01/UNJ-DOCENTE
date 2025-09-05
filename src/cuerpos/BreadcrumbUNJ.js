@@ -92,8 +92,8 @@ const BreadcrumbUNJ = () => {
 
   const { darkMode } = useTheme();
   const logo = darkMode
-    ? '/image/logo/logo-unj-v1.svg'
-    : '/image/logo/logo-unj-v1.svg';
+    ? 'image/logo/logo-unj-v1.svg'
+    : 'image/logo/logo-unj-v1.svg';
 
   return (
     <div className="container">

@@ -21,8 +21,8 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
 
   const { darkMode } = useTheme();
   const logo = darkMode
-    ? '/image/logo/logo-unj-blanco.svg'
-    : '/image/logo/logo-unj-v1.svg';
+    ? 'image/logo/logo-unj-blanco.svg'
+    : 'image/logo/logo-unj-v1.svg';
 
   const toggleMenu = (menu) => {
     setOpenMenu(openMenu === menu ? null : menu);

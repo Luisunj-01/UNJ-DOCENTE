@@ -139,6 +139,7 @@ const NuevoGuia = ({ datoscurso, semana, onUpdated }) => {
       <Form>
         <Form.Group className="mb-3">
           <Form.Label>Semana</Form.Label>
+          
           <SemestreSelect
             value={formulario.semana}
             onChange={(valor) =>

@@ -63,7 +63,7 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
       name={name}
       className={className}
       value={value}
-      onChange={onChange}   
+      onChange={(e) => onChange(e.target.value)}   // 👈 aquí el cambio clave
       disabled={loading}
     >
       {loading && <option>Cargando...</option>}

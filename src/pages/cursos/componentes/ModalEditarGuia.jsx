@@ -131,8 +131,8 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
 
       if (!response.data.error) {
         Swal.fire("✅ Éxito", response.data.mensaje, "success");
-        //onUpdated();
-        //onClose();
+        onUpdated();
+        onClose();
         const socket = io(config.socketUrl, {
         query: { establishmentId: datoscursos.escuela }, // si usas salas
       });

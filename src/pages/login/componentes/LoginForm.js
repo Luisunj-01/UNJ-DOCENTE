@@ -57,7 +57,7 @@ function Formulario() {
     <form onSubmit={formik.handleSubmit}>
       <div className="form-credenciales">
         <div className="cont-email">
-          <img src="/image/iconos/mail_16dp_b.svg" alt="" draggable="false" />
+          <img src="image/iconos/mail_16dp_b.svg" alt="" draggable="false" />
           <p>Email</p>
         </div>
         <div className="input-email">
@@ -76,7 +76,7 @@ function Formulario() {
         </div>
 
         <div className="cont-password">
-          <img src="/image/iconos/lock_16dp_b.svg" alt="" draggable="false" />
+          <img src="image/iconos/lock_16dp_b.svg" alt="" draggable="false" />
           <p>Contraseña</p>
         </div>
         <div className="input-password">
@@ -106,7 +106,7 @@ function Formulario() {
 
         <div className="btn-acceder">
           <button type="submit" className="btn-con-imagen">
-            <img src="/image/iconos/btn-acceder-b.svg" alt="Acceder" draggable="false" />
+            <img src="image/iconos/btn-acceder-b.svg" alt="Acceder" draggable="false" />
             <p>Acceder</p>
           </button>
         </div>

@@ -6,7 +6,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import AppRoutes from './AppRoutes'; // importa el archivo que acabas de crear
 
 function App() {
-  
+  //basename="/docente"
   return (
     <UserProvider>
       <ThemeProvider>
