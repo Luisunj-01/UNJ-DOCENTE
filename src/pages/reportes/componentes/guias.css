@@ -1,0 +1,50 @@
+/* Tabla base */
+.tabla-acta table {
+  table-layout: fixed;  /* Fuerza anchos iguales */
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Encabezados */
+.tabla-acta th {
+  text-align: center;
+  vertical-align: middle;
+  padding: 4px;
+  font-size: 12px;
+  font-weight: bold;   /* Negrita */
+  color: black;        /* Negro */
+  border: 1px solid #000;
+  white-space: normal; /* Permite salto si no cabe */
+}
+
+/* Celdas de datos */
+.tabla-acta td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 4px;
+  font-size: 12px;
+  font-weight: normal; /* Normal */
+  color: black;        /* Negro */
+  border: 1px solid #000;
+  word-wrap: break-word;
+}
+
+/* Nro., Código y Nombre */
+.tabla-acta th:nth-child(1),
+.tabla-acta td:nth-child(1) {
+  width: 40px; /* Nro. */
+}
+.tabla-acta th:nth-child(2),
+.tabla-acta td:nth-child(2) {
+  width: 90px; /* Código */
+}
+.tabla-acta th:nth-child(3),
+.tabla-acta td:nth-child(3) {
+  width: 200px; /* Nombre */
+}
+
+/* 🔹 Columnas de semanas (ACT, EVI, PAR) */
+.tabla-acta th:not(:nth-child(-n+3)),
+.tabla-acta td:not(:nth-child(-n+3)) {
+  width: 45px;   /* 👈 todas las columnas de semanas iguales */
+}

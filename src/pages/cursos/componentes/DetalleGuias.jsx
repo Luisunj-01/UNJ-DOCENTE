@@ -15,7 +15,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MenuIcon from '@mui/icons-material/Menu';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { IconButton, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { IconButton, Menu, MenuItem, Tooltip , ListItemText } from '@mui/material';
 import { obtenerDatosguias } from '../logica/Curso';
 import { useUsuario } from '../../../context/UserContext';
 import { obtenerCursosPrematricula } from '../../reutilizables/logica/docente';
@@ -319,8 +319,41 @@ function DetalleGuias({ datoscurso = [] }) {
           </div>
         </div>
 
-        {/* 🔵 BOTÓN NUEVO GUÍA ARRIBA A LA DERECHA */}
-        <div className="d-flex justify-content-end mb-3">
+        {/* 🔵 BOTONES ARRIBA DERECHA */}
+        <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
+
+          {/* Botones de imprimir */}
+          <Tooltip title="Imprimir Reporte 1">
+            <IconButton
+              color="primary"
+              onClick={() => {
+                const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
+                const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+                const codigo = btoa(btoa(cadena));
+                window.open(`/imprimirreportesesiones?codigo=${codigo}`, 'RepSesion', opciones);
+              }}
+            >
+              <PrintIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Imprimir Reporte 2">
+            <IconButton
+              color="secondary"
+              onClick={() => {
+                const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
+                const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}`;
+                const codigo = btoa(btoa(cadena));
+                window.open(`/imprimirasistenciaguia?codigo=${codigo}`, 'Repguia', opciones);
+              }}
+            >
+              <PrintIcon />
+            </IconButton>
+          </Tooltip>
+
+        
+
+          {/* Botón Nuevo Guía */}
           <Button 
             variant="info" 
             className="d-flex align-items-center gap-2"
@@ -329,6 +362,7 @@ function DetalleGuias({ datoscurso = [] }) {
             <NoteAddIcon /> Nuevo Guía
           </Button>
         </div>
+
 
         {loading ? (
           <TablaSkeleton filas={9} columnas={6} />

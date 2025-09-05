@@ -108,6 +108,7 @@ const Imprimirguiasemana = () => {
 
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, semana, departamentoacademico]);
+  
 
 
   const columnasEncabezado = [

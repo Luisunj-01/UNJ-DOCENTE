@@ -80,6 +80,40 @@ export const obtenerguiasemana = async (sede, semestre, escuela, curricula, curs
   }
 };
 
+export const obtenerreportesesiones = async (sede, semestre, escuela, curricula, curso, seccion) => {
+  try {
+    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
+      const res = await axios.get(`${config.apiUrl}api/reportes/reporteSesiones/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+      //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos:', err);
+    return null;
+  }
+};
+
+
+export const obtenerasistenciaguia = async (sede, semestre, escuela, curricula, curso, seccion) => {
+  try {
+    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
+      const res = await axios.get(`${config.apiUrl}api/reportes/reportasistenciaguia/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+      //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos:', err);
+    return null;
+  }
+};
+
+
 export const obtenerAsistenciasemana = async (sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave) => {
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);

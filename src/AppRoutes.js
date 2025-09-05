@@ -30,12 +30,14 @@ import Imprimirdocentesemestrecarga from './pages/reportes/componentes/Imprimird
 import Imprimirhorariodocente from './pages/reportes/componentes/Imprimirhorariodocente.jsx';
 import Imprimirguiasemana from './pages/reportes/componentes/Imprimirguiasemana.jsx';
 import ImprimirAsistenciaSemana from './pages/reportes/componentes/ImprimirAsistenciaSemana';
-
 import ImprimirActaDetalle from './pages/reportes/componentes/ImprimirActaDetalle.jsx';
 import ImprimirReporteNota from './pages/reportes/componentes/ImprimirReporteNota.jsx';
 import ImprimirListaMatriculados from './pages/reportes/componentes/ImprimirListaMatriculados.jsx';
-
 import ImprimirFichaGuia from './pages/reportes/componentes/ImprimirFichaGuia.jsx';
+import ImprimirReporteSesiones from './pages/reportes/componentes/ImprimirReporteSesiones.jsx';
+import ImprimirAsistenciaGuia from './pages/reportes/componentes/ImprimirAsistenciaGuia.jsx';
+
+
 
 import Tutoria from './pages/tutoria/Tutoria.js';
 
@@ -104,6 +106,13 @@ function AppRoutes() {
           <Route path="ImprimirReporteNota" element={<ImprimirReporteNota />} />
           <Route path="ImprimirListaMatriculados" element={<ImprimirListaMatriculados />} />
           <Route path="ImprimirFichaGuia" element={<ImprimirFichaGuia />} />
+          <Route path="ImprimirReporteSesiones" element={<ImprimirReporteSesiones />} />
+          <Route path="ImprimirAsistenciaGuia" element={<ImprimirAsistenciaGuia />} />
+
+
+          
+
+
 
 
 
