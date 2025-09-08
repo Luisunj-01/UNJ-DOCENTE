@@ -143,7 +143,7 @@ const ImprimirAsistenciaSemana = () => {
     if (!sede || !semestre || !escuela || !curricula || !curso || !seccion || !tipo || !grupo || !sesion || !clave) {
       setLoading(false);
       return;
-    }
+    } 
 
     const token = usuario.codigotokenautenticadorunj;
 

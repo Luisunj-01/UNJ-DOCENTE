@@ -43,6 +43,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "proxy": "https://pruebas.unj.edu.pe/larav/apidocente",
   "eslintConfig": {
     "extends": [
       "react-app",

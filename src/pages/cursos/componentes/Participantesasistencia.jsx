@@ -26,7 +26,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   const [showModalJustificacion, setShowModalJustificacion] = useState(false);
   const [justificacion, setJustificacion] = useState({ archivo: null, observacion: "", alumno: null, nombrecompleto: "" });
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
-
+  const [archivosAsistencia, setArchivosAsistencia] = useState({});
   const { id } = useParams();
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion] = decoded.split("|");
@@ -148,115 +148,194 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
       mostrarToast("Debes subir un archivo o escribir una observación", "warning");
       return;
     }
-    actualizarAsistenciaLocal(justificacion.alumno, "", justificacion.nombrecompleto, "F", justificacion.observacion, justificacion.archivo);
+    //actualizarAsistenciaLocal(justificacion.alumno, "", justificacion.nombrecompleto, "F", justificacion.observacion, justificacion.archivo);
+
+    const alumnoCompleto = datos.find((d) => d.alumno === justificacion.alumno);
+    const persona = alumnoCompleto?.persona || "SIN_PERSONA"; // o lanza un error si falta
+
+    actualizarAsistenciaLocal(
+      justificacion.alumno,
+      persona,
+      justificacion.nombrecompleto,
+      "F",
+      justificacion.observacion,
+      justificacion.archivo
+    );
+
     setShowModalJustificacion(false);
   };
 
   // --- Guardar asistencia final ---
   // --- Guardar asistencia final ---
-  const guardarAsistenciaFinal = async () => {
-  const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
-  if (asistencias.length === 0) {
-    mostrarToast("No hay asistencias seleccionadas.", "info");
-    return;
+  // --- Guardar asistencia final ---
+const guardarAsistenciaFinal = async () => {
+  try {
+    // 🔹 Recuperar todas las asistencias que guardaste en localStorage
+    const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
+
+    // 🔹 Separar las que tienen archivo de las que no
+    const conArchivo = asistencias.filter((a) => archivosAsistencia[a.alumno]);
+    const sinArchivo = asistencias.filter((a) => !archivosAsistencia[a.alumno]);
+
+    // 👉 1. Armamos el payload SIN archivos (se mandan todas)
+    const payload = {
+      clave: "01",
+      txtFecha: fechaSeleccionada,
+      sede,
+      semestre,
+      escuela,
+      curricula,
+      curso,
+      seccion,
+      semana: datoscurso.sesion,
+      asistencias: asistencias.map((a) => ({
+        alumno: a.alumno,
+        persona: a.persona || "SIN_PERSONA",
+        asistencia: a.asistencia,
+        observacion: a.observacion || "",
+        usuarioregistro: usuario.docente.numerodocumento,
+        txttipo: datos.find((d) => d.alumno === a.alumno)?.existe ? "U" : "N",
+        // 🚫 aquí NO enviamos archivo
+      })),
+    };
+
+    // 👉 2. Enviamos el payload JSON
+    const response = await axios.post(
+      `${config.apiUrl}api/curso/GrabarAsistencia2`,
+      payload,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const data = response.data;
+
+    if (data.error === 0) {
+    Swal.fire("✅ Éxito", data.mensaje, "success");
+
+    // 🔹 Limpias localStorage
+    localStorage.removeItem("asistenciasSeleccionadas");
+
+    // 🔹 Actualizas el estado local con asistencia, observación y faltas
+    setDatos((prev) =>
+      prev.map((d) => {
+        const actualizado = asistencias.find((a) => a.alumno === d.alumno);
+        if (actualizado) {
+          return {
+            ...d,
+            asistencia: actualizado.asistencia,
+            observacion: actualizado.observacion,
+            existe: true, // ahora ya tiene asistencia registrada
+            totalFechas:
+              actualizado.asistencia === "F"
+                ? d.totalFechas + 1 // suma 1 si es falta
+                : d.totalFechas,
+          };
+        }
+        return d;
+      })
+    );
+
+    setDatosFiltrados((prev) =>
+      prev.map((d) => {
+        const actualizado = asistencias.find((a) => a.alumno === d.alumno);
+        if (actualizado) {
+          return {
+            ...d,
+            asistencia: actualizado.asistencia,
+            observacion: actualizado.observacion,
+            existe: true,
+            totalFechas:
+              actualizado.asistencia === "F"
+                ? d.totalFechas + 1
+                : d.totalFechas,
+          };
+        }
+        return d;
+      })
+    );
+  } else {
+      Swal.fire("⚠️ Error", data.mensaje, "error");
+      localStorage.removeItem("asistenciasSeleccionadas");
+    }
+
+    // 👉 3. Subimos solo los archivos si existen
+    if (conArchivo.length > 0) {
+  const formData = new FormData();
+  
+  formData.append("clave", "01");
+  formData.append("txtFecha", fechaSeleccionada);
+  formData.append("sede", sede);
+  formData.append("semestre", semestre);
+  formData.append("escuela", escuela);
+  formData.append("curricula", curricula);
+  formData.append("curso", curso);
+  formData.append("seccion", seccion);
+  formData.append("semana", datoscurso.sesion);
+
+  // 📂 Asistencias con archivos
+  conArchivo.forEach((a, index) => {
+    formData.append(`asistencias[${index}][alumno]`, a.alumno);
+    formData.append(`asistencias[${index}][persona]`, a.persona || "");
+    formData.append(`asistencias[${index}][asistencia]`, a.asistencia);
+    formData.append(`asistencias[${index}][observacion]`, a.observacion || "");
+    formData.append(`asistencias[${index}][usuarioregistro]`, usuario.docente.numerodocumento);
+    
+    const file = archivosAsistencia[a.alumno];
+    if (file) {
+      formData.append(`asistencias[${index}][archivo]`, file);
+    }
+  });
+
+  
+  try {
+    const respArchivos = await fetch(
+      `${config.apiUrl}api/curso/GrabarAsistencia`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`, // NO poner Content-Type
+        },
+        body: formData,
+      }
+    ); 
+
+   
+
+    console.log("Status:", respArchivos.status);
+
+    const data = await respArchivos.json();
+    console.log("Respuesta completa:", data);
+
+      if (!respArchivos.ok || data.error) {
+        Swal.fire("⚠️ Error", data.mensaje || "Error al guardar asistencia", "error");
+        localStorage.removeItem("asistenciasSeleccionadas");
+      } else {
+        Swal.fire("✅ Éxito", data.mensaje, "success");
+        localStorage.removeItem("asistenciasSeleccionadas");
+        cargarDatos(fechaSeleccionada);
+      }
+    } catch (err) {
+      console.error("Excepción al guardar asistencia:", err);
+      localStorage.removeItem("asistenciasSeleccionadas");
+      Swal.fire("⚠️ Error", "No se pudo conectar con el servidor.", "error");
+      localStorage.removeItem("asistenciasSeleccionadas");
+    }
   }
 
-  // 👀 Verificar si hay al menos un archivo
-  const hayArchivo = asistencias.some(a => a.archivo);
 
-  try {
-    let response;
 
-    if (hayArchivo) {
-      // 🚀 Usar FormData
-      const formData = new FormData();
-      formData.append("clave", "01");
-      formData.append("txtFecha", fechaSeleccionada);
-      formData.append("sede", sede);
-      formData.append("semestre", semestre);
-      formData.append("escuela", escuela);
-      formData.append("curricula", curricula);
-      formData.append("curso", curso);
-      formData.append("seccion", seccion);
-      formData.append("semana", datoscurso.sesion);
-
-      asistencias.forEach((a, index) => {
-        console.log(a.persona+ "tipo formdata");
-        formData.append(`asistencias[${index}][alumno]`, a.alumno);
-        formData.append(`asistencias[${index}][persona]`, a.persona || "");
-        formData.append(`asistencias[${index}][asistencia]`, a.asistencia);
-        formData.append(`asistencias[${index}][observacion]`, a.observacion || "");
-        formData.append(`asistencias[${index}][usuarioregistro]`, usuario.docente.numerodocumento);
-        formData.append(
-          `asistencias[${index}][txttipo]`,
-          datos.find(d => d.alumno === a.alumno)?.existe ? "U" : "N"
-        );
-
-        if (a.archivo) {
-          formData.append(`asistencias[${index}][archivo]`, a.archivo);
-        }
-      });
-
-      response = await axios.post(
-        `${config.apiUrl}api/curso/GrabarAsistencia`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            // ❌ no pongas Content-Type, axios lo pone solo
-          }
-        }
-      );
-    } else {
-      // 🚀 Usar JSON normal
-      const asistenciasConTipo = asistencias.map(a => {
-        const alumnoEncontrado = datos.find(d => d.alumno === a.alumno);
-        return {
-          
-          alumno: a.alumno,
-          persona: a.persona,
-          asistencia: a.asistencia,
-          observacion: a.observacion || "",
-          usuarioregistro: usuario.docente.numerodocumento,
-          txttipo: alumnoEncontrado?.existe ? "U" : "N"
-        };
-      });
-
-      const payload = {
-        clave: "01",
-        txtFecha: fechaSeleccionada,
-        sede, semestre, escuela, curricula, curso, seccion,
-        semana: datoscurso.sesion,
-        asistencias: asistenciasConTipo
-      };
-
-      console.log(payload+ "tipo formdata");
-
-      response = await axios.post(
-        `${config.apiUrl}api/curso/GrabarAsistencia2`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-    }
-
-    if (!response.data.error) {
-      Swal.fire("Éxito", response.data.mensaje, "success");
-      localStorage.removeItem("asistenciasSeleccionadas");
-      cargarDatos(fechaSeleccionada);
-    } else {
-      Swal.fire("Error", response.data.mensaje, "error");
-    }
 
   } catch (error) {
     console.error(error);
-    mostrarToast("Ocurrió un error al guardar.", "danger");
-    localStorage.removeItem("asistenciasSeleccionadas");
+    Swal.fire("❌ Error", "Ocurrió un error al guardar la asistencia", "error");
   }
 };
 
 
 
+
+
   const columnas = [
+    { clave: "persona", titulo: "Persona" },
     { clave: "alumno", titulo: "Código" },
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
     {
@@ -377,7 +456,19 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
             <FaChalkboardTeacher /> Marcar todos
           </Button>
 
-          <Button variant="success" size="sm" onClick={() => setShowModalConfirmar(true)}>
+          <Button
+            variant="success"
+            size="sm"
+            onClick={() => {
+              const asistencias = JSON.parse(localStorage.getItem("asistenciasSeleccionadas")) || [];
+              if (asistencias.length === 0) {
+                Swal.fire("⚠️ Alto", "Debe seleccionar al menos una asistencia", "warning");
+                //mostrarToast("Debe seleccionar al menos una asistencia", "error");
+                return;
+              }
+              setShowModalConfirmar(true);
+            }}
+          >
             {datos.length === 0 ? "Nueva Asistencia" : "Modificar Asistencia"}
           </Button>
         </div>
@@ -397,7 +488,16 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
         <Modal.Body>
           <Form.Group className="mb-3">
             <Form.Label>Subir archivo</Form.Label>
-            <Form.Control type="file" onChange={(e) => setJustificacion({ ...justificacion, archivo: e.target.files[0] })} />
+            
+              <Form.Control
+                type="file"
+                onChange={(e) =>
+                  setArchivosAsistencia(prev => ({
+                    ...prev,
+                    [justificacion.alumno]: e.target.files[0] // guardamos el File real por alumno
+                  }))
+                }
+              />
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Observación</Form.Label>
