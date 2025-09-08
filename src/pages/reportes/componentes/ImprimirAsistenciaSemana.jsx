@@ -27,7 +27,10 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
 
           {/* Columna del medio - TÍTULO */}
           <td className="text-center" style={{ width: '50%' }}>
-            <h4 className="titulozet mb-0"><strong>{titulomat}</strong></h4>
+            <h4 className="titulozet mb-0"><strong>{titulomat}</strong></h4> 
+            <td style={{ width: '15%', fontSize: '0.9rem', marginTop: '8px' }}>
+              <div><strong>Fecha:</strong> {fechaFormateada} | <strong>Hora:</strong> {horaActual}</div>
+            </td>
           </td>
 
           {/* Columna derecha - QR + FECHA Y HORA */}
@@ -127,6 +130,7 @@ const ImprimirAsistenciaSemana = () => {
       const decoded = atob(atob(codigoParam));
       [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave] = decoded.split('|');
     }
+    console.log(codigoParam);
   } catch (error) {
     console.error("❌ Error decodificando parámetros:", error);
   }
@@ -147,6 +151,8 @@ const ImprimirAsistenciaSemana = () => {
       try {
         const resultado = await obtenerAsistenciasemana(sede, semestre, escuela, curricula, curso, seccion, 'T', '1', '01', '01', token);
         setDatos(resultado?.datos || []);
+        console.log(resultado);
+
 
         if (resultado?.datos?.length > 0) {
           setUsuarioRegistro(resultado.datos[0].ur || '');
@@ -172,6 +178,8 @@ const ImprimirAsistenciaSemana = () => {
 
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave, departamentoacademico]);
+
+  
 
   // 🔹 Transformar datos en estructura de tabla dinámica
   const { alumnos, fechasUnicas } = transformarDatos(datos);
@@ -223,7 +231,7 @@ const ImprimirAsistenciaSemana = () => {
             {loading ? (
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
-              <div className="tabla-acta">
+              <div className="tabla-acta-asistencia">
                 <TablaCursoSub
                   datos={alumnos}
                   columnasEncabezado={columnasEncabezado}

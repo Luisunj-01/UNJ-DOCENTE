@@ -1,6 +1,6 @@
 /* Nro. → se ajusta al contenido */
-.tabla-acta th:nth-child(1),
-.tabla-acta td:nth-child(1) {
+.tabla-acta-asistencia th:nth-child(1),
+.tabla-acta-asistencia td:nth-child(1) {
   width: auto;          /* 👈 sin ancho fijo */
   white-space: nowrap;  /* evita salto de línea */
   text-align: center;
@@ -9,8 +9,8 @@
 }
 
 /* Código → se ajusta al contenido */
-.tabla-acta th:nth-child(2),
-.tabla-acta td:nth-child(2) {
+.tabla-acta-asistencia th:nth-child(2),
+.tabla-acta-asistencia td:nth-child(2) {
   width: auto;          /* 👈 ajustable */
   white-space: nowrap;
   text-align: center;
@@ -18,8 +18,8 @@
 }
 
 /* Nombre y Apellidos → se ajusta también */
-.tabla-acta th:nth-child(3),
-.tabla-acta td:nth-child(3) {
+.tabla-acta-asistencia th:nth-child(3),
+.tabla-acta-asistencia td:nth-child(3) {
   width: auto;          /* 👈 ajustable */
   white-space: nowrap;
   text-align: center;

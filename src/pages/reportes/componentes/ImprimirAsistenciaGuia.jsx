@@ -32,7 +32,7 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
           {/* Columna del medio - TÍTULO */}
           <td className="text-center" style={{ width: '50%' }}>
             <h4 className="titulozet mb-0"><strong>{titulomat}</strong></h4> 
-            <td style={{ width: '25%', fontSize: '0.9rem', marginTop: '8px' }}>
+            <td style={{ width: '15%', fontSize: '0.9rem', marginTop: '8px' }}>
               <div><strong>Fecha:</strong> {fechaFormateada} | <strong>Hora:</strong> {horaActual}</div>
             </td>
           </td>
@@ -143,7 +143,7 @@ const ImprimirAsistenciaGuia = () => {
 
   const { usuario } = useUsuario();
   const { search } = useLocation();
-  const [titulomat] = useState('REGISTRO DE SESIONES DE CLASE');
+  const [titulomat] = useState('REGISTRO DE ASISTENCIA (GUIAS)');
 
   const queryParams = new URLSearchParams(search);
   const codigoParam = queryParams.get('codigo');
@@ -240,7 +240,7 @@ const ImprimirAsistenciaGuia = () => {
             {loading ? (
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
-              <div className="tabla-acta">
+              <div className="tabla-acta-guia">
                 <TablaCursoSub
                   datos={datos}
                   columnasEncabezado={columnasEncabezado}

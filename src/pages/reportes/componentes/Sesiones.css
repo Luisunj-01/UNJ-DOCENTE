@@ -1,12 +1,12 @@
 /* 📌 Estilos generales de la tabla */
-.tabla-acta table {
+.tabla-acta-sesiones table {
   border-collapse: collapse;
   width: 100%;
   font-size: 14px;
 }
 
 /* 📌 Encabezados */
-.tabla-acta th {
+.tabla-acta-sesiones th {
   background: #f5f5f5;
   text-align: center;
   padding: 6px;
@@ -15,15 +15,15 @@
 }
 
 /* 📌 Celdas */
-.tabla-acta td {
+.tabla-acta-sesiones td {
   border: 1px solid #000;
   padding: 6px;
   vertical-align: middle;
 }
 
 /* 📌 Columna 1 = SEMANA */
-.tabla-acta th:nth-child(3),
-.tabla-acta td:nth-child(3) {
+.tabla-acta-sesiones th:nth-child(3),
+.tabla-acta-sesiones td:nth-child(3) {
   text-align: center !important;
   vertical-align: middle !important;
   width: 130px;
@@ -31,24 +31,24 @@
 
 
 /* 📌 Columna 2 = CONTENIDO */
-.tabla-acta th:nth-child(2),
-.tabla-acta td:nth-child(2) {
-  text-align: left;
-  white-space: nowrap;
-  width: auto; /* que se adapte al texto */
+.tabla-acta-sesiones table {
+  table-layout: auto;  /* 👈 ahora el contenido define el ancho */
+  width: 100%;
+  border-collapse: collapse;
 }
 
+
 /* 📌 Columna 3 = FECHA */
-.tabla-acta th:nth-child(3),
-.tabla-acta td:nth-child(3) {
+.tabla-acta-sesiones th:nth-child(3),
+.tabla-acta-sesiones td:nth-child(3) {
   width: 130px;
   text-align: center;
   vertical-align: middle;
 }
 
 /* 📌 Columna 4 = CONCLUIDO */
-.tabla-acta th:nth-child(4),
-.tabla-acta td:nth-child(4) {
+.tabla-acta-sesiones th:nth-child(4),
+.tabla-acta-sesiones td:nth-child(4) {
   width: 100px;
   text-align: center;
   vertical-align: middle;

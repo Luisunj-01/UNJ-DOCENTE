@@ -323,7 +323,7 @@ function DetalleGuias({ datoscurso = [] }) {
         <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
 
           {/* Botones de imprimir */}
-          <Tooltip title="Imprimir Reporte 1">
+          <Tooltip title="Registro de sesiones de clase">
             <IconButton
               color="primary"
               onClick={() => {
@@ -337,7 +337,7 @@ function DetalleGuias({ datoscurso = [] }) {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="Imprimir Reporte 2">
+          <Tooltip title="Registro de asistencia (Guias)">
             <IconButton
               color="secondary"
               onClick={() => {

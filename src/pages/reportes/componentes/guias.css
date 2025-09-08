@@ -1,50 +1,62 @@
+/* ==========================
+   TABLA ACTA GUIA
+========================== */
+
 /* Tabla base */
-.tabla-acta table {
+.tabla-acta-guia table {
   table-layout: fixed;  /* Fuerza anchos iguales */
   width: 100%;
   border-collapse: collapse;
 }
 
 /* Encabezados */
-.tabla-acta th {
+.tabla-acta-guia th {
   text-align: center;
   vertical-align: middle;
   padding: 4px;
   font-size: 12px;
-  font-weight: bold;   /* Negrita */
-  color: black;        /* Negro */
-  border: 1px solid #000;
-  white-space: normal; /* Permite salto si no cabe */
+  font-weight: bold !important;   /* Negrita */
+  color: #000 !important;         /* Negro */
+  border: 1px solid #000 !important;
+  white-space: normal;
+  background: #fff !important;   /* Fondo blanco */
+  -webkit-print-color-adjust: exact; /* Chrome */
+  print-color-adjust: exact;         /* Navegadores modernos */
 }
 
 /* Celdas de datos */
-.tabla-acta td {
+.tabla-acta-guia td {
   text-align: center;
   vertical-align: middle;
   padding: 4px;
   font-size: 12px;
-  font-weight: normal; /* Normal */
-  color: black;        /* Negro */
-  border: 1px solid #000;
+  font-weight: normal !important;
+  color: #000 !important;         /* Negro */
+  border: 1px solid #000 !important;
   word-wrap: break-word;
+  background: #fff !important;    /* Fondo blanco */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 /* Nro., Código y Nombre */
-.tabla-acta th:nth-child(1),
-.tabla-acta td:nth-child(1) {
+.tabla-acta-guia th:nth-child(1),
+.tabla-acta-guia td:nth-child(1) {
   width: 40px; /* Nro. */
 }
-.tabla-acta th:nth-child(2),
-.tabla-acta td:nth-child(2) {
+
+.tabla-acta-guia th:nth-child(2),
+.tabla-acta-guia td:nth-child(2) {
   width: 90px; /* Código */
 }
-.tabla-acta th:nth-child(3),
-.tabla-acta td:nth-child(3) {
+
+.tabla-acta-guia th:nth-child(3),
+.tabla-acta-guia td:nth-child(3) {
   width: 200px; /* Nombre */
 }
 
 /* 🔹 Columnas de semanas (ACT, EVI, PAR) */
-.tabla-acta th:not(:nth-child(-n+3)),
-.tabla-acta td:not(:nth-child(-n+3)) {
-  width: 45px;   /* 👈 todas las columnas de semanas iguales */
+.tabla-acta-guia th:not(:nth-child(-n+3)),
+.tabla-acta-guia td:not(:nth-child(-n+3)) {
+  width: 45px;   /* Todas las columnas de semanas iguales */
 }

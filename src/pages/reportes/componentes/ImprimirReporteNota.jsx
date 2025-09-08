@@ -240,7 +240,7 @@ const ImprimirReporteNota = () => {
             {loading ? (
               <TablaSkeleton filas={5} columnas={6} />
             ) : (
-              <div className="tabla-acta">
+              <div className="tabla-acta-nota">
                 <TablaCursoSub
                   datos={datos}
                   columnasEncabezado={columnasEncabezado}
