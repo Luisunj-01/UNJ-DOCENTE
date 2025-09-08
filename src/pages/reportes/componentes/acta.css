@@ -96,11 +96,6 @@
   font-weight: bold;
 }
 
-/* NF, SUS, APLA, PF: en negrita y rojo */
-.col-final-rojo {
-  font-weight: bold;
-  color: rgb(143, 47, 47);
-}
 
 /* ===========================
    RESPONSIVE (AUTO AJUSTE)
@@ -151,7 +146,7 @@
 /* Columna 2 = CÓDIGO */
 .tabla-acta table td:nth-child(2),
 .tabla-acta table th:nth-child(2) {
-  width: 50px;  /* ocupa espacio medio */
+  width: 20px;  /* ocupa espacio medio */
   text-align: center;
   white-space: nowrap;
 }
@@ -160,7 +155,7 @@
 .tabla-acta table td:nth-child(3),
 .tabla-acta table th:nth-child(3) {
   width: 50px;  /* más ancha */
-  text-align: left;
+  text-align: center;
   padding-left: 6px;
 }
 

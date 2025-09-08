@@ -5,109 +5,95 @@
 /* Columna 1 = No */
 .tabla-acta-nota td:nth-child(1),
 .tabla-acta-nota th:nth-child(1) {
-  width: 40px;
+  width: 20px;
   text-align: center;
 }
 
 /* Columna 2 = CÓDIGO */
 .tabla-acta-nota td:nth-child(2),
 .tabla-acta-nota th:nth-child(2) {
-  width: 120px;
+  width: 80px;
   text-align: center;
 }
 
 /* Columna 3 = APELLIDOS Y NOMBRES */
 .tabla-acta-nota td:nth-child(3),
 .tabla-acta-nota th:nth-child(3) {
-  width: 280px;
+  width: 100px;              /* 👈 antes estaba en 280px */
+  max-width: 200px;          /* 👈 limite fijo */
   text-align: left;
   padding-left: 6px;
-  white-space: normal;
+  white-space: normal;       /* permite saltos de línea */
+  word-wrap: break-word;     /* corta palabras largas si es necesario */
+}
+
+/* Configuración de la tabla */
+.tabla-acta-nota table {
+  table-layout: fixed !important;
+  border-collapse: collapse;
+  /* ❌ no pongas width:100% porque fuerza redistribución */
 }
 
 /* ==========================
-   PRIMER PROMEDIO (EC, EP, EA, Prom)
+   Columnas 4–15 = EC, EP, EA, Prom (3 promedios)
+   → mismo ancho exacto
 ========================== */
-.tabla-acta-nota td:nth-child(4),
-.tabla-acta-nota th:nth-child(4),
-.tabla-acta-nota td:nth-child(5),
-.tabla-acta-nota th:nth-child(5),
-.tabla-acta-nota td:nth-child(6),
-.tabla-acta-nota th:nth-child(6),
-.tabla-acta-nota:nth-child(7),
-.tabla-acta-nota th:nth-child(7) {
-  width: 55px;
-  text-align: center;
+.tabla-acta-nota table th:nth-child(n+4):nth-child(-n+15),
+.tabla-acta-nota table td:nth-child(n+4):nth-child(-n+15) {
+  width: 50px !important;
+  max-width: 45px !important;
+  text-align: center !important;
+  overflow: hidden;
   white-space: nowrap;
 }
 
-/* ==========================
-   SEGUNDO PROMEDIO (EC, EP, EA, Prom)
-========================== */
-.tabla-acta-nota td:nth-child(8),
-.tabla-acta-nota th:nth-child(8),
-.tabla-acta-nota td:nth-child(9),
-.tabla-acta-nota th:nth-child(9),
-.tabla-acta-nota td:nth-child(10),
-.tabla-acta-nota th:nth-child(10),
-.tabla-acta-nota td:nth-child(11),
-.tabla-acta-nota th:nth-child(11) {
-  width: 55px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-/* ==========================
-   TERCER PROMEDIO (EC, EP, EA, Prom)
-========================== */
-.tabla-acta-nota td:nth-child(12),
-.tabla-acta-nota th:nth-child(12),
-.tabla-acta-nota td:nth-child(13),
-.tabla-acta-nota th:nth-child(13),
-.tabla-acta-nota td:nth-child(14),
-.tabla-acta-nota th:nth-child(14),
-.tabla-acta-nota td:nth-child(15),
-.tabla-acta-nota th:nth-child(15) {
-  width: 55px;
-  text-align: center;
-  white-space: nowrap;
+/* PROM (col 7, 11, 15) → negrita + negro */
+.tabla-acta-nota table th:nth-child(7),
+.tabla-acta-nota table td:nth-child(7),
+.tabla-acta-nota table th:nth-child(11),
+.tabla-acta-nota table td:nth-child(11),
+.tabla-acta-nota table th:nth-child(15),
+.tabla-acta-nota table td:nth-child(15) {
+  font-weight: bold;
+  color: #000 !important;
 }
 
 /* ==========================
    NF, SUS, APLA, PF
 ========================== */
-
-/* NF */
 .tabla-acta-nota th:nth-child(16),
 .tabla-acta-nota td:nth-child(16) {
-  width: 40px !important;       /* más angosta */
+  width: 40px !important;
   text-align: center;
   font-weight: bold;
-  color: rgb(200, 0, 0) !important; /* 👈 Rojo fuerte */
+  color: rgb(200, 0, 0) !important;
 }
 
-/* SUS */
 .tabla-acta-nota th:nth-child(17),
 .tabla-acta-nota td:nth-child(17) {
-  width: 35px !important;       /* más angosta */
+  width: 35px !important;
   text-align: center;
-  color: #000 !important;       /* Negro */
 }
 
-/* APLA */
 .tabla-acta-nota th:nth-child(18),
 .tabla-acta-nota td:nth-child(18) {
-  width: 40px !important;       /* más angosta */
+  width: 40px !important;
   text-align: center;
-  color: #000 !important;       /* Negro */
 }
 
-/* PF */
 .tabla-acta-nota th:nth-child(19),
 .tabla-acta-nota td:nth-child(19) {
-  width: 40px !important;       /* más angosta */
+  width: 40px !important;
   text-align: center;
   font-weight: bold;
-  color: rgb(200, 0, 0) !important; /* 👈 Rojo fuerte */
+  color: rgb(200, 0, 0) !important;
 }
 
+/* ==========================
+   Separación visual
+========================== */
+.tabla-acta-nota table th:nth-child(4),
+.tabla-acta-nota table td:nth-child(4) {
+  padding-left: 10px !important;
+  border-left: 2px solid #000;
+}

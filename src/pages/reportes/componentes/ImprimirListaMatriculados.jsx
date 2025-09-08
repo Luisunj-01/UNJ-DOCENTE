@@ -33,7 +33,7 @@ const CabeceraActa = ({ titulomat, sede, nombredocente, nombreEscuela, semestre,
           {/* Columna del medio - TÍTULO */}
           <td className="text-center" style={{ width: '50%' }}>
             <h4 className="titulozet mb-0"><strong>{titulomat}</strong></h4> 
-            <td style={{ width: '25%', fontSize: '0.9rem', marginTop: '8px' }}>
+            <td style={{ width: '15%', fontSize: '0.9rem', marginTop: '8px' }}>
               <div><strong>Fecha:</strong> {fechaFormateada} | <strong>Hora:</strong> {horaActual}</div>
             </td>
           </td>
