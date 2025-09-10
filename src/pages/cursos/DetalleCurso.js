@@ -71,7 +71,7 @@ function Detallecursos() {
 
     async function cargarDatosCompletos() {
       //const obtenervalidacion = await obtenervalidacioncurso(semestre, persona, dni);
-        //setValidacionCurso(obtenervalidacion);
+      //setValidacionCurso(obtenervalidacion);
       try {
         const respuesta = await obtenerdatdocente(
           cursoDesdeLink.persona,

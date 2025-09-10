@@ -11,7 +11,6 @@ import ParticipantesCurso from './Participantesasistencia';
 import { ToastContext } from '../../../cuerpos/Layout';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 
-
 function Asistenciadocente() {
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +34,7 @@ function Asistenciadocente() {
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
         setMensajeApi('No se pudo obtener el detalle de asistencia.');
         setLoading(false);
-        return; 
+        return;
       }
       setDatos(respuestaAsistencia.datos);
       setMensajeApi(respuestaAsistencia.mensaje);
@@ -150,18 +149,14 @@ function Asistenciadocente() {
           <IconButton
             title={`Imprimir Asistencia: ${nombrecurso}`}
             onClick={() => {
-
               const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${tipo}|${grupo}|${sesion}|${clave}`;
               const codigo = btoa(btoa(cadena));
-
-  
               window.open(
                 `/ImprimirAsistenciaSemana?codigo=${codigo}`,
                 'popupImpresion',
                 'width=1000,height=700,scrollbars=yes,resizable=yes'
               );
             }}
-
             color="primary"
             size="small"
           >
@@ -239,7 +234,40 @@ function Asistenciadocente() {
       ) : datos.length === 0 ? (
         <div className="alert alert-warning text-center mt-4">{mensajeApi}</div>
       ) : (
-        <TablaCursos datos={datos} columnas={columnas} />
+        <>
+          {/* 🔹 Header con botones de impresión */}
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div></div>
+            <div>
+              <button
+                className="btn btn-outline-primary btn-sm me-2"
+                onClick={() => {
+                const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
+                const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${tipo}|${grupo}|${sesion}|${clave}`;
+                const codigo = btoa(btoa(cadena));
+                window.open(`/imprimirasistenciaporcentaje?codigo=${codigo}`, 'Repguia', opciones);
+              }}
+              >
+                <i className="fa fa-print"></i> Resumen de Asistencia (%)
+              </button>
+
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                 onClick={() => {
+                const opciones = 'width=900,height=700,scrollbars=yes,resizable=yes';
+                const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${tipo}|${grupo}|${sesion}|${clave}`;
+                const codigo = btoa(btoa(cadena));
+                window.open(`/imprimirasistenciasesiones?codigo=${codigo}`, 'Repguia', opciones);
+              }}
+              >
+                <i className="fa fa-print"></i> Reporte De Asistencia por Sesion
+              </button>
+            </div>
+          </div>
+
+          {/* 🔹 Tabla */}
+          <TablaCursos datos={datos} columnas={columnas} />
+        </>
       )}
     </div>
   );

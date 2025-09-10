@@ -36,10 +36,13 @@ import ImprimirListaMatriculados from './pages/reportes/componentes/ImprimirList
 import ImprimirFichaGuia from './pages/reportes/componentes/ImprimirFichaGuia.jsx';
 import ImprimirReporteSesiones from './pages/reportes/componentes/ImprimirReporteSesiones.jsx';
 import ImprimirAsistenciaGuia from './pages/reportes/componentes/ImprimirAsistenciaGuia.jsx';
-
+import ImprimirAsistenciaPorcentaje from './pages/reportes/componentes/ImprimirAsistenciaPorcentaje.jsx';
+import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsistenciaSesiones.jsx';
 
 
 import Tutoria from './pages/tutoria/Tutoria.js';
+
+
 
 
 
@@ -108,6 +111,9 @@ function AppRoutes() {
           <Route path="ImprimirFichaGuia" element={<ImprimirFichaGuia />} />
           <Route path="ImprimirReporteSesiones" element={<ImprimirReporteSesiones />} />
           <Route path="ImprimirAsistenciaGuia" element={<ImprimirAsistenciaGuia />} />
+
+          <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
+          <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
 
 
           
