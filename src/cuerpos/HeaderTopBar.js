@@ -60,7 +60,7 @@ function HeaderTopBar({ toggleSidebar, sidebarOpen, abrirModal }) {
         
         <div className="d-flex align-items-center">
           
-          <UserInfoBox />
+          <UserInfoBox abrirModal={abrirModal} />
           {/* <Dropdown align="end">
             <Dropdown.Toggle
             

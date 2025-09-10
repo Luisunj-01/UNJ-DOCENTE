@@ -56,7 +56,7 @@ function AppRoutes() {
         logout();
       }, 3000);*/
     }
-  }, 200000000); 
+  }, 180000); 
 
   return (
     <>

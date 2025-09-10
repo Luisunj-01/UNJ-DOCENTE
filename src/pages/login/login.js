@@ -12,26 +12,27 @@ const ROLES = {
   admin: "Administración",
 };
 
-function normalizaRol(valor) {
-  const v = (valor || "").toLowerCase();
-  if (v.includes("docente")) return "docente";
-  if (v.includes("admin")) return "admin";
+function normalizaRol(url) {
+  url = url.toLowerCase();
+  if (url.includes("sigad.unj.edu.pe")) return "docente";
+  if (url.includes("siga.unj.edu.pe/estudiante")) return "estudiante";
+  if (url.includes("/administrador")) return "admin";
+  // Por defecto estudiante
   return "estudiante";
 }
 
 export default function Login() {
-  const [rol, setRol] = useState(normalizaRol(window.location.pathname));
+  const [rol, setRol] = useState(normalizaRol(window.location.href));
   const [usuario, setUsuario] = useState(null);
 
   // Detectar cambios de URL manuales (cuando recargas o cambias con href)
   useEffect(() => {
     const actualizarRol = () => {
-      setRol(normalizaRol(window.location.pathname));
+      setRol(normalizaRol(window.location.href));
     };
+    window.addEventListener("popstate", actualizarRol);
 
-    actualizarRol(); // inicial
-    window.addEventListener("popstate", actualizarRol); // si navegas atrás/adelante
-
+    // Por si quieres detectar cambios de URL manuales
     return () => {
       window.removeEventListener("popstate", actualizarRol);
     };
@@ -46,12 +47,13 @@ export default function Login() {
 
   // Cambiar rol con redirección real
   const handleCambiarRol = (nuevoRol) => {
-    const r = normalizaRol(nuevoRol);
-    setRol(r);
-
-    if (r === "estudiante") window.location.href = "/estudiante/";
-    if (r === "docente") window.location.href = "/docente/";
-    if (r === "admin") window.location.href = "/administrador/";
+    if (nuevoRol === "estudiante") {
+      window.location.href = "https://siga.unj.edu.pe/estudiante/";
+    } else if (nuevoRol === "docente") {
+      window.location.href = "https://sigad.unj.edu.pe/";
+    } else if (nuevoRol === "admin") {
+      window.location.href = "/administrador/";
+    }
   };
 
   return (

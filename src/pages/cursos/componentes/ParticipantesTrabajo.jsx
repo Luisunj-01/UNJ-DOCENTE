@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 import { useParams } from 'react-router-dom';
-import { obtenerRevisionTrabajo } from '../logica/Curso';
+import { obtenerRevisionTrabajo, obtenerDatosnotas } from '../logica/Curso';
 import { ToastContext } from '../../../cuerpos/Layout';
 import config from '../../../config';
 import BotonPDFTrabajo from '../../asignatura/componentes/BotonPDFTrabajo';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+import { useUsuario } from '../../../context/UserContext';
 
 
 const RevisionTraPart = ({ datoscurso, semana }) => {
@@ -19,7 +20,8 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
   const [sede, semestre, escuela, curricula, curso, seccion] = decoded.split('|');
   const { mostrarToast } = useContext(ToastContext);  
   
-
+  const { usuario } = useUsuario();
+  const token = usuario?.codigotokenautenticadorunj;
   useEffect(() => {
     if (!datoscurso?.modoEdicion) {
       localStorage.removeItem('asistenciasSeleccionadas');
@@ -41,19 +43,44 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
         semana
       );
 
+       
+
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
         setMensajeApi('No se pudo obtener el detalle de los alumnos.');
         setLoading(false);
         return;
       }
 
-      const datosInicializados = respuestaAsistencia.datos.map((item) => ({
-        ...item,
-        personaCompleta: (item.persona || '') + (item.alumno || ''),
-        
-      }));
+      const datosConNotas = await Promise.all(
+        respuestaAsistencia.datos.map(async (item) => {
+          const respuestanotas = await obtenerDatosnotas(
+            sede,
+            semestre,
+            escuela,
+            curricula,
+            curso,
+            seccion,
+            semana,
+            item.alumno // 👈 aquí le pasas el alumno del item
+          );
 
-      setDatos(datosInicializados);
+          // Si tu consulta devuelve un array de notas, por ejemplo [{tra:16065, nota:12}, ...]
+          const notasMap = {};
+          respuestanotas.forEach((n, i) => {
+            notasMap[`notaTra${i + 1}`] = n.nota;
+          });
+
+          return {
+            ...item,
+            personaCompleta: (item.persona || '') + (item.alumno || ''),
+            ...notasMap
+          };
+        })
+      );
+
+      setDatos(datosConNotas);
+
+      console.log(datos);
       setMensajeApi(respuestaAsistencia.mensaje);
     } catch (error) {
       console.error('Error al cargar datos:', error);
@@ -62,7 +89,7 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
     setLoading(false);
   };
 
-  //console.log(datos);
+  console.log(datos);
   
   const actualizarAsistenciaLocal = (alumno, nombrecompleto, cambios) => {
   const claveStorage = 'asistenciasSeleccionadas';
@@ -174,11 +201,11 @@ const columnas = [
       };
 
       return (
-        <BotonPDFTrabajo
+        <BotonPDFTrabajo 
           fila={filaCurso}
           semestre={semestre}
           semana={semana}
-          token={"TOKEN_DEL_DOCENTE"}
+          token={token}
           titulo={``}
           idTrabajo={idTrabajo}
         />
@@ -186,6 +213,7 @@ const columnas = [
     }
   }))
 ];
+
 
 
   return (

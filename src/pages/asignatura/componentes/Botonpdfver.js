@@ -1,34 +1,53 @@
+// src/pages/asignatura/componentes/BotonPDF.js
 import React, { useEffect, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
 import config from '../../../config';
-import { construirNombreArchivo, verificarArchivo } from '../../asignatura/logica/asignatura';
+import { construirNombreArchivoverpdf, verificarArchivo } from '../../asignatura/logica/asignatura';
 import { Button } from 'react-bootstrap';
-import ModalPDF from '../../../componentes/modales/ModalPDF';
+import ModalPDFver from '../../../componentes/modales/ModalverPDF';
+ // Ajusta la ruta según tu estructura
 
-const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
+const BotonPDFver = ({ fila, token, semestre, titulo, nombrecarpeta, semana }) => {
+
+
+  
   const [urlPDF, setUrlPDF] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
+
+  /*seEffect(() => {
+    const nombreArchivo = construirNombreArchivo(fila, semestre);
+    const ruta = `${nombrecarpeta}/${nombreArchivo}`;
+
+    // Agregamos un timestamp para evitar la caché
+    const rutaConCacheBusting = `${ruta}?t=${Date.now()}`;
+    console.log(ruta);
+    verificarArchivo(rutaConCacheBusting, token).then((url) => {
+      setUrlPDF(url);
+    });
+  }, [fila, semestre, token]);*/
 
   useEffect(() => {
     if (!fila || !fila.curso || !fila.estructura) return;
 
-    // 👇 usamos "trabajo" como nombre de carpeta
-    const nombreArchivo = construirNombreArchivo(fila, semestre, semana, 'trabajo');
-    console.log(nombreArchivo);
-  //console.log(nombreArchivo);
-    const ruta = `tra/${nombreArchivo}`;
+    const nombreArchivo = construirNombreArchivoverpdf(fila, semestre, semana, nombrecarpeta);
+    
+    const ruta = `${nombrecarpeta}/${nombreArchivo}`;
+    
 
     verificarArchivo(ruta, token).then((url) => {
       if (url) {
         setUrlPDF(url);
       }
     });
-  }, [fila, semestre, token, semana]);
+  }, [fila, semestre, token]);
 
-  const abrirModal = () => {
-    setUrlPDF((prev) => `${prev}?t=${Date.now()}`); // cache busting
-    setMostrarModal(true);
-  };
+
+
+
+const abrirModal = () => {
+  setUrlPDF((prev) => `${prev}?t=${Date.now()}`);
+  setMostrarModal(true);
+};
 
   return (
     <>
@@ -53,14 +72,15 @@ const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
         </Button>
       )}
 
-      <ModalPDF
+
+      <ModalPDFver
         show={mostrarModal}
         onHide={() => setMostrarModal(false)}
         url={urlPDF}
-        titulo={fila.nombrecurso}
+        titulo={`${fila.nombrecurso}`}
       />
     </>
   );
 };
 
-export default BotonPDFTrabajo;
+export default BotonPDFver;

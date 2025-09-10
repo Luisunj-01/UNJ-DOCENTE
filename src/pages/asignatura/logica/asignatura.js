@@ -94,6 +94,25 @@ export const construirNombreArchivo = (curso) => {
 };
 
 
+export const construirNombreArchivoverpdf = (curso, semestre, semana, nombrecarpeta) => {
+  console.log(curso);
+  const cursoSinGuion = curso.curso.replace('-', '');
+  if(nombrecarpeta == 'falta_justificada'){
+    return `01202501AL-21AL012023210002.pdf`;
+  } else if(nombrecarpeta == 'material'){
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}${semana}.pdf`;
+  } else if(nombrecarpeta == 'trabajo'){
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}${semana}.pdf`;
+  } else if(nombrecarpeta == 'tra'){
+    
+    return `${curso.sede}${curso.semestre}${curso.curricula}${cursoSinGuion}${curso.seccion}${curso.trabajo}.pdf`;
+  } else {
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}.pdf`;
+  }
+
+};
+
+
 export const verificarArchivo = async (ruta, token) => {
   try {
     const res = await fetch(`${config.apiUrl}api/verificar-archivo?ruta=${encodeURIComponent(ruta)}`,

@@ -116,6 +116,8 @@ export const obtenerDatosAsistencia = async (objeto, fecha) => {
   }
 };
 
+
+
 export const obtenerDatosAsistencianuevo = async (objeto, fecha) => {
   const codigo  = 'T1';
   const tipo = codigo.slice(-2, -1); // penúltimo caracter → 'T'
@@ -154,6 +156,27 @@ export const obtenerdatosasistencia = async (sede, semestre, escuela, curricula,
     //const token = usuario?.token;
 
     const res = await axios.get(`${config.apiUrl}api/curso/Asistencias/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+
+    
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron Datos.' };
+    }
+  } catch (error) {
+    console.error('Error al obtener asistencia:', error);
+    return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
+  }
+
+};
+
+export const obtenerDatosnotas = async (sede, semestre, escuela, curricula, curso, seccion, semama, alumno) => {
+  
+  try {
+    //const usuario = JSON.parse(localStorage.getItem('usuario'));
+    //const token = usuario?.token;
+
+    const res = await axios.get(`${config.apiUrl}api/curso/RevisionTrabajonotas/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semama}/${alumno}`);
 
     
     if (Array.isArray(res.data) && res.data.length > 0) {

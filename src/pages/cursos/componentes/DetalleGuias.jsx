@@ -399,7 +399,7 @@ function DetalleGuias({ datoscurso = [] }) {
         {/* Modal Detalles */}
         <Modal show={mostrarDetalles} onHide={() => setMostrarDetalles(false)} size="xl">
           <Modal.Header closeButton>
-            <Modal.Title>Revisión de Trabajos</Modal.Title>
+            <Modal.Title>Revisión de Trabajos</Modal.Title> 
           </Modal.Header>
           <Modal.Body>
             {filaDetalles && <RevisionTraPart datoscurso={filaDetalles} semana={filaDetalles.semana}  />}
@@ -443,7 +443,7 @@ function DetalleGuias({ datoscurso = [] }) {
 
       </div>
     </>
-  );
+  ); 
 }
 
 export default DetalleGuias;

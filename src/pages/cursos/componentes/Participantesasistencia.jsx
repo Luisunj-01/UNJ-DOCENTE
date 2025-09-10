@@ -10,6 +10,8 @@ import config from "../../../config";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaChalkboardTeacher, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import BotonPDFver from "../../asignatura/componentes/Botonpdfver";
+
 
 function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   //console.log(todasLasAsistencias);
@@ -330,12 +332,12 @@ const guardarAsistenciaFinal = async () => {
   }
 };
 
-
+ 
 
 
 
   const columnas = [
-    { clave: "persona", titulo: "Persona" },
+    
     { clave: "alumno", titulo: "Código" },
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
     {
@@ -406,7 +408,29 @@ const guardarAsistenciaFinal = async () => {
       titulo: "Asistencia Existente",
       render: (fila) => fila.existe ? <FaCheckCircle style={{ color: "green" }} /> : <FaTimesCircle style={{ color: "red" }} />
       
-    }
+    },
+    {
+      clave: "archivo",
+      titulo: "Justificación",
+      render: (fila) => {
+        // Si no tiene archivo registrado, mostramos un texto
+        if (!fila.archivo) {
+          return <span className="text-muted">Sin archivo</span>;
+        }
+
+        // Si tiene archivo, mostramos el botón
+        return (
+          <BotonPDFver
+            fila={fila}
+            semestre={semestre}
+            token={token}
+            titulo={'Ver Silabo'}
+            nombrecarpeta={'falta_justificada'}
+            semana={datoscurso.sesion}
+          />
+        );
+      },
+    },
   ];
 
   return (
