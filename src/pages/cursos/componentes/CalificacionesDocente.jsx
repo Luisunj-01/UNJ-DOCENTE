@@ -60,20 +60,42 @@ const cerrar = () => {
   console.log("Función cerrar ejecutada");
   // …código para cerrar o actualizar estado
 };
-const descargarExcel = () => {
-  // 1. Generar hoja de Excel a partir de datos
-  const hoja = XLSX.utils.json_to_sheet(calificaciones);
-  const libro = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");
 
-  // 2. Guardar archivo
-  const excelBuffer = XLSX.write(libro, { bookType: "xlsx", type: "array" });
-  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-  saveAs(blob, "Calificaciones.xlsx");
+// 🔹 Descargar Excel (ahora también cierra automáticamente)
+const descargarExcel = async () => {
+  try {
+    // 1. Generar hoja de Excel a partir de datos
+    const hoja = XLSX.utils.json_to_sheet(calificaciones);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");
 
-  // 3. Llamar a la función cerrar
-  cerrar();
+    // 2. Guardar archivo
+    const excelBuffer = XLSX.write(libro, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, "Calificaciones.xlsx");
+
+    // 3. Cerrar automáticamente después de descargar
+    const response = await fetch(
+      `/api/validacion/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/1`,
+      { method: "POST" }
+    );
+
+    if (response.ok) {
+      Swal.fire("🔒 Cerrado", "El curso ha sido cerrado automáticamente después de descargar.", "success");
+      // Opcional: actualizar estado en vez de recargar
+      // setCerrado(1);
+    } else {
+      Swal.fire("⚠️ Error", "El Excel se descargó, pero no se pudo cerrar el curso.", "warning");
+    }
+  } catch (error) {
+    console.error("❌ Error en descarga/cierre:", error);
+    Swal.fire("Error", "Hubo un problema al descargar y cerrar el curso.", "error");
+  }
 };
+
+
+
+
 
   // 🔹 Manejo de edición
   const handleNotaChange = (index, campo, valor) => {
@@ -400,14 +422,14 @@ const descargarExcel = () => {
               Guardar Notas
             </button>
              <button className="btn btn-primary px-4" onClick={descargarExcel}>
-    Descargar Excel
-  </button>
-          </div>
+          Descargar Excel
+        </button>
+                </div>
 
-          <TablaCursos datos={calificaciones} columnas={columnas} />
-        </>
-      )}
-    </div>
+                <TablaCursos datos={calificaciones} columnas={columnas} />
+              </>
+            )}
+          </div>
   );
 };
 
