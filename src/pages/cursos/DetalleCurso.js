@@ -129,7 +129,15 @@ function Detallecursos() {
     cargarDatosCompletos();
   }, []);
 
-  console.log(datos);
+
+  const cursoActual = Array.isArray(datos)
+    ? datos.find(d => d.curso === curso && d.seccion === seccion)
+    : null;
+
+
+
+
+
 
   return (
     <>
@@ -306,7 +314,8 @@ function Detallecursos() {
                   </button>
 
                   
-
+                    
+                  {cursoActual?.cerrado !== 1 && (
                   <button
                     className={`list-group-item list-group-item-action ${
                       activeTab === 'calificaciones-cerrar' ? 'active' : ''
@@ -315,6 +324,7 @@ function Detallecursos() {
                   >
                     <FaAnchor className="me-2" /> Cerrar curso
                   </button>
+                )}
                 </div>
               )}
             </div>
@@ -326,7 +336,7 @@ function Detallecursos() {
               {activeTab === 'principal' && <Detallecursoprincipal datos={datoscurso} />}
               {activeTab === 'Asistencia' && <Asistenciadocente datos={datos} />}
               {activeTab === 'Guias' && <DetalleGuias datos={datos} />}
-              {activeTab.startsWith('calificaciones') && <CalificacionesDocente datosprincipal={datos} />}
+              {activeTab.startsWith('calificaciones') && <CalificacionesDocente datosprincipal={datos} cerrado={cursoActual?.cerrado}/>}
             </div>
           </div>
         </div>

@@ -43,7 +43,17 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
         semana
       );
 
-       
+       const respuestanotas = await obtenerDatosnotas(
+      sede,
+      semestre,
+      escuela,
+      curricula,
+      curso,
+      seccion,
+      semana,
+    );
+
+      console.log(respuestaAsistencia.datos);
 
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
         setMensajeApi('No se pudo obtener el detalle de los alumnos.');
@@ -51,34 +61,13 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
         return;
       }
 
-      const datosConNotas = await Promise.all(
-        respuestaAsistencia.datos.map(async (item) => {
-          const respuestanotas = await obtenerDatosnotas(
-            sede,
-            semestre,
-            escuela,
-            curricula,
-            curso,
-            seccion,
-            semana,
-            item.alumno // 👈 aquí le pasas el alumno del item
-          );
+      const datosInicializados = respuestaAsistencia.datos.map((item) => ({
+        ...item,
+        personaCompleta: (item.persona || '') + (item.alumno || ''),
+        
+      }));
 
-          // Si tu consulta devuelve un array de notas, por ejemplo [{tra:16065, nota:12}, ...]
-          const notasMap = {};
-          respuestanotas.forEach((n, i) => {
-            notasMap[`notaTra${i + 1}`] = n.nota;
-          });
-
-          return {
-            ...item,
-            personaCompleta: (item.persona || '') + (item.alumno || ''),
-            ...notasMap
-          };
-        })
-      );
-
-      setDatos(datosConNotas);
+      setDatos(datosInicializados);
 
       console.log(datos);
       setMensajeApi(respuestaAsistencia.mensaje);
@@ -89,7 +78,7 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
     setLoading(false);
   };
 
-  console.log(datos);
+  //console.log(datos);
   
   const actualizarAsistenciaLocal = (alumno, nombrecompleto, cambios) => {
   const claveStorage = 'asistenciasSeleccionadas';

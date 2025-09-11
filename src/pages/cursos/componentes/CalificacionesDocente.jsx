@@ -7,6 +7,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import config from '../../../config';
 import { useUsuario } from "../../../context/UserContext";
+import { FaUserLock  } from 'react-icons/fa';
 // import { token } desde donde lo tengas guardado
 
 const unidades = [
@@ -17,7 +18,8 @@ const unidades = [
   { value: '05', label: 'APLAZADOS' }
 ];
 
-const CalificacionesDocente = ({ datosprincipal }) => {
+const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
+
   const [unidad, setUnidad] = useState('01');
   const [datos, setDatos] = useState([]);
   const [calificaciones, setCalificaciones] = useState([]);  
@@ -112,6 +114,7 @@ const CalificacionesDocente = ({ datosprincipal }) => {
       }
     });
 
+    
     console.log(response);
     console.log(response.data);
     if (!response.data.error) {
@@ -299,6 +302,24 @@ const CalificacionesDocente = ({ datosprincipal }) => {
 
     { clave: 'promediounidad', titulo: 'PU' },
   ];
+
+  if (cerrado === 1) {
+    return (
+      <div className="container py-5 text-center">
+        {/* Ícono de candado */}
+        <FaUserLock 
+          size={150}          // tamaño grande
+          color="#0b60a9"    // color que prefieras
+          className="mb-3"
+        />
+
+        <h2 className="fw-bold text-danger mb-3">El curso ha sido cerrado</h2>
+        <p className="text-muted">
+          Las calificaciones no pueden editarse ni guardarse.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-4">
