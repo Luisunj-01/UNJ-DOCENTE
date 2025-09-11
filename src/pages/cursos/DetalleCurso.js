@@ -23,6 +23,7 @@ import Asistenciadocente from './componentes/Asistenciadocente';
 import DetalleGuias from './componentes/DetalleGuias';
 import Detallecursoprincipal from './componentes/Detallecursoprincipal';
 import CalificacionesDocente from './componentes/CalificacionesDocente';
+import Swal from "sweetalert2";
 
 function Detallecursos() {
   const [activeTab, setActiveTab] = useState('principal');
@@ -50,7 +51,7 @@ function Detallecursos() {
     console.error('Error al decodificar id:', id, error);
   }
 
-  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente, unidad] =
+  const [sede, semestre, escuela, curricula, curso, seccion, nombrecurso, nombredocente, unidad, estructura] =
     decoded.split('|') ?? [];
 
   const persona = usuario.docente.persona;
@@ -316,14 +317,63 @@ function Detallecursos() {
                    
                     
                   {cursoActual?.cerrado !== 1 && (
-                  <button
-                    className={`list-group-item list-group-item-action ${
-                      activeTab === 'calificaciones-cerrar' ? 'active' : ''
-                    }`}
-                    onClick={() => setActiveTab('calificaciones-cerrar')}
-                  >
-                    <FaAnchor className="me-2" /> Cerrar curso
-                  </button>
+
+    <button
+  className={`list-group-item list-group-item-action ${
+    activeTab === 'calificaciones-cerrar' ? 'active' : ''
+  }`}
+  onClick={async () => {
+    const confirmar = await Swal.fire({
+      title: "¿Está seguro?",
+      text: "Se cerrará el ingreso de notas y no podrá modificarlas.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (confirmar.isConfirmed) {
+      try {
+        const data = await obtenervalidacioncurso("validar", {
+          sede,
+          semestre,
+          estructura,
+          curricula,
+          curso,
+          seccion,
+          estadi: "1",
+        });
+
+        if (!data || data.error) {
+          throw new Error(data?.mensaje || "Error en la petición");
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "¡Proceso completado!",
+          text: data.mensaje || "✅ Calificaciones cerradas correctamente",
+          confirmButtonText: "Aceptar",
+        });
+
+        setActiveTab("principal");
+      } catch (error) {
+        console.error("Error cerrando curso:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.message || "❌ Hubo un error al cerrar las calificaciones",
+        });
+      }
+    }
+  }}
+>
+  <FaAnchor className="me-2" /> Cerrar calificaciones
+</button>
+
+
+
                 )}
                 </div>
               )}
