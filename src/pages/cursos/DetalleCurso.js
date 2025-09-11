@@ -313,7 +313,7 @@ function Detallecursos() {
                     <FaAlignJustify className="me-2 text-danger" /> Pre Acta (Importante)
                   </button>
 
-                  
+                   
                     
                   {cursoActual?.cerrado !== 1 && (
                   <button

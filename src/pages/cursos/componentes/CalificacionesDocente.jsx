@@ -298,7 +298,7 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
 
 
 
-
+ 
 
     { clave: 'promediounidad', titulo: 'PU' },
   ];

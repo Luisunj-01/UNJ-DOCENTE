@@ -19,7 +19,7 @@ export const obtenerdatdocente = async (persona, docente, nivel, tipo, accion) =
     return { datos: null, mensaje: 'Error al conectar con el servidor o token inválido.' }; // ✅ siempre retorna objeto
   }
 };
-
+ 
 
 export const obtenerparticipantes = async (sede, semestre, escuela, curricula, curso, seccion, semana) => {
   
