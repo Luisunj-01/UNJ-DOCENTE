@@ -7,6 +7,7 @@ import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
 import { obtenerAsistenciaporcentaje, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
+import './asistenciaporcentaje.css';
 
 
 const fecha = new Date();
