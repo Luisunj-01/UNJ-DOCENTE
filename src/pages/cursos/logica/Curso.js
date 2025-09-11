@@ -66,6 +66,7 @@ export const obtenervalidacioncurso = async (sede, semestre, estructura, curricu
 
 
 
+
 export const obtenerRevisionTrabajo = async (sede, semestre, escuela, curricula, curso, seccion, semana) => {
   
   try {

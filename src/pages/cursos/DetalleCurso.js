@@ -346,6 +346,7 @@ function Detallecursos() {
           estadi: "1",
         });
 
+        
         if (!data || data.error) {
           throw new Error(data?.mensaje || "Error en la petición");
         }
