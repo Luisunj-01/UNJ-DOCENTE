@@ -10,6 +10,7 @@ import { useUsuario } from "../../../context/UserContext";
 import { FaUserLock  } from 'react-icons/fa';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { obtenervalidacioncurso } from "../logica/Curso";
 // import { token } desde donde lo tengas guardado
 
 const unidades = [
@@ -75,18 +76,61 @@ const descargarExcel = async () => {
     saveAs(blob, "Calificaciones.xlsx");
 
     // 3. Cerrar automáticamente después de descargar
-    const response = await fetch(
-      `/api/validacion/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/1`,
-      { method: "POST" }
-    );
+    const data = await obtenervalidacioncurso(
+              sede,
+              semestre,
+              escuela,
+              curricula,
+              curso,
+              seccion,
+              "1"
+            );
 
-    if (response.ok) {
-      Swal.fire("🔒 Cerrado", "El curso ha sido cerrado automáticamente después de descargar.", "success");
-      // Opcional: actualizar estado en vez de recargar
-      // setCerrado(1);
-    } else {
-      Swal.fire("⚠️ Error", "El Excel se descargó, pero no se pudo cerrar el curso.", "warning");
-    }
+    
+            if (!data || data.error) {
+              throw new Error(data?.mensaje || "Error en la petición");
+            }
+    
+            // Muestra animación de candado cerrándose
+            await Swal.fire({
+              title: "¡Cerrando calificaciones!",
+              html: `
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                  <svg id="lock-icon" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="#3085d6">
+                    <path id="shackle" d="M12 1a5 5 0 00-5 5v3h2V6a3 3 0 116 0v3h2V6a5 5 0 00-5-5z" />
+                    <path d="M5 10h14a1 1 0 011 1v11a1 1 0 01-1 1H5a1 1 0 01-1-1V11a1 1 0 011-1z"/>
+                  </svg>
+                  <p style="margin-top: 10px;">Cerrando calificaciones...</p>
+                </div>
+              `,
+              showConfirmButton: false,
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              didOpen: () => {
+                const shackle = document.getElementById('shackle');
+                if (shackle) {
+                  shackle.animate([
+                    { transform: 'translateY(-20px)', opacity: 1 },
+                    { transform: 'translateY(0px)', opacity: 1 }
+                  ], {
+                    duration: 800,
+                    fill: 'forwards',
+                    easing: 'ease-in-out'
+                  });
+                }
+              },
+              timer: 1200
+            });
+    
+            // Mostrar mensaje final de éxito
+            Swal.fire({
+              icon: "success",
+              title: "¡Proceso completado!",
+              text: data.mensaje || "✅ Calificaciones cerradas correctamente",
+              confirmButtonText: "Aceptar",
+            });
+    
+            window.location.reload();
   } catch (error) {
     console.error("❌ Error en descarga/cierre:", error);
     Swal.fire("Error", "Hubo un problema al descargar y cerrar el curso.", "error");
@@ -357,7 +401,7 @@ const descargarExcel = async () => {
           className="mb-3"
         />
 
-        <h2 className="fw-bold text-danger mb-3">El curso ha sido cerrado</h2>
+        <h2 className="fw-bold text-danger mb-3">El ingreso de notas ha sido cerrado</h2>
         <p className="text-muted">
           Las calificaciones no pueden editarse ni guardarse.
         </p>
