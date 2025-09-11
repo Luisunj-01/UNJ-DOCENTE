@@ -146,11 +146,11 @@ const ImprimirAsistenciaPorcentaje = () => {
       return;
     } 
 
-    const token = usuario.codigotokenautenticadorunj;
+    //const token = usuario.codigotokenautenticadorunj;
 
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerAsistenciaporcentaje(sede, semestre, escuela, curricula, curso, seccion, 'T', '1', '01', '01', token);
+        const resultado = await obtenerAsistenciaporcentaje(sede, semestre, escuela, curricula, curso, seccion, 'T', '1', '01', '01');
         setDatos(resultado?.datos || []);
         console.log(resultado);
       
