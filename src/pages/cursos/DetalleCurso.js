@@ -130,6 +130,7 @@ function Detallecursos() {
     cargarDatosCompletos();
   }, []);
 
+  console.log(datos);
 
   const cursoActual = Array.isArray(datos)
     ? datos.find(d => d.curso === curso && d.seccion === seccion)
@@ -195,7 +196,7 @@ function Detallecursos() {
                 })}
           </div>
         </div>
-      </div>
+      </div> 
 
       <div className="container mt-4">
         <div className="row">
