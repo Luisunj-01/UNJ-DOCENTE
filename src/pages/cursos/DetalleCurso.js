@@ -337,16 +337,17 @@ function Detallecursos() {
 
     if (confirmar.isConfirmed) {
       try {
-        const data = await obtenervalidacioncurso("validar", {
+        const data = await obtenervalidacioncurso(
           sede,
           semestre,
-          estructura,
+          escuela,
           curricula,
           curso,
           seccion,
-          estadi: "1",
-        });
+          "1",
+        );
 
+        console.log(data);
         
         if (!data || data.error) {
           throw new Error(data?.mensaje || "Error en la petición");
@@ -360,6 +361,7 @@ function Detallecursos() {
         });
 
         setActiveTab("principal");
+        window.location.reload();
       } catch (error) {
         console.error("Error cerrando curso:", error);
         Swal.fire({

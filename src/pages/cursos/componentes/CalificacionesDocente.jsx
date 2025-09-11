@@ -8,6 +8,8 @@ import Swal from "sweetalert2";
 import config from '../../../config';
 import { useUsuario } from "../../../context/UserContext";
 import { FaUserLock  } from 'react-icons/fa';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 // import { token } desde donde lo tengas guardado
 
 const unidades = [
@@ -17,6 +19,7 @@ const unidades = [
   { value: '04', label: 'SUSTITUTORIO' },
   { value: '05', label: 'APLAZADOS' }
 ];
+
 
 const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
 
@@ -52,6 +55,25 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
 
     cargarDatos();
   }, [unidad, sede, semestre, escuela, curricula, curso, seccion]);
+const cerrar = () => {
+  // Aquí la lógica que necesites al “cerrar”
+  console.log("Función cerrar ejecutada");
+  // …código para cerrar o actualizar estado
+};
+const descargarExcel = () => {
+  // 1. Generar hoja de Excel a partir de datos
+  const hoja = XLSX.utils.json_to_sheet(calificaciones);
+  const libro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(libro, hoja, "Calificaciones");
+
+  // 2. Guardar archivo
+  const excelBuffer = XLSX.write(libro, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  saveAs(blob, "Calificaciones.xlsx");
+
+  // 3. Llamar a la función cerrar
+  cerrar();
+};
 
   // 🔹 Manejo de edición
   const handleNotaChange = (index, campo, valor) => {
@@ -377,6 +399,9 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
             <button className="btn btn-success px-4" onClick={guardarCalificaciones}>
               Guardar Notas
             </button>
+             <button className="btn btn-primary px-4" onClick={descargarExcel}>
+    Descargar Excel
+  </button>
           </div>
 
           <TablaCursos datos={calificaciones} columnas={columnas} />
