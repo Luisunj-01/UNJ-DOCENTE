@@ -246,10 +246,7 @@ const ImprimirAsistenciaSesiones = () => {
                     fontSize: "12px",
                     fontVariantNumeric: "tabular-nums" // fuerza que 01, 02, 10, etc. se vean igual
                 }}
-            
               >
-                
-
                 <TablaCursoSub
                   datos={datos}
                   columnasEncabezado={columnasEncabezado}
