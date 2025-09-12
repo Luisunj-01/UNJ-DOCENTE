@@ -11,6 +11,7 @@ import { FaUserLock  } from 'react-icons/fa';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { obtenervalidacioncurso } from "../logica/Curso";
+import confetti from "canvas-confetti";
 // import { token } desde donde lo tengas guardado
 
 const unidades = [
@@ -56,6 +57,7 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
 
     cargarDatos();
   }, [unidad, sede, semestre, escuela, curricula, curso, seccion]);
+  console.log(datos);
 const cerrar = () => {
   // Aquí la lógica que necesites al “cerrar”
   console.log("Función cerrar ejecutada");
@@ -152,14 +154,12 @@ const descargarExcel = async () => {
 //console.log(usuario);
 
   // 🔹 Guardar notas (POST al backend)
-  const guardarCalificaciones = async () => {
-  // Convertimos los cambios en un arreglo con valores numéricos
+  // 🔹 Guardar notas (POST al backend)
+const guardarCalificaciones = async () => {
   const calificacionesModificadas = Object.entries(cambios).map(([alumno, notas]) => {
     const alumnoDatos = datos.find(d => d.alumno === alumno);
-
     const formulaFinal = escuela === "TM" ? "055,030,015" : alumnoDatos?.formula || "";
 
-    // Convertimos a número y redondeamos, si es NaN ponemos 0
     const ec = parseFloat(notas.ec ?? alumnoDatos?.ec ?? 0) || 0;
     const ep = parseFloat(notas.ep ?? alumnoDatos?.ep ?? 0) || 0;
     const ea = parseFloat(notas.ea ?? alumnoDatos?.ea ?? 0) || 0;
@@ -167,6 +167,7 @@ const descargarExcel = async () => {
     return {
       alumno,
       persona: alumnoDatos?.persona || '',
+      rendimiento: alumnoDatos?.rendimiento || null,
       ec: parseFloat(ec.toFixed(2)),
       ep: parseFloat(ep.toFixed(2)),
       ea: parseFloat(ea.toFixed(2)),
@@ -191,31 +192,62 @@ const descargarExcel = async () => {
     usuario: usuario.docente.numerodocumento,
     calificaciones: calificacionesModificadas
   };
-  //console.log(payload);
 
-  try {
-    const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${token}`
+  // ✅ Confirmación antes de enviar
+  Swal.fire({
+    title: "¿Guardar notas?",
+    text: "Se enviarán las calificaciones al sistema. ¿Deseas continuar?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Sí, guardar",
+    cancelButtonText: "Cancelar",
+    reverseButtons: true
+  }).then(async (result) => {
+    if (!result.isConfirmed) return; // si cancela, no hace nada
+
+    try {
+      const response = await axios.post(`${config.apiUrl}api/curso/GrabarNotas`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.data.error) {
+
+        setTimeout(() => {
+          confetti({
+            particleCount: 200,
+            spread: 120,
+            origin: { y: 0.6 }
+          });
+        }, 300);
+
+        Swal.fire({
+          title: "¡Grandioso!",
+          text: response.data.mensaje,
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000
+        });
+        /*Swal.fire("✅ Éxito", response.data.mensaje, "success");
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 } // altura de inicio
+        });*/
+        setCambios({});
+      } else {
+        Swal.fire("⚠️ Error", response.data.mensaje, "error");
       }
-    });
-
-    
-    console.log(response);
-    console.log(response.data);
-    if (!response.data.error) {
-      Swal.fire("✅ Éxito", response.data.mensaje, "success");
-      setCambios({}); // Limpiamos cambios
-    } else {
-      Swal.fire("⚠️ Error", response.data.mensaje, "error");
+    } catch (error) {
+      console.error("❌ Error al guardar notas:", error);
+      Swal.fire("Error", "No se pudo guardar las notas. Intenta de nuevo.", "error");
     }
-  } catch (error) {
-    console.error("❌ Error al guardar notas:", error);
-    Swal.fire("Error", "No se pudo guardar las notas. Intenta de nuevo.", "error");
-  }
+  });
 };
+
 
 
 
