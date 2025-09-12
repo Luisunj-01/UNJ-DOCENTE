@@ -5,7 +5,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { FaFileExcel, FaFileCsv, FaFilePdf } from "react-icons/fa";
 
-const TablaCursos = ({
+const TablaCursoParticipante = ({
   tituloArchivo,
   columnas,
   datos,
@@ -38,7 +38,7 @@ const TablaCursos = ({
       selector: (row) => row[col.clave],
       cell: (row) => (col.render ? col.render(row) : row[col.clave]),
       sortable: col.clave !== "contador",
-      width: col.ancho || "auto",
+      width: col.ancho || "200px",
       center: true,
     }));
   }, [columnas]);
@@ -228,4 +228,4 @@ const TablaCursos = ({
   );
 };
 
-export default TablaCursos;
+export default TablaCursoParticipante;

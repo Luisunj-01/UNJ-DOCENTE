@@ -173,6 +173,16 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
             />
           </Form.Group>
 
+
+           {/*
+        
+        SE OCULTO ESTO POR QUE FUE EN PANDEMIA
+        
+        */}
+
+
+
+        {/*
           <Form.Group>
             <Form.Label>Clase síncrona</Form.Label>
             <Form.Control
@@ -182,6 +192,9 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
               onChange={handleChange}
             />
           </Form.Group>
+          */}
+
+           {/*
 
           <Form.Group>
             <Form.Label>Clase grabada</Form.Label>
@@ -192,6 +205,7 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
               onChange={handleChange}
             />
           </Form.Group>
+          */}
 
           {/* 🔹 Fecha + Hora entrada + Hora salida en la misma fila */}
           <Form.Group className="mb-3">

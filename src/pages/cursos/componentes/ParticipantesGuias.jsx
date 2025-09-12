@@ -8,6 +8,9 @@ import config from '../../../config';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 import { useUsuario } from '../../../context/UserContext';
 import Swal from "sweetalert2";
+import { Grow } from '@mui/material';
+import TablaCursoParticipante from '../../reutilizables/componentes/TablaCursoParticipante';
+
 
 const ParticipantesGuias = ({ datoscurso, semana }) => {
 
@@ -136,7 +139,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
     }))
   };
 
-  console.log(payload);
+ 
   
   const response = await fetch(`${config.apiUrl}api/curso/GrabarParticipantes`, {
     method: 'POST',
@@ -178,10 +181,11 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
 
   const columnas = [
   { clave: 'alumno', titulo: 'Código' },
-  { clave: 'nombrecompleto', titulo: 'Nombres' },
+  { clave: 'nombrecompleto', titulo: 'Nombres'},
   {
     clave: 'actividad',
     titulo: 'Act',
+    
     render: (fila) => (
       <Form.Check
         type="checkbox"
@@ -199,6 +203,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
   {
     clave: 'evidencia',
     titulo: 'Evi',
+    
     render: (fila) => (
       <Form.Check
         type="checkbox"
@@ -216,6 +221,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
   {
     clave: 'participo',
     titulo: 'Par',
+   
     render: (fila) => (
       <Form.Check
         type="checkbox"
@@ -230,7 +236,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
       />
     ),
   },
-  {
+  {/*
     clave: 'min',
     titulo: 'Min',
     render: (fila) => (
@@ -247,8 +253,8 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
         }
       />
     ),
-  },
-  {
+  */},
+  {/*
     clave: 'observacion',
     titulo: 'Observación',
     render: (fila) => (
@@ -264,7 +270,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
         }
       />
     ),
-  },
+  */},
 ];
 
   return (
@@ -280,12 +286,13 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
       </div>
 
       {loading ? (
-        <TablaSkeleton filas={9} columnas={8} />
-      ) : datos.length === 0 ? (
-        <TablaCursos datos={datos} columnas={columnas} />
-      ) : (
-        <TablaCursos datos={datos} columnas={columnas} />
-      )}
+  <TablaSkeleton filas={9} columnas={8} />
+) : datos.length === 0 ? (
+  <TablaCursoParticipante datos={datos} columnas={columnas}/>
+) : (
+  <TablaCursoParticipante datos={datos} columnas={columnas}/>
+)}
+
     </div>
   );
 };

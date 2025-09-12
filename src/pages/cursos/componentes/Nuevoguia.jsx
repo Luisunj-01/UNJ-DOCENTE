@@ -160,6 +160,14 @@ const NuevoGuia = ({ datoscurso, semana, onUpdated }) => {
           />
         </Form.Group>
 
+        {/*
+        
+        SE OCULTO ESTO POR QUE FUE EN PANDEMIA
+        
+        */}
+
+        {/*
+
         <Form.Group className="mb-3">
           <Form.Label>Clase síncrona</Form.Label>
           <Form.Control
@@ -170,7 +178,11 @@ const NuevoGuia = ({ datoscurso, semana, onUpdated }) => {
           />
         </Form.Group>
 
-        <Form.Group className="mb-3">
+        */}
+
+        {/*
+
+         <Form.Group className="mb-3">
           <Form.Label>Clase grabada</Form.Label>
           <Form.Control
             type="text"
@@ -179,6 +191,11 @@ const NuevoGuia = ({ datoscurso, semana, onUpdated }) => {
             onChange={handleChange}
           />
         </Form.Group>
+
+
+        */}
+
+       
 
         {/* 🔹 Fecha + Hora entrada + Hora salida en la misma fila */}
         <Form.Group className="mb-3">
