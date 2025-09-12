@@ -180,6 +180,25 @@ const guardarCalificaciones = async () => {
     return;
   }
 
+  function lanzarConfetti() {
+  // Creamos un canvas manual con clase para el z-index
+  const canvas = document.createElement('canvas');
+  canvas.classList.add('confetti-canvas');
+  document.body.appendChild(canvas);
+
+  const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+
+  myConfetti({
+    particleCount: 150,
+    spread: 80,
+    origin: { y: 0.6 }
+  });
+
+  // Opcional: eliminar el canvas después de la animación
+  setTimeout(() => document.body.removeChild(canvas), 5000);
+}
+
+
   const payload = {
     sede,
     semestre,
@@ -216,13 +235,13 @@ const guardarCalificaciones = async () => {
 
       if (!response.data.error) {
 
-        setTimeout(() => {
+        /*setTimeout(() => {
           confetti({
             particleCount: 200,
             spread: 120,
             origin: { y: 0.6 }
           });
-        }, 300);
+        }, 300);*/
 
         Swal.fire({
           title: "¡Grandioso!",
@@ -231,6 +250,7 @@ const guardarCalificaciones = async () => {
           showConfirmButton: false,
           timer: 2000
         });
+        lanzarConfetti();
         /*Swal.fire("✅ Éxito", response.data.mensaje, "success");
         confetti({
           particleCount: 120,
