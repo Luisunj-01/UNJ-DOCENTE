@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
    
+  
   const [formulario, setFormulario] = useState({
     id: '',
     contenido: '',

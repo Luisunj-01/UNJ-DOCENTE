@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import config from '../../config';
-
+import confetti from "canvas-confetti";
 const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, setRenderKey, ruta, tipo, semana }) => {
   const [archivo, setArchivo] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
@@ -56,6 +56,24 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
   setArchivo(archivoSeleccionado);
 };
 
+function lanzarConfetti() {
+  // Creamos un canvas manual con clase para el z-index
+  const canvas = document.createElement('canvas');
+  canvas.classList.add('confetti-canvas');
+  document.body.appendChild(canvas);
+
+  const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+
+  myConfetti({
+    particleCount: 150,
+    spread: 80,
+    origin: { y: 0.6 }
+  });
+
+  // Opcional: eliminar el canvas después de la animación
+  setTimeout(() => document.body.removeChild(canvas), 5000);
+}
+
 
   const handleSubir = async () => {
   if (!archivo) {
@@ -101,7 +119,8 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
     setPdfActualizado(true);
     setTimeout(() => setPdfActualizado(false), 3000);
 
-    Swal.fire({
+    
+    /*Swal.fire({
       toast: true,
       position: 'top-end',
       icon: 'success',
@@ -109,7 +128,17 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true
+    });*/
+    Swal.fire({
+      title: "¡Grandioso!",
+      text: 'Archivo subido correctamente',
+      icon: "success",
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true
     });
+
+    lanzarConfetti();
 
   } catch (error) {
     console.error('Error al subir archivo:', error);
