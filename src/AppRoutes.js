@@ -41,6 +41,7 @@ import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsi
 
 
 import Tutoria from './pages/tutoria/Tutoria.js';
+import Declaracion from './pages/actividades/Declaracion.js';
 
 
 
@@ -95,6 +96,8 @@ function AppRoutes() {
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
             <Route path="participantes/:id" element={<ParticipantesGuias />}/>
             <Route path="tutoria" element={<Tutoria />} />
+            <Route path="Declaracion" element={<Declaracion />} />
+
         
       
           </Route>
@@ -114,13 +117,6 @@ function AppRoutes() {
 
           <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
           <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
-
-
-          
-
-
-
-
 
 
           
