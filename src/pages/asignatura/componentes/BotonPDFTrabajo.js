@@ -1,52 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
-import { Button } from 'react-bootstrap';
 import config from '../../../config';
 import { construirNombreArchivo, verificarArchivo } from '../../asignatura/logica/asignatura';
+import { Button } from 'react-bootstrap';
 import ModalPDF from '../../../componentes/modales/ModalPDF';
 
-/**
- * Botón que muestra un PDF si existe en el servidor.
- *
- * @param {object} props
- *  - fila: datos del curso (objeto con curso, estructura, nombrecurso, etc.)
- *  - semestre: string, semestre actual
- *  - token: string, token de autenticación Bearer
- *  - titulo: string, texto del botón
- *  - semana: string o número, semana correspondiente
- */
 const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
   const [urlPDF, setUrlPDF] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-
+ 
   useEffect(() => {
-    // Validaciones mínimas
-    if (!fila?.curso || !fila?.estructura || !semestre || !token) {
-      setErrorMsg('Datos insuficientes para buscar el archivo.');
-      return;
-    }
+    if (!fila || !fila.curso || !fila.estructura) return;
 
-    const nombreArchivo = construirNombreArchivo(fila, semestre, semana, 'trabajo');
+    const nombreArchivo = construirNombreArchivo(fila, semestre, semana, 'tra');
     const ruta = `tra/${nombreArchivo}`;
-    console.log('Buscando PDF en:', ruta);
 
-    // Verificar existencia del archivo en el servidor
-    (async () => {
-      const result = await verificarArchivo(ruta, token);
-      if (result?.success && result?.url) {
-        console.log('PDF encontrado:', result.url);
-        setUrlPDF(result.url);
+    verificarArchivo(ruta, token).then((res) => {
+      if (res.success && res.url) {
+        // Solo guardamos la cadena de la URL
+        setUrlPDF(res.url);
       } else {
-        console.warn('No se encontró el PDF:', result?.error || 'Sin detalles');
-        setErrorMsg(result?.error || 'PDF no disponible.');
+        setUrlPDF(null); // Aseguramos que quede null si no existe
       }
-    })();
+    });
   }, [fila, semestre, token, semana]);
 
   const abrirModal = () => {
-    // Actualiza la URL para evitar caché del navegador
-    setUrlPDF((prev) => (prev ? `${prev}?t=${Date.now()}` : null));
+    setUrlPDF((prev) => `${prev}?t=${Date.now()}`); // cache busting
     setMostrarModal(true);
   };
 
@@ -65,7 +45,7 @@ const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
         <Button
           className="btn btn-sm btn-secondary d-flex align-items-center gap-1"
           style={{ cursor: 'not-allowed', opacity: 0.5, border: 'none' }}
-          title={errorMsg || 'PDF no disponible'}
+          title="PDF no disponible"
           disabled
         >
           <FaFilePdf fontSize={18} />
@@ -73,12 +53,11 @@ const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
         </Button>
       )}
 
-      {/* Modal para mostrar el PDF */}
       <ModalPDF
         show={mostrarModal}
         onHide={() => setMostrarModal(false)}
-        url={urlPDF}
-        titulo={fila?.nombrecurso || 'Documento'}
+        componente={urlPDF}
+        titulo={fila.nombrecurso}
       />
     </>
   );

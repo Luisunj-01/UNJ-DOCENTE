@@ -90,9 +90,29 @@ export const obtenerDatostrabajoguias = async (sede, semestre, escuela, curricul
 export const construirNombreArchivo = (curso) => {
   
   const cursoSinGuion = curso.curso.replace('-', '');
-  return `${curso.sede}${curso.semestre}${curso.curricula}${cursoSinGuion}${curso.seccion}${curso.trabajo}.pdf`;
+  return `${curso.sede}${curso.semestre}${curso.curricula}${cursoSinGuion}${curso.seccion}${curso.trabajo}${curso.alumno}.pdf`;
   
 };
+
+export const construirNombreArchivo2 = (curso, semestre, semana, nombrecarpeta) => {
+  
+  const cursoSinGuion = curso.curso.replace('-', '');
+  if(nombrecarpeta == 'guia'){
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}${semana}.pdf`;
+  } else if(nombrecarpeta == 'material'){
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}${semana}.pdf`;
+  } else if(nombrecarpeta == 'trabajo'){
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}${semana}.pdf`;
+  } else if(nombrecarpeta == 'tra'){
+    
+    return `${curso.sede}${curso.semestre}${curso.curricula}${cursoSinGuion}${curso.seccion}${curso.trabajo}${curso.alumno}.pdf`;
+  } else {
+    return `${curso.practica}${semestre}${curso.estructura}${curso.curricula}${cursoSinGuion}${curso.seccion}.pdf`;
+  }
+
+};
+
+
 
 
 export const construirNombreArchivoverpdf = (curso, semestre, semana, nombrecarpeta) => {

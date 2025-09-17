@@ -169,12 +169,16 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
                   curricula,
                   curso,
                   seccion,
+                  alumno: fila.alumno, 
                 }}
                 semestre={semestre}
-                semana={semana}
                 token={token}
                 titulo=""
-                idTrabajo={idTrabajo}
+                nombrecarpeta="tra"
+                semana={semana}
+                
+                
+                //idTrabajo={idTrabajo}
               />
             ) : (
               <span className="text-muted">No enviado</span>
