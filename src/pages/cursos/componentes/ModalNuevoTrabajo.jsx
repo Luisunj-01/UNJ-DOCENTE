@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
 const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
-   
-  
   const [formulario, setFormulario] = useState({
     id: '',
     contenido: '',
     fechalimite: '',
     horaInicio: '',
     fechalimitefin: '',
-    horaFin: ''
+    horaFin: '',
+    fechaaplazados: '',      // ✅ nuevo campo
+    horaAplazados: ''        // ✅ nuevo campo
   });
 
   useEffect(() => {
@@ -19,15 +19,21 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
       let horaInicio = '';
       let fechaFin = '';
       let horaFin = '';
+      let fechaAplaz = '';
+      let horaAplaz = '';
 
       if (trabajo.fechalimite) {
-        // Separar por " al "
-        const [inicio, fin] = trabajo.fechalimite.split(' al ');
+        // Primero separamos si existe la parte de aplazados
+        const [rango, aplazados] = trabajo.fechalimite.split(' Apla ');
+        // rango tendrá "08/09/2025 00:00 al 20/09/2025 23:59"
+        // aplazados será "13/09/2025 16:55" (o undefined)
+
+        const [inicio, fin] = rango.split(' al ');
 
         if (inicio) {
           const [dia, mes, anioHora] = inicio.split('/');
           const [anio, hora] = anioHora.split(' ');
-          fechaInicio = `${anio}-${mes}-${dia}`; // Convertir a YYYY-MM-DD
+          fechaInicio = `${anio}-${mes}-${dia}`;
           horaInicio = hora || '00:00';
         }
 
@@ -37,6 +43,14 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
           fechaFin = `${anio2}-${mes2}-${dia2}`;
           horaFin = hora2 || '23:59';
         }
+
+        if (aplazados) {
+          // ejemplo aplazados = "13/09/2025 16:55"
+          const [dia3, mes3, anioHora3] = aplazados.split('/');
+          const [anio3, hora3] = anioHora3.trim().split(' ');
+          fechaAplaz = `${anio3}-${mes3}-${dia3}`;
+          horaAplaz = hora3 || '23:59';
+        }
       }
 
       setFormulario({
@@ -45,7 +59,9 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
         fechalimite: fechaInicio,
         horaInicio: horaInicio,
         fechalimitefin: fechaFin,
-        horaFin: horaFin
+        horaFin: horaFin,
+        fechaaplazados: fechaAplaz,
+        horaAplazados: horaAplaz
       });
     } else {
       const hoy = new Date().toISOString().split('T')[0];
@@ -55,7 +71,9 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
         fechalimite: hoy,
         horaInicio: '00:00',
         fechalimitefin: hoy,
-        horaFin: '23:59'
+        horaFin: '23:59',
+        fechaaplazados: hoy,
+        horaAplazados: '23:59'
       });
     }
   }
@@ -77,12 +95,14 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
 
     const fechaInicioCompleta = `${formulario.fechalimite}T${formulario.horaInicio}:00`;
     const fechaFinCompleta = `${formulario.fechalimitefin}T${formulario.horaFin}:00`;
+    const fechaAplazadosCompleta = `${formulario.fechaaplazados}T${formulario.horaAplazados}:00`;
 
     onGuardar({
       id: formulario.id,
       contenido: formulario.contenido,
       fechalimite: fechaInicioCompleta,
-      fechalimitefin: fechaFinCompleta
+      fechalimitefin: fechaFinCompleta,
+      fechaaplazados: fechaAplazadosCompleta // ✅ nuevo dato al backend
     });
   };
 
@@ -157,6 +177,29 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
                   required
                 />
               </div>
+
+              {/* Fecha Aplazados */}
+              <div className="mb-3 d-flex align-items-center">
+                <label className="form-label me-2" style={{ minWidth: '120px' }}>Fecha Aplazados:</label>
+                <input
+                  type="date"
+                  name="fechaaplazados"
+                  className="form-control"
+                  style={{ maxWidth: '180px', marginRight: '10px' }}
+                  value={formulario.fechaaplazados}
+                  onChange={handleChange}
+                  required
+                />
+                <input
+                  type="time"
+                  name="horaAplazados"
+                  className="form-control"
+                  style={{ maxWidth: '120px' }}
+                  value={formulario.horaAplazados}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
 
             <div className="modal-footer">
@@ -176,4 +219,3 @@ const ModalNuevoTrabajo = ({ mostrar, onClose, onGuardar, trabajo }) => {
 };
 
 export default ModalNuevoTrabajo;
-

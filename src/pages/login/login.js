@@ -1,3 +1,4 @@
+// src/pages/Login/Login.jsx
 import { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import Logo from "./componentes/LoginLogo";
@@ -5,6 +6,7 @@ import Formulario from "./componentes/LoginForm";
 import BotonGoogle from "./componentes/LoginBotonGoogle";
 import ImagenFondo from "./componentes/LoginImagenFondo";
 import "../../resource/login.css";
+import LoaderFullScreen from "../reutilizables/componentes/LoaderFullScreen";
 
 const ROLES = {
   estudiante: "Estudiantil",
@@ -17,35 +19,20 @@ function normalizaRol(url) {
   if (url.includes("sigad.unj.edu.pe")) return "docente";
   if (url.includes("siga.unj.edu.pe/estudiante")) return "estudiante";
   if (url.includes("/administrador")) return "admin";
-  // Por defecto estudiante
   return "estudiante";
 }
 
 export default function Login() {
   const [rol, setRol] = useState(normalizaRol(window.location.href));
   const [usuario, setUsuario] = useState(null);
+  const [loading, setLoading] = useState(false); // ⬅️ estado global de carga
 
-  // Detectar cambios de URL manuales (cuando recargas o cambias con href)
-  useEffect(() => {
-    const actualizarRol = () => {
-      setRol(normalizaRol(window.location.href));
-    };
-    window.addEventListener("popstate", actualizarRol);
-
-    // Por si quieres detectar cambios de URL manuales
-    return () => {
-      window.removeEventListener("popstate", actualizarRol);
-    };
-  }, []);
-
-  // Fondo y carga de usuario
   useEffect(() => {
     document.body.style.backgroundImage = "url('image/back-03_0002.svg')";
     const data = localStorage.getItem("usuario");
     if (data) setUsuario(JSON.parse(data));
   }, []);
 
-  // Cambiar rol con redirección real
   const handleCambiarRol = (nuevoRol) => {
     if (nuevoRol === "estudiante") {
       window.location.href = "https://siga.unj.edu.pe/estudiante/";
@@ -57,55 +44,58 @@ export default function Login() {
   };
 
   return (
-    <GoogleOAuthProvider clientId="468491556072-e78isnva21jh9q83ub1fnd4ikeagrj3i.apps.googleusercontent.com">
-      <div className="contenedor">
-        <div className="cont-login">
-          <Logo />
+    <>
+      {/* Loader que cubre TODO el módulo */}
+      <LoaderFullScreen visible={loading} />
 
-          {/* Tabs */}
-          <div className="tabs-rol-group centered">
-            <button
-              type="button"
-              className={`tab-rol left-pill ${rol === "estudiante" ? "active" : ""}`}
-              onClick={() => handleCambiarRol("estudiante")}
-            >
-              Estudiante
-            </button>
-            <button
-              type="button"
-              className={`tab-rol middle-pill ${rol === "docente" ? "active" : ""}`}
-              onClick={() => handleCambiarRol("docente")}
-            >
-              Docente
-            </button>
-            <button
-              type="button"
-              className={`tab-rol right-pill ${rol === "admin" ? "active" : ""}`}
-              onClick={() => handleCambiarRol("admin")}
-            >
-              Administrador
-            </button>
-          </div>
+      <GoogleOAuthProvider clientId="468491556072-e78isnva21jh9q83ub1fnd4ikeagrj3i.apps.googleusercontent.com">
+        <div className="contenedor">
+          <div className="cont-login">
+            <Logo />
 
-          {/* Título dinámico */}
-          <p className="bienvenidos">Bienvenido al Módulo {ROLES[rol]}</p>
+            {/* Tabs de roles */}
+            <div className="tabs-rol-group centered">
+              <button
+                type="button"
+                className={`tab-rol left-pill ${rol === "estudiante" ? "active" : ""}`}
+                onClick={() => handleCambiarRol("estudiante")}
+              >
+                Estudiante
+              </button>
+              <button
+                type="button"
+                className={`tab-rol middle-pill ${rol === "docente" ? "active" : ""}`}
+                onClick={() => handleCambiarRol("docente")}
+              >
+                Docente
+              </button>
+              <button
+                type="button"
+                className={`tab-rol right-pill ${rol === "admin" ? "active" : ""}`}
+                onClick={() => handleCambiarRol("admin")}
+              >
+                Administrador
+              </button>
+            </div>
 
-          {/* Formulario */}
-          <Formulario rol={rol} />
+            <p className="bienvenidos">Bienvenido al Módulo {ROLES[rol]}</p>
 
-          {/* Botón Google */}
-          <div className="acciones-login compact">
-            <div className="google-wrapper">
-              <BotonGoogle setUsuario={setUsuario} />
+            {/* Pasamos setLoading para controlar el loader */}
+            <Formulario rol={rol} setLoading={setLoading} />
+
+            <div className="acciones-login compact">
+              <div className="google-wrapper">
+                <BotonGoogle setUsuario={setUsuario} />
+              </div>
             </div>
           </div>
+          <ImagenFondo />
         </div>
-
-        <ImagenFondo />
-      </div>
-    </GoogleOAuthProvider>
+      </GoogleOAuthProvider>
+    </>
   );
 }
+
 
 /*import { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";

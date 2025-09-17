@@ -1,61 +1,74 @@
-// src/pages/login/componentes/Formulario.js
-
+// src/pages/Login/componentes/LoginForm.jsx
 import { useFormik } from "formik";
-import * as Yup from 'yup';
-import Swal from 'sweetalert2'
+import * as Yup from "yup";
+import Swal from "sweetalert2";
 import { iniciarSesion } from "../logica/LoginLogica";
 
-function Formulario() {
-
-  //const [swalShown, setSwalShown] = useState(false)
-  
+export default function Formulario({ rol, setLoading }) {
   const formik = useFormik({
-    initialValues: {
-      email: '',
-      clave: '',
-    },
+    initialValues: { email: "", clave: "" },
     validationSchema: Yup.object({
       email: Yup.string()
-        .email('Email no válido')
-        .required('Debe ingresar un email válido'),
-      clave: Yup.string()
-        .required('Debe ingresar una contraseña válida'),
+        .email("Email no válido")
+        .required("Debe ingresar un email válido"),
+      clave: Yup.string().required("Debe ingresar una contraseña válida"),
     }),
     onSubmit: async (values) => {
+      setLoading(true);
       try {
         const userData = await iniciarSesion({
           email: values.email,
           password: values.clave,
         });
 
-        
         if (userData) {
-          localStorage.setItem('usuario', JSON.stringify(userData));
-          
-          window.location.reload();
+          localStorage.setItem("usuario", JSON.stringify(userData));
+          // redirección según el rol si deseas
         } else {
           Swal.fire({
-            icon: 'error',
-            title: 'Acceso denegado',
-            text: 'Correo o clave incorrectos.',
-            confirmButtonColor: '#d33',
-            confirmButtonText: 'Cerrar',
+            icon: "error",
+            title: "Acceso denegado",
+            text: "Correo o clave incorrectos.",
+            confirmButtonColor: "#d33",
           });
         }
-      } catch (error) {
-        console.error('Error inesperado en login:', error);
+      } catch (err) {
+        console.error("Error en login:", err);
         Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Error inesperado al intentar iniciar sesión.',
+          icon: "error",
+          title: "Oops...",
+          text: "Error inesperado al iniciar sesión.",
         });
+      } finally {
+        setLoading(false);
       }
-    }
+    },
   });
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    formik.handleSubmit();
+
+    // Si hay errores, alerta personalizada
+    const errores = formik.errors;
+    if (Object.keys(errores).length > 0) {
+      const mensajes = [];
+      if (errores.email) mensajes.push(errores.email);
+      if (errores.clave) mensajes.push(errores.clave);
+
+      Swal.fire({
+        icon: "warning",
+        title: "Campos incompletos",
+        html: mensajes.join("<br/>"),
+        confirmButtonColor: "#f39c12",
+      });
+    }
+  };
+
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
       <div className="form-credenciales">
+        {/* Email */}
         <div className="cont-email">
           <img src="/image/iconos/mail_16dp_b.svg" alt="" draggable="false" />
           <p>Email</p>
@@ -70,11 +83,9 @@ function Formulario() {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           />
-          {formik.touched.email && formik.errors.email && (
-            <div className="invalid-feedback">{formik.errors.email}</div>
-          )}
         </div>
 
+        {/* Contraseña */}
         <div className="cont-password">
           <img src="/image/iconos/lock_16dp_b.svg" alt="" draggable="false" />
           <p>Contraseña</p>
@@ -84,29 +95,16 @@ function Formulario() {
             className="password"
             type="password"
             name="clave"
-            placeholder="••••••••••••"
+            placeholder="••••••••"
             value={formik.values.clave}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           />
-          {formik.touched.clave && formik.errors.clave && (
-            <div className="invalid-feedback">{formik.errors.clave}</div>
-          )}
         </div>
-
-        {/*<div className="recordar-recuperar">
-          <div className="recordar">
-            <input type="checkbox" id="recordar" />
-            <label htmlFor="recordar">Recordar</label>
-          </div>
-          <div className="recuperar">
-            <a href="#">¿Olvidaste tu contraseña?</a>
-          </div>
-        </div> */}
 
         <div className="btn-acceder">
           <button type="submit" className="btn-con-imagen">
-            <img src="/image/iconos/btn-acceder-b.svg" alt="Acceder" draggable="false" />
+            <img src="/image/iconos/btn-acceder-b.svg" alt="Acceder" />
             <p>Acceder</p>
           </button>
         </div>
@@ -114,5 +112,4 @@ function Formulario() {
     </form>
   );
 }
-
-export default Formulario;
+ 

@@ -8,6 +8,7 @@ import TablaCursos from '../../reutilizables/componentes/TablaCursos';
 import ModalNuevoTrabajo from './ModalNuevoTrabajo';
 import config from '../../../config';
 import { ToastContext } from '../../../cuerpos/Layout';
+import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
 
 
 const TrabajosCurso = ({ fila }) => {
@@ -41,9 +42,10 @@ const TrabajosCurso = ({ fila }) => {
   }, []);
 
   const cargarDatos = async () => {
-    setLoading(true);
+    //setLoading(true);
     try {
       const respuestrabGuia = await obtenerDatostrabajoguias(sede, semestre, escuela, curricula, curso, seccion, semana);
+      console.log(respuestrabGuia);
       if (!respuestrabGuia || !respuestrabGuia.datos) {
         setMensajeApi('No se pudo obtener los trabajos.');
         setLoading(false);
@@ -92,6 +94,7 @@ const TrabajosCurso = ({ fila }) => {
       alert('Ocurrió un error al intentar eliminar el Trabajo.');
     }
   };
+  
 
   const formatearFechaHora = (fecha, hora) => {
     if (!fecha || !hora) return null;
@@ -102,6 +105,7 @@ const TrabajosCurso = ({ fila }) => {
     return `${anio}/${mes}/${dia} ${hora}`;
   };
 
+  //console.log(datos);
   const handleGuardarMaterial = async (formData) => {
     try {
       const payload = {
@@ -116,9 +120,11 @@ const TrabajosCurso = ({ fila }) => {
         contenido: formData.contenido,
         fechalimite: formData.fechalimite,
         fechalimitefin: formData.fechalimitefin,
+        fechaaplazados: formData.fechaaplazados,
         tipo: (modoEdicion && trabajoEditando && trabajoEditando.tra !== 0) ? "U" : "N"
-      };
+      }; 
 
+      console.log(payload);
 
       const respuesta = await fetch(`${config.apiUrl}api/curso/GrabarTrabajoalumno`, {
         method: 'POST',
@@ -159,6 +165,7 @@ const TrabajosCurso = ({ fila }) => {
       alert("Error al guardar el trabajo");
     }
   };
+
 
  
   const columnas = [
@@ -214,7 +221,7 @@ const TrabajosCurso = ({ fila }) => {
       ),
     },
   ];
-  
+  console.log(datos);
 
   return (
     <div>
@@ -239,8 +246,9 @@ const TrabajosCurso = ({ fila }) => {
 
       </div>
 
+
       {loading ? (
-        <TablaCursos tituloArchivo={'Trabajos'} datos={datos} columnas={columnas} />
+        <TablaSkeleton filas={4} columnas={5} />
       ) : (
         <TablaCursos tituloArchivo={'Trabajos'} datos={datos} columnas={columnas} />
       )}

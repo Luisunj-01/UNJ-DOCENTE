@@ -284,6 +284,7 @@
   background-color: #ff0000;
 }
 
+
 canvas.confetti-canvas {
   position: fixed !important;
   top: 0;
@@ -293,7 +294,34 @@ canvas.confetti-canvas {
   pointer-events: none;
   z-index: 99999 !important; /* más alto que modales y otros elementos */
 }
-  
+
+
+.loader-overlay {
+  position: fixed;
+  inset: 0;                 /* equivale a top:0; right:0; bottom:0; left:0 */
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;           /* asegúrate que sea mayor que el resto */
+}
+
+.loader-spinner {
+  width: 70px;
+  height: 70px;
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 
   @media (min-width: 1200px) {
     .container, .container-lg, .container-md, .container-sm, .container-xl {

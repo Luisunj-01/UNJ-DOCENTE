@@ -72,6 +72,7 @@ export const obtenerDatostrabajoguias = async (sede, semestre, escuela, curricul
 
     const res = await axios.get(`${config.apiUrl}api/curso/Trabajocurso/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
 
+    console.log(`${config.apiUrl}api/curso/Trabajocurso/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
     
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
@@ -113,7 +114,7 @@ export const construirNombreArchivoverpdf = (curso, semestre, semana, nombrecarp
 };
 
 
-export const verificarArchivo = async (ruta, token) => {
+/*export const verificarArchivo = async (ruta, token) => {
   try {
     const res = await fetch(`${config.apiUrl}api/verificar-archivo?ruta=${encodeURIComponent(ruta)}`,
       {
@@ -126,6 +127,47 @@ export const verificarArchivo = async (ruta, token) => {
     return data.success ? data.url : null;
   } catch (error) {
     return null;
+  }
+};*/
+
+export const verificarArchivo = async (ruta, token) => {
+  // Validar que ruta no esté vacía
+  if (!ruta || typeof ruta !== 'string') {
+    console.error('Ruta inválida o vacía');
+    return { success: false, url: null, error: 'Ruta inválida o vacía' };
+  }
+
+  try {
+    const response = await fetch(
+      `${config.apiUrl}api/verificar-archivo?ruta=${encodeURIComponent(ruta)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Si la respuesta no es OK (200–299)
+    if (!response.ok) {
+      console.error(`Error HTTP: ${response.status}`);
+      return { success: false, url: null, error: `HTTP ${response.status}` };
+    }
+
+    const data = await response.json();
+
+    // Manejo de la estructura de datos
+    if (data?.success && data?.url) {
+      return { success: true, url: data.url };
+    } else {
+      return {
+        success: false,
+        url: null,
+        error: data?.message || 'Archivo no encontrado o respuesta inválida',
+      };
+    }
+  } catch (err) {
+    console.error('Error en la solicitud:', err);
+    return { success: false, url: null, error: err.message };
   }
 };
 
