@@ -3,6 +3,7 @@ import BreadcrumbUNJ from "../../cuerpos/BreadcrumbUNJ";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import { obtenerDatosDocente } from "./logica/Actividades";
+import { useParams } from "react-router-dom";
 
 // importar el servicio
 
@@ -17,12 +18,15 @@ function Declaracion() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+
+
   useEffect(() => {
     if (!usuario) return;
 
     const cargarDatos = async () => {
       setLoading(true);
-      const result = await obtenerDatosDocente(usuario.sede, semestre, usuario.dni);
+      const result = await obtenerDatosDocente('01', semestre, usuario.docente.numerodocumento);
       console.log(result);
 
       if (result.datos) {

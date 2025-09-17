@@ -7,6 +7,7 @@ export const obtenerDatosDocente = async (sede, semestre, persona) => {
       `${config.apiUrl}api/actividades/docente/datos/${sede}/${semestre}/${persona}`
     );
 
+    console.log(`${config.apiUrl}api/actividades/docente/datos/${sede}/${semestre}/${persona}`);
     if (res.data) {
       return { datos: res.data, mensaje: "" };
     } else {
