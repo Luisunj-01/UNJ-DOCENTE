@@ -7,20 +7,16 @@ import Swal from "sweetalert2";
 import { Accordion, Table } from "react-bootstrap";
 import config from "../../config";
 
-
 function Declaracion() {
   const [semestre, setSemestre] = useState("202501");
   const { usuario } = useUsuario();
 
   const [docente, setDocente] = useState(null);
   const [cargaLectiva, setCargaLectiva] = useState([]);
-  const [actividades, setActividades] = useState([]);
+  const [actividades, setActividades] = useState([]); // 👈 estado único
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const token = usuario?.codigotokenautenticadorunj;
-
-  const [descripciones, setDescripciones] = useState({});
-  const [horas, setHoras] = useState({});
 
   const maxHorasPorActividad = {
     "03": 2,
@@ -43,7 +39,15 @@ function Declaracion() {
       if (result.datos) {
         setDocente(result.datos.docente);
         setCargaLectiva(result.datos.cargaLectiva || []);
-        setActividades(result.datos.actividades || []);
+
+        // 👇 inicializa estado con horas y descripcion ya mezcladas
+        const acts = (result.datos.actividades || []).map((a) => ({
+          ...a,
+          descripcion2: a.descripcion2 || "",
+          horas: a.horas ?? 0,
+        }));
+        setActividades(acts);
+
         setMensaje("");
       } else {
         setDocente(null);
@@ -63,58 +67,79 @@ function Declaracion() {
   const prepEval = Math.round(totalHT / 2);
   const totalCargaLectiva = totalHT + prepEval;
 
-  const totalNoLectiva = actividades.reduce((acc, a, i) => {
-    const val = horas[i] ?? a.horas ?? 0;
-    return acc + val;
-  }, 0);
-
+  const totalNoLectiva = actividades.reduce((acc, a) => acc + (a.horas ?? 0), 0);
   const totalGeneral = totalCargaLectiva + totalNoLectiva;
 
+  // ✅ Cambiar descripcion
   const handleDescripcionChange = (i, value) => {
-    setDescripciones({ ...descripciones, [i]: value });
+    const nuevas = [...actividades];
+    nuevas[i].descripcion2 = value;
+    setActividades(nuevas);
   };
 
-  const handleGuardar = async () => {
-  
-  try {
-    const response = await fetch(`${config.apiUrl}api/actividades/docente/grabar`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        persona: usuario.docente.persona,
-        semestre,
-        actividades: actividades.map((a, i) => ({
-          actividad: a.actividad, // 👈 este es el código que usas en tu SP (03, 04, 05, etc.)
-          descripcion: descripciones[i] || "",
-          horas: horas[i] ?? a.horas ?? 0,
-        })),
-      }),
-    });
+  // ✅ Cambiar horas
+  const handleHorasChange = (i, value) => {
+    const nuevas = [...actividades];
+    nuevas[i].horas = value;
 
-    const data = await response.json();
+    const nuevoTotalNoLectiva = nuevas.reduce((acc, act) => acc + (act.horas ?? 0), 0);
+    const nuevoTotalGeneral = totalCargaLectiva + nuevoTotalNoLectiva;
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Error al guardar");
+    if (nuevoTotalGeneral > 40) {
+      Swal.fire({
+        icon: "warning",
+        title: "Límite excedido",
+        text: "La carga horaria total no puede superar 40 horas.",
+      });
+      return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: "Guardado",
-      text: data.message,
-    });
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: error.message,
-    });
-  }
-};
+    setActividades(nuevas);
+  };
 
+  // ✅ Guardar todo
+  const handleGuardar = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${config.apiUrl}api/actividades/docente/grabar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          persona: usuario.docente.persona,
+          semestre,
+          actividades: actividades.map((a) => ({
+            actividad: a.actividad,
+            descripcion: a.descripcion2 || "",
+            horas: a.horas ?? 0,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Error al guardar");
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Guardado",
+        text: data.message,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -142,44 +167,42 @@ function Declaracion() {
           {loading && <p>Cargando...</p>}
           {mensaje && <p className="text-danger">{mensaje}</p>}
 
-
           {/* Datos docente */}
           {docente && (
-  <div className="mb-4">
-    <Accordion defaultActiveKey="0" className="mb-3">
-      <Accordion.Item eventKey="0">
-        <Accordion.Header>🧑‍🏫 Datos del Docente</Accordion.Header>
-        <Accordion.Body>
-          <Table  bordered size="sm">
-            <tbody>
-              <tr>
-                <td><strong>DNI</strong></td>
-                <td>{docente.numerodocumento}</td>
-              </tr>
-              <tr>
-                <td><strong>Apellidos y Nombres</strong></td>
-                <td>{docente.nombrecompleto}</td>
-              </tr>
-              <tr>
-                <td><strong>Categoría</strong></td>
-                <td>{docente.descripcioncategoria}</td>
-              </tr>
-              <tr>
-                <td><strong>Condición</strong></td>
-                <td>{docente.descripcioncondicion}</td>
-              </tr>
-              <tr>
-                <td><strong>Dedicación</strong></td>
-                <td>{docente.descripciondedicacion}</td>
-              </tr>
-            </tbody>
-          </Table>
-        </Accordion.Body>
-      </Accordion.Item>
-    </Accordion>
-  </div>
-)}
-
+            <div className="mb-4">
+              <Accordion defaultActiveKey="0" className="mb-3">
+                <Accordion.Item eventKey="0">
+                  <Accordion.Header>🧑‍🏫 Datos del Docente</Accordion.Header>
+                  <Accordion.Body>
+                    <Table bordered size="sm">
+                      <tbody>
+                        <tr>
+                          <td><strong>DNI</strong></td>
+                          <td>{docente.numerodocumento}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Apellidos y Nombres</strong></td>
+                          <td>{docente.nombrecompleto}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Categoría</strong></td>
+                          <td>{docente.descripcioncategoria}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Condición</strong></td>
+                          <td>{docente.descripcioncondicion}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>Dedicación</strong></td>
+                          <td>{docente.descripciondedicacion}</td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
+            </div>
+          )}
 
           {/* Carga lectiva */}
           {cargaLectiva.length > 0 && (
@@ -232,7 +255,7 @@ function Declaracion() {
                 <table className="table table-sm table-bordered">
                   <tbody>
                     <tr>
-                      <td className="fw-bold">2. PREPARACIÓN Y EVALUACIÓN</td>
+                      <td className="fw-bold">PREPARACIÓN Y EVALUACIÓN</td>
                       <td className="text-end fw-bold">{prepEval}</td>
                     </tr>
                     <tr>
@@ -260,8 +283,6 @@ function Declaracion() {
                 <tbody>
                   {actividades.map((a, i) => {
                     const maxHoras = maxHorasPorActividad[a.actividad] ?? 0;
-                    const valorHoras = horas[i] ?? a.horas ?? 0;
-
                     return (
                       <tr key={i}>
                         <td>
@@ -272,36 +293,15 @@ function Declaracion() {
                           <input
                             type="text"
                             className="form-control"
-                            value={descripciones[i] || ""}
+                            value={a.descripcion2}
                             onChange={(e) => handleDescripcionChange(i, e.target.value)}
                           />
                         </td>
                         <td>
                           <select
                             className="form-select"
-                            value={valorHoras}
-                            onChange={(e) => {
-                              const nuevoValor = Number(e.target.value);
-                              const nuevasHoras = { ...horas, [i]: nuevoValor };
-
-                              const nuevoTotalNoLectiva = actividades.reduce((acc, act, idx) => {
-                                const val = nuevasHoras[idx] ?? act.horas ?? 0;
-                                return acc + val;
-                              }, 0);
-
-                              const nuevoTotalGeneral = totalCargaLectiva + nuevoTotalNoLectiva;
-
-                              if (nuevoTotalGeneral > 40) {
-                                Swal.fire({
-                                  icon: "warning",
-                                  title: "Límite excedido",
-                                  text: "La carga horaria total no puede superar 40 horas.",
-                                });
-                                return;
-                              }
-
-                              setHoras(nuevasHoras);
-                            }}
+                            value={a.horas}
+                            onChange={(e) => handleHorasChange(i, Number(e.target.value))}
                           >
                             {Array.from({ length: maxHoras + 1 }, (_, h) => (
                               <option key={h} value={h}>{h}</option>
