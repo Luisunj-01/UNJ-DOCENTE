@@ -74,22 +74,7 @@ function Detallecursos() {
       //const obtenervalidacion = await obtenervalidacioncurso(semestre, persona, dni);
       //setValidacionCurso(obtenervalidacion);
       try {
-        const respuesta = await obtenerdatdocente(
-          cursoDesdeLink.persona,
-          cursoDesdeLink.docente,
-          nivel,
-          tipo,
-          accion
-        );
-
         
-
-        const datosDocenteArray = respuesta?.datos ?? [];
-        if (Array.isArray(datosDocenteArray) && datosDocenteArray.length > 0) {
-          setDatosDocente(datosDocenteArray[0]);
-        } else {
-          setDatosDocente(null);
-        }
 
         /*const { datos: cursos, mensaje } = await obtenerCursosPrematricula(
           semestre,
@@ -130,7 +115,7 @@ function Detallecursos() {
     cargarDatosCompletos();
   }, []);
 
-  console.log(datos);
+  //console.log(datos);
 
   const cursoActual = Array.isArray(datos)
     ? datos.find(d => d.curso === curso && d.seccion === seccion)

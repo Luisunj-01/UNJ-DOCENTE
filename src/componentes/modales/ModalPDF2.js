@@ -2,7 +2,8 @@
 import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 
-const ModalPDF = ({ show, onHide, componente, titulo }) => {
+const ModalPDF2 = ({ show, onHide, componente, titulo }) => {
+  //console.log(componente);
   return (
     <Modal show={show} onHide={onHide} size="xl" centered>
       <Modal.Header closeButton>
@@ -10,7 +11,17 @@ const ModalPDF = ({ show, onHide, componente, titulo }) => {
         
       </Modal.Header>
       <Modal.Body style={{ height: '80vh' }}>
-        {componente}
+         {componente ? (
+          <iframe
+            src={componente}
+            style={{ width: '100%', height: '100%' }}
+            frameBorder="0"
+            title={titulo}
+          />
+        ) : (
+          <p className="text-center text-muted">PDF no disponible.</p>
+        )}
+        
       </Modal.Body>
       <Modal.Footer>
         <Button variant="danger" onClick={onHide}>
@@ -21,4 +32,4 @@ const ModalPDF = ({ show, onHide, componente, titulo }) => {
   );
 };
 
-export default ModalPDF;
+export default ModalPDF2;

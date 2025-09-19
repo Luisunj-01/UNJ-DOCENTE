@@ -3,7 +3,7 @@ import { FaFilePdf } from 'react-icons/fa';
 import config from '../../../config';
 import { construirNombreArchivo, verificarArchivo } from '../../asignatura/logica/asignatura';
 import { Button } from 'react-bootstrap';
-import ModalPDF from '../../../componentes/modales/ModalPDF';
+import ModalPDF2 from '../../../componentes/modales/ModalPDF2';
 
 const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
   const [urlPDF, setUrlPDF] = useState(null);
@@ -24,7 +24,7 @@ const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
       }
     });
   }, [fila, semestre, token, semana]);
-
+ 
   const abrirModal = () => {
     setUrlPDF((prev) => `${prev}?t=${Date.now()}`); // cache busting
     setMostrarModal(true);
@@ -53,7 +53,7 @@ const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
         </Button>
       )}
 
-      <ModalPDF
+      <ModalPDF2
         show={mostrarModal}
         onHide={() => setMostrarModal(false)}
         componente={urlPDF}

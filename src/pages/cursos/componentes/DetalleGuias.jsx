@@ -88,28 +88,7 @@ function DetalleGuias({ datoscurso = [] }) {
     useEffect(() => {
       cargarDatos(); // primera carga de datos
 
-      // 🔹 Conexión al socket
-      const socket = io("https://pruebas.unj.edu.pe", {
-        path: "/socket.io/",
-      });
-
-      // 🔹 Escuchar evento del servidor
-      socket.on("procesardetalleguias", (msg) => {
-        console.log("📩 Mensaje recibido del servidor:", msg);
-        Swal.fire({
-          icon: "info", 
-          title: "Nueva actualización",
-          text: "Se actualizó el detalle de guías.",
-          timer: 2000,
-          showConfirmButton: false,
-        });
-        cargarDatos(); // refresca la tabla automáticamente
-      });
-
-      // 🔹 Cleanup al desmontar componente
-      return () => {
-        socket.disconnect();
-      };
+    
     }, []); // 👈 se ejecuta una sola vez al montar
 
     const ventanaSecundaria = (url) => {

@@ -6,7 +6,7 @@ import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 function Inicio() {
   const { usuario } = useUsuario();
 
-  console.log(usuario);
+  //console.log(usuario);
     return (
       <>
 

@@ -38,7 +38,7 @@ function Cursos() {
   const nivel = usuario?.docente.curricula;
 
 
-  console.log(usuario);
+  //console.log(usuario);
   const persona = usuario?.docente.persona;
   
   const dni = usuario?.docente.numerodocumento;
@@ -58,7 +58,7 @@ function Cursos() {
     cargarCursos();
   }, [semestre]);
 
-  console.log(cursos);
+  //console.log(cursos);
   return (
     <>
       <BreadcrumbUNJ />

@@ -33,52 +33,59 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
   }, []);
 
   const cargarDatos = async () => {
-    setLoading(true);
-    try {
-      // 1️⃣ Traer trabajos registrados
-      const respTrabajos = await obtenerDatostrabajoguias(
-        sede,
-        semestre,
-        escuela,
-        curricula,
-        curso,
-        seccion,
-        semana
-      );
-       
-      setTrabajos(respTrabajos?.datos || []);
+  setLoading(true);
+  try {
+    const respTrabajos = await obtenerDatostrabajoguias(
+      sede, semestre, escuela, curricula, curso, seccion, semana
+    );
+    console.log(respTrabajos);
+    const listaTrabajos = respTrabajos?.datos || [];
+    setTrabajos(listaTrabajos);
 
-      // 2️⃣ Traer alumnos
-      const respuestaAsistencia = await obtenerRevisionTrabajo(
-        sede,
-        semestre,
-        escuela,
-        curricula,
-        curso,
-        seccion,
-        semana
-      );
-       
-      await obtenerDatosnotas(sede, semestre, escuela, curricula, curso, seccion, semana);
+    // 👇 Ajuste aquí
+    const respAlumnos = await obtenerRevisionTrabajo(
+      sede, semestre, escuela, curricula, curso, seccion, semana
+    );
+    
+    const alumnos = respAlumnos?.datos || [];  // <— usamos .datos
 
-      if (!respuestaAsistencia || !respuestaAsistencia.datos) {
-        setMensajeApi('No se pudo obtener el detalle de los alumnos.');
-        setLoading(false);
-        return;
-      }
-
-      const datosInicializados = respuestaAsistencia.datos.map((item) => ({
-        ...item,
-        personaCompleta: (item.persona || '') + (item.alumno || ''),
-      }));
-      setDatos(datosInicializados);
-      setMensajeApi(respuestaAsistencia.mensaje);
-    } catch (error) {
-      console.error('Error al cargar datos:', error);
-      setMensajeApi('Ocurrió un error al obtener los datos.');
+    if (alumnos.length === 0) {
+      setMensajeApi('No se encontraron alumnos para esta sección.');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  };
+
+    const datosConNotas = await Promise.all(
+      alumnos.map(async (al) => {
+        const notasResp = await obtenerDatosnotas(
+          sede, semestre, escuela, curricula, curso, seccion, semana, al.alumno
+        );
+        const notas = notasResp?.datos || [];
+
+        const notasMap = {};
+        listaTrabajos.forEach((trabajo, idx) => {
+          const n = notas.find((x) => x.tra === trabajo.tra);
+          notasMap[`nota${idx + 1}`] = n ? n.nota : '';
+        });
+
+        return {
+          ...al,
+          personaCompleta: `${al.persona || ''}${al.alumno || ''}`,
+          ...notasMap,
+        };
+      })
+    );
+
+    setDatos(datosConNotas);
+    setMensajeApi('');
+  } catch (err) {
+    console.error('Error al cargar datos:', err);
+    setMensajeApi('Ocurrió un error al obtener los datos.');
+  }
+  setLoading(false);
+};
+
+
 
   const actualizarAsistenciaLocal = (alumno, nombrecompleto, cambios) => {
     const claveStorage = 'asistenciasSeleccionadas';
@@ -149,12 +156,32 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
   };
 
   // Columnas dinámicas
-  const columnas = [
-    { clave: 'alumno', titulo: 'Código' },
-    { clave: 'nombrecompleto', titulo: 'Nombres Completos' },
-    ...trabajos.map((_, idx) => ({
+  // Columnas dinámicas
+const columnas = [
+  { clave: 'alumno', titulo: 'Código' },
+  { clave: 'nombrecompleto', titulo: 'Nombres Completos' },
+  ...trabajos.map((trabajo, idx) => {
+    // 🔹 convertir a minúsculas y truncar a 20 caracteres con “...”
+    const nombre = trabajo.contenido.toLowerCase();
+    const nombreCorto =
+      nombre.length > 15 ? nombre.slice(0, 15) + '…' : nombre;
+
+    return {
       clave: `tra${idx + 1}`,
-      titulo: `Trabajo ${idx + 1}`,
+      titulo: (
+        <div
+          style={{
+            fontSize: '0.75rem',
+            textAlign: 'center',
+            lineHeight: 1.2,
+            whiteSpace: 'normal'
+          }}
+        >
+          <strong>TRABAJO {idx + 1}</strong>
+          <br />
+          <p style={{fontSize:'11px', marginTop: '4px'}}>{nombreCorto}</p>
+        </div>
+      ),
       render: (fila) => {
         const idTrabajo = fila[`tra${idx + 1}`];
         return (
@@ -169,16 +196,13 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
                   curricula,
                   curso,
                   seccion,
-                  alumno: fila.alumno, 
+                  alumno: fila.alumno,
                 }}
                 semestre={semestre}
                 token={token}
                 titulo=""
                 nombrecarpeta="tra"
                 semana={semana}
-                
-                
-                //idTrabajo={idTrabajo}
               />
             ) : (
               <span className="text-muted">No enviado</span>
@@ -198,8 +222,11 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
           </div>
         );
       },
-    })),
-  ];
+    };
+  }),
+];
+
+
 
   return (
     <div style={{ position: 'relative' }}>
