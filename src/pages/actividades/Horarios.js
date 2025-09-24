@@ -15,7 +15,8 @@ function Horarios() {
 
   const [docente, setDocente] = useState(null);
   const [cargaLectiva, setCargaLectiva] = useState([]);
-  const [actividades, setActividades] = useState([]); // 👈 estado único
+  const [actividades, setActividades] = useState([]);
+  const [horario, setHorario] = useState([]); // ✅ estado para el horario
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const token = usuario?.codigotokenautenticadorunj;
@@ -26,12 +27,12 @@ function Horarios() {
     const cargarDatos = async () => {
       setLoading(true);
       const result = await obtenerDatosHorario("01", semestre, usuario.docente.persona);
-       console.log("📌 Datos crudos de la API:", result);
+      console.log("📌 Datos crudos de la API:", result);
+
       if (result.datos) {
         setDocente(result.datos.docente);
         setCargaLectiva(result.datos.cargaLectiva || []);
 
-        // 👇 inicializa estado con horas y descripcion ya mezcladas
         const acts = (result.datos.actividades || []).map((a) => ({
           ...a,
           descripcion2: a.descripcion2 || "",
@@ -39,11 +40,13 @@ function Horarios() {
         }));
         setActividades(acts);
 
+        setHorario(result.datos.horario || []); // ✅ guardamos horario
         setMensaje("");
       } else {
         setDocente(null);
         setCargaLectiva([]);
         setActividades([]);
+        setHorario([]); // ✅ reset en caso de error
         setMensaje(result.mensaje);
       }
       setLoading(false);
@@ -52,6 +55,7 @@ function Horarios() {
     cargarDatos();
   }, [semestre, usuario]);
 
+  // ================== Cálculos de carga ==================
   const totalHT = cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0);
   const prepEval = Math.round(totalHT / 2);
   const totalCargaLectiva = totalHT + prepEval;
@@ -59,14 +63,28 @@ function Horarios() {
   const totalNoLectiva = actividades.reduce((acc, a) => acc + (a.horas ?? 0), 0);
   const totalGeneral = totalCargaLectiva + totalNoLectiva;
 
-  // ✅ Cambiar descripcion
+  // ================== Cálculos de totales del horario ==================
+  const diasHorario = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+
+  const totalesPorDiaHorario = diasHorario.map((dia) =>
+    (horario || []).reduce((acc, fila) => {
+      const valor = fila?.[dia];
+      if (typeof valor === "string" && !valor.startsWith("#FFFFFF")) {
+        return acc + 1; // cuenta bloques ocupados
+      }
+      return acc;
+    }, 0)
+  );
+
+  const totalBloquesHorario = totalesPorDiaHorario.reduce((a, b) => a + b, 0);
+
+  // ================== Handlers ==================
   const handleDescripcionChange = (i, value) => {
     const nuevas = [...actividades];
     nuevas[i].descripcion2 = value;
     setActividades(nuevas);
   };
 
-  // ✅ Cambiar horas
   const handleHorasChange = (i, value) => {
     const nuevas = [...actividades];
     nuevas[i].horas = value;
@@ -86,7 +104,6 @@ function Horarios() {
     setActividades(nuevas);
   };
 
-  // ✅ Guardar todo
   const handleGuardar = async () => {
     setLoading(true);
     try {
@@ -130,6 +147,7 @@ function Horarios() {
     }
   };
 
+  // ================== Render ==================
   return (
     <>
       <BreadcrumbUNJ />
@@ -144,11 +162,7 @@ function Horarios() {
                 </label>
               </div>
               <div className="col-md-3">
-                <SemestreSelect
-                  value={semestre}
-                  onChange={setSemestre}   // ✅ recibe directamente el value
-                  name="cboSemestre"
-                />
+                <SemestreSelect value={semestre} onChange={setSemestre} name="cboSemestre" />
               </div>
             </div>
           </form>
@@ -190,53 +204,52 @@ function Horarios() {
                   </Accordion.Body>
                 </Accordion.Item>
               </Accordion>
-            </div> 
+            </div>
           )}
 
           {/* Texto aviso */}
-            <div className="alert alert-warning" role="alert">
+          <div className="alert alert-warning" role="alert">
             Se pueden programar como máximo <strong>10 horas por día</strong>.
-            </div>
+          </div>
 
           {/* Carga Lectiva */}
-            {cargaLectiva.length > 0 && (
+          {cargaLectiva.length > 0 && (
             <div className="mb-4">
-                <Accordion defaultActiveKey="0" className="mb-3">
+              <Accordion defaultActiveKey="0" className="mb-3">
                 <Accordion.Item eventKey="1">
-                    <Accordion.Header>📘 Carga Lectiva</Accordion.Header>
-                    <Accordion.Body>
+                  <Accordion.Header>📘 Carga Lectiva</Accordion.Header>
+                  <Accordion.Body>
                     <Table bordered hover size="sm" responsive>
-                        <thead className="table-light">
+                      <thead className="table-light">
                         <tr>
-                            <th>N°</th>
-                            <th>Código</th>
-                            <th>Curso</th>
-                            <th>Tipo</th>
-                            <th>Escuela</th>
-                            <th>Ciclo</th>
-                            <th>Sec</th>
-                            <th>Tipo</th>
-                            <th>Gru</th>
-                            <th>Ht</th>
-                            <th>Hp</th>
-                            <th>HT</th>
+                          <th>N°</th>
+                          <th>Código</th>
+                          <th>Curso</th>
+                          <th>Tipo</th>
+                          <th>Escuela</th>
+                          <th>Ciclo</th>
+                          <th>Sec</th>
+                          <th>Tipo</th>
+                          <th>Gru</th>
+                          <th>Ht</th>
+                          <th>Hp</th>
+                          <th>HT</th>
                         </tr>
-                        </thead>
-                        <tbody>
+                      </thead>
+                      <tbody>
                         {cargaLectiva.map((c, i) => (
-                            <tr key={i}>
+                          <tr key={i}>
                             <td>{i + 1}</td>
                             <td
-                                style={{
-                                    backgroundColor: c.codigo,
-                                    color: "#000", // o "#fff" si quieres texto blanco
-                                    fontWeight: "bold",
-                                    textAlign: "center"
-                                }}
-                                >
-                                {c.curso}
-                                </td>
-
+                              style={{
+                                backgroundColor: c.codigo,
+                                color: "#000",
+                                fontWeight: "bold",
+                                textAlign: "center",
+                              }}
+                            >
+                              {c.curso}
+                            </td>
                             <td>{c.nombrecurso}</td>
                             <td>{c.tipocurso}</td>
                             <td>{c.nombreescuela}</td>
@@ -247,34 +260,82 @@ function Horarios() {
                             <td>{c.horasteoria}</td>
                             <td>{c.horaspractica}</td>
                             <td>{c.ht}</td>
-                            </tr>
+                          </tr>
                         ))}
+                        <tr className="fw-bold">
+                          <td colSpan={9} className="text-end">TOTAL</td>
+                          <td>
+                            {cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0)}
+                          </td>
+                          <td>
+                            {cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0)}
+                          </td>
+                          <td>
+                            {cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
+            </div>
+          )}
 
-              {/* Fila total */}
-              <tr className="fw-bold">
-                <td colSpan={9} className="text-end">TOTAL</td>
-                <td>
-                  {cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0)}
-                </td>
-                <td>
-                  {cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0)}
-                </td>
-                <td>
-                  {cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0)}
-                </td>
-              </tr>
-            </tbody>
-          </Table>
-        </Accordion.Body>
-      </Accordion.Item>
-    </Accordion>
-  </div>
-)}
+          {/* Horario Semanal */}
+          <div className="mb-4">
+            <h5 className="mb-3">🗓️ Horario Semanal</h5>
+            <Table bordered hover responsive size="sm" className="text-center align-middle">
+              <thead className="table-dark">
+                <tr>
+                  <th>Hora</th>
+                  <th>Lunes</th>
+                  <th>Martes</th>
+                  <th>Miércoles</th>
+                  <th>Jueves</th>
+                  <th>Viernes</th>
+                  <th>Sábado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {horario.map((fila, i) => (
+                  <tr key={i}>
+                    <td className="fw-bold">{fila.horario}</td>
+                    {diasHorario.map((dia, j) => {
+                      const valor = fila[dia];
+                      const match = valor.match(/(#[0-9A-Fa-f]{6})(\[.*\])?/);
+                      const color = match ? match[1] : "#FFFFFF";
+                      const texto = match && match[2] ? match[2].replace(/[\[\]]/g, "") : "";
+                      return (
+                        <td
+                          key={j}
+                          style={{
+                            backgroundColor: color,
+                            color: "#000",
+                            fontWeight: texto ? "bold" : "normal",
+                          }}
+                        >
+                          {texto}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
 
-
-
-
-
+                {/* Totales dinámicos */}
+                <tr className="fw-bold">
+                  <td>Total</td>
+                  {totalesPorDiaHorario.map((t, i) => (
+                    <td key={i}>{t}</td>
+                  ))}
+                </tr>
+                <tr className="fw-bold table-secondary">
+                  <td>General</td>
+                  <td colSpan={6}>{totalBloquesHorario}</td>
+                </tr>
+              </tbody>
+            </Table>
+          </div>
         </div>
       </div>
     </>
