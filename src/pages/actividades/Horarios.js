@@ -20,14 +20,13 @@ function Horarios() {
   const [loading, setLoading] = useState(false);
   const token = usuario?.codigotokenautenticadorunj;
 
-  
-
   useEffect(() => {
     if (!usuario) return;
 
     const cargarDatos = async () => {
       setLoading(true);
       const result = await obtenerDatosHorario("01", semestre, usuario.docente.persona);
+       console.log("📌 Datos crudos de la API:", result);
       if (result.datos) {
         setDocente(result.datos.docente);
         setCargaLectiva(result.datos.cargaLectiva || []);
@@ -51,12 +50,8 @@ function Horarios() {
     };
 
     cargarDatos();
-
-    console.log(cargarDatos);
   }, [semestre, usuario]);
 
-  const totalHt = cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0);
-  const totalHp = cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0);
   const totalHT = cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0);
   const prepEval = Math.round(totalHT / 2);
   const totalCargaLectiva = totalHT + prepEval;
@@ -195,15 +190,91 @@ function Horarios() {
                   </Accordion.Body>
                 </Accordion.Item>
               </Accordion>
-            </div>
+            </div> 
           )}
 
-         
+          {/* Texto aviso */}
+            <div className="alert alert-warning" role="alert">
+            Se pueden programar como máximo <strong>10 horas por día</strong>.
+            </div>
+
+          {/* Carga Lectiva */}
+            {cargaLectiva.length > 0 && (
+            <div className="mb-4">
+                <Accordion defaultActiveKey="0" className="mb-3">
+                <Accordion.Item eventKey="1">
+                    <Accordion.Header>📘 Carga Lectiva</Accordion.Header>
+                    <Accordion.Body>
+                    <Table bordered hover size="sm" responsive>
+                        <thead className="table-light">
+                        <tr>
+                            <th>N°</th>
+                            <th>Código</th>
+                            <th>Curso</th>
+                            <th>Tipo</th>
+                            <th>Escuela</th>
+                            <th>Ciclo</th>
+                            <th>Sec</th>
+                            <th>Tipo</th>
+                            <th>Gru</th>
+                            <th>Ht</th>
+                            <th>Hp</th>
+                            <th>HT</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {cargaLectiva.map((c, i) => (
+                            <tr key={i}>
+                            <td>{i + 1}</td>
+                            <td
+                                style={{
+                                    backgroundColor: c.codigo,
+                                    color: "#000", // o "#fff" si quieres texto blanco
+                                    fontWeight: "bold",
+                                    textAlign: "center"
+                                }}
+                                >
+                                {c.curso}
+                                </td>
+
+                            <td>{c.nombrecurso}</td>
+                            <td>{c.tipocurso}</td>
+                            <td>{c.nombreescuela}</td>
+                            <td>{c.ciclo}</td>
+                            <td>{c.seccion}</td>
+                            <td>{c.tipo}</td>
+                            <td>{c.practica}</td>
+                            <td>{c.horasteoria}</td>
+                            <td>{c.horaspractica}</td>
+                            <td>{c.ht}</td>
+                            </tr>
+                        ))}
+
+              {/* Fila total */}
+              <tr className="fw-bold">
+                <td colSpan={9} className="text-end">TOTAL</td>
+                <td>
+                  {cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0)}
+                </td>
+                <td>
+                  {cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0)}
+                </td>
+                <td>
+                  {cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0)}
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+)}
 
 
-          
 
-    
+
+
         </div>
       </div>
     </>
