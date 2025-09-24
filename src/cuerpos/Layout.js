@@ -34,7 +34,7 @@ function Layout() {
   };
 
   useEffect(() => {
-    document.body.style.backgroundImage = "url('image/back-03_0002.svg')";
+    document.body.style.backgroundImage = "url('../../image/back-03_0002.svg')";
     const data = localStorage.getItem('usuario');
     if (data) setUsuario(JSON.parse(data));
   }, []);

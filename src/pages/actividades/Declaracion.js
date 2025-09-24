@@ -6,6 +6,7 @@ import { obtenerDatosDocente } from "./logica/Actividades";
 import Swal from "sweetalert2";
 import { Accordion, Table } from "react-bootstrap";
 import config from "../../config";
+import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 
 function Declaracion() {
   const [semestre, setSemestre] = useState("202501");
@@ -164,7 +165,7 @@ function Declaracion() {
             </div>
           </form>
 
-          {loading && <p>Cargando...</p>}
+          {loading && <TablaSkeleton filas={20} columnas={9} />}
           {mensaje && <p className="text-danger">{mensaje}</p>}
 
           {/* Datos docente */}
