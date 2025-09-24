@@ -112,6 +112,40 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
     );
   };
 
+  
+
+  const guardarNotaTrabajo = async (tra, alumno, nota) => {
+    const payload = {
+      tra,
+      alumno,
+      docente: usuario?.docente.numerodocumento, // Asegúrate que tengas esto en tu contexto de usuario
+      nota: parseFloat(nota),
+    };
+
+    try {
+      const respuesta = await fetch(`${config.apiUrl}api/curso/GrabarNotaTrabajo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await respuesta.json();
+
+      if (!respuesta.ok || data.error) {
+        mostrarToast(data.mensaje || 'Error al guardar nota', 'danger');
+        return;
+      }
+
+      mostrarToast('Nota guardada correctamente.', 'success');
+    } catch (error) {
+      console.error('Error al guardar nota:', error);
+      mostrarToast('Error de conexión al guardar nota.', 'danger');
+    }
+  };
+
   const guardarAsistenciaFinal = async () => {
     const claveStorage = 'asistenciasSeleccionadas';
     const asistencias = JSON.parse(localStorage.getItem(claveStorage)) || [];
@@ -206,19 +240,29 @@ const columnas = [
               />
             ) : (
               <span className="text-muted">No enviado</span>
-            )}
+            )} 
             <input
               type="text"
               className="form-control form-control-sm"
               placeholder="nota"
               value={fila[`nota${idx + 1}`] || ''}
-              onChange={(e) =>
+              onChange={(e) => {
+                const nuevaNota = e.target.value;
+                const trabajoId = trabajos[idx].tra;
+
+                // Actualiza el estado local
                 actualizarAsistenciaLocal(fila.alumno, fila.nombrecompleto, {
-                  [`obs${idx + 1}`]: e.target.value,
-                })
-              }
+                  [`nota${idx + 1}`]: nuevaNota,
+                });
+
+                // Guarda en backend
+                if (nuevaNota.trim() !== '') {
+                  guardarNotaTrabajo(trabajoId, fila.alumno, nuevaNota);
+                }
+              }}
               style={{ width: '50px' }}
             />
+
           </div>
         );
       },
