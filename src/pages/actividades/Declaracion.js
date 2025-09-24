@@ -158,7 +158,7 @@ function Declaracion() {
               <div className="col-md-3">
                 <SemestreSelect
                   value={semestre}
-                  onChange={(e) => setSemestre(e.target.value)}
+                  onChange={setSemestre}   // ✅ recibe directamente el value
                   name="cboSemestre"
                 />
               </div>
@@ -206,132 +206,148 @@ function Declaracion() {
           )}
 
           {/* Carga lectiva */}
-          {cargaLectiva.length > 0 && (
-            <div className="mb-4">
-              <h5 className="text-center">1. TRABAJO LECTIVO</h5>
-              <table className="table table-sm  table-bordered">
-                <thead>
-                  <tr>
-                    <th>N°.</th>
-                    <th>Código</th>
-                    <th>Curso</th>
-                    <th>Tipo</th>
-                    <th>Escuela</th>
-                    <th>Ciclo</th>
-                    <th>Sec</th>
-                    <th>Tipo</th>
-                    <th>Gru</th>
-                    <th>Ht</th>
-                    <th>Hp</th>
-                    <th>HT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cargaLectiva.map((c, i) => (
-                    <tr key={i}>
-                      <td>{i + 1}</td>
-                      <td>{c.curso}</td>
-                      <td>{c.nombrecurso}</td>
-                      <td>{c.tipocurso}</td>
-                      <td>{c.nombreescuela}</td>
-                      <td>{c.ciclo}</td>
-                      <td>{c.seccion}</td>
-                      <td>{c.tipo}</td>
-                      <td>{c.practica}</td>
-                      <td>{c.horasteoria}</td>
-                      <td>{c.horaspractica}</td>
-                      <td>{c.ht}</td>
-                    </tr>
-                  ))}
-                  <tr>
-                    <td colSpan={9} className="text-end fw-bold">TOTAL</td>
-                    <td className="fw-bold">{totalHt}</td>
-                    <td className="fw-bold">{totalHp}</td>
-                    <td className="fw-bold">{totalHT}</td>
-                  </tr>
-                </tbody>
-              </table>
+            {cargaLectiva.length > 0 && (
+              <div className="mb-4">
+                <Accordion defaultActiveKey="0" className="mb-3">
+                  <Accordion.Item eventKey="0">
+                    <Accordion.Header>📘 1. TRABAJO LECTIVO</Accordion.Header>
+                    <Accordion.Body>
+                      <table className="table table-sm table-bordered">
+                        <thead>
+                          <tr>
+                            <th>N°.</th>
+                            <th>Código</th>
+                            <th>Curso</th>
+                            <th>Tipo</th>
+                            <th>Escuela</th>
+                            <th>Ciclo</th>
+                            <th>Sec</th>
+                            <th>Tipo</th>
+                            <th>Gru</th>
+                            <th>Ht</th>
+                            <th>Hp</th>
+                            <th>HT</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cargaLectiva.map((c, i) => (
+                            <tr key={i}>
+                              <td>{i + 1}</td>
+                              <td>{c.curso}</td>
+                              <td>{c.nombrecurso}</td>
+                              <td>{c.tipocurso}</td>
+                              <td>{c.nombreescuela}</td>
+                              <td>{c.ciclo}</td>
+                              <td>{c.seccion}</td>
+                              <td>{c.tipo}</td>
+                              <td>{c.practica}</td>
+                              <td>{c.horasteoria}</td>
+                              <td>{c.horaspractica}</td>
+                              <td>{c.ht}</td>
+                            </tr>
+                          ))}
+                          <tr>
+                            <td colSpan={9} className="text-end fw-bold">TOTAL</td>
+                            <td className="fw-bold">{totalHt}</td>
+                            <td className="fw-bold">{totalHp}</td>
+                            <td className="fw-bold">{totalHT}</td>
+                          </tr>
+                        </tbody>
+                      </table>
 
-              <div className="mt-2">
-                <table className="table table-sm table-bordered">
-                  <tbody>
-                    <tr>
-                      <td className="fw-bold">PREPARACIÓN Y EVALUACIÓN</td>
-                      <td className="text-end fw-bold">{prepEval}</td>
-                    </tr>
-                    <tr>
-                      <td className="fw-bold">TOTAL CARGA LECTIVA</td>
-                      <td className="text-end fw-bold">{totalCargaLectiva}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                      <div className="mt-2">
+                        <table className="table table-sm table-bordered">
+                          <tbody>
+                            <tr>
+                              <td className="fw-bold">PREPARACIÓN Y EVALUACIÓN</td>
+                              <td className="text-end fw-bold">{prepEval}</td>
+                            </tr>
+                            <tr>
+                              <td className="fw-bold">TOTAL CARGA LECTIVA</td>
+                              <td className="text-end fw-bold">{totalCargaLectiva}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
               </div>
-            </div>
-          )}
+            )}
+
 
           {/* Actividades no lectivas */}
-          {actividades.length > 0 && (
-            <div className="mb-4">
-              <h5 className="text-center">2. ACTIVIDADES NO LECTIVAS</h5>
-              <table className="table table-sm table-bordered">
-                <thead>
-                  <tr>
-                    <th style={{ width: "40%" }}>Actividad</th>
-                    <th style={{ width: "45%" }}>Descripción</th>
-                    <th style={{ width: "15%" }}>Hrs.</th>
+{actividades.length > 0 && (
+  <div className="mb-4">
+    <Accordion defaultActiveKey="0" className="mb-3">
+      <Accordion.Item eventKey="0">
+        <Accordion.Header>📋 2. ACTIVIDADES NO LECTIVAS</Accordion.Header>
+        <Accordion.Body>
+          <table className="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th style={{ width: "40%" }}>Actividad</th>
+                <th style={{ width: "45%" }}>Descripción</th>
+                <th style={{ width: "15%" }}>Hrs.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {actividades.map((a, i) => {
+                const maxHoras = maxHorasPorActividad[a.actividad] ?? 0;
+                return (
+                  <tr key={i}>
+                    <td>
+                      <div><strong>{a.descripcion}</strong></div>
+                      <small className="text-muted">{a.observa}</small>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={a.descripcion2}
+                        onChange={(e) => handleDescripcionChange(i, e.target.value)}
+                      />
+                    </td>
+                    <td>
+                      <select
+                        className="form-select"
+                        value={a.horas}
+                        onChange={(e) => handleHorasChange(i, Number(e.target.value))}
+                      >
+                        {Array.from({ length: maxHoras + 1 }, (_, h) => (
+                          <option key={h} value={h}>{h}</option>
+                        ))}
+                      </select>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {actividades.map((a, i) => {
-                    const maxHoras = maxHorasPorActividad[a.actividad] ?? 0;
-                    return (
-                      <tr key={i}>
-                        <td>
-                          <div><strong>{a.descripcion}</strong></div>
-                          <small className="text-muted">{a.observa}</small>
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={a.descripcion2}
-                            onChange={(e) => handleDescripcionChange(i, e.target.value)}
-                          />
-                        </td>
-                        <td>
-                          <select
-                            className="form-select"
-                            value={a.horas}
-                            onChange={(e) => handleHorasChange(i, Number(e.target.value))}
-                          >
-                            {Array.from({ length: maxHoras + 1 }, (_, h) => (
-                              <option key={h} value={h}>{h}</option>
-                            ))}
-                          </select>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                );
+              })}
 
-                  <tr>
-                    <td colSpan="2" className="text-end fw-bold">TOTAL CARGA NO LECTIVA</td>
-                    <td className="fw-bold">{totalNoLectiva}</td>
-                  </tr>
-                  <tr>
-                    <td colSpan="2" className="text-end fw-bold">TOTAL CARGA HORARIA</td>
-                    <td className="fw-bold">{totalGeneral}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <tr>
+                <td colSpan="2" className="text-end fw-bold">TOTAL CARGA NO LECTIVA</td>
+                <td className="fw-bold">{totalNoLectiva}</td>
+              </tr>
+              <tr>
+                <td colSpan="2" className="text-end fw-bold">TOTAL CARGA HORARIA</td>
+                <td className="fw-bold">{totalGeneral}</td>
+              </tr>
+            </tbody>
+          </table>
 
-              {/* ✅ Botón guardar al final */}
-              <div className="text-center mt-3">
-                <button className="btn btn-primary" onClick={handleGuardar}>
-                  Guardar Declaración
-                </button>
-              </div>
-            </div>
-          )}
+          {/* ✅ Botón guardar dentro del acordeón */}
+          <div className="text-center mt-3">
+            <button className="btn btn-primary" onClick={handleGuardar}>
+              Guardar Declaración
+            </button>
+          </div>
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+)}
+
+
+
         </div>
       </div>
     </>

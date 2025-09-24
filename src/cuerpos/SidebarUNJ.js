@@ -206,13 +206,13 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
                 <ul className="submenu">
                   <li
                     className={`submenu-link ${
-                      location.pathname === '/docente/actividades/gestion'
+                      location.pathname === '/Declaracion'
                         ? 'active'
                         : ''
                     }`}
-                  >
+                  > 
                     <Link
-                      to="/docente/actividades/gestion"
+                      to="/Declaracion"
                       onClick={toggleSidebar}
                     >
                       Declaracion
@@ -220,13 +220,13 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
                   </li>
                   <li
                     className={`submenu-link ${
-                      location.pathname === '/docente/actividades/reportes'
+                      location.pathname === '/Horarios'
                         ? 'active'
                         : ''
                     }`}
                   >
                     <Link
-                      to="/docente/actividades/reportes"
+                      to="/Horarios"
                       onClick={toggleSidebar}
                     >
                       Horario
@@ -271,13 +271,13 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
                 </li>
                 <li
                   className={`submenu-link ${
-                    location.pathname === '/docente/actividades/reportes'
+                    location.pathname === '/Horarios'
                       ? 'active'
                       : ''
                   }`}
                 >
                   <Link
-                    to="/docente/actividades/reportes"
+                    to="/Horarios"
                     onClick={toggleSidebar}
                   >
                     Horario

@@ -42,6 +42,7 @@ import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsi
 
 import Tutoria from './pages/tutoria/Tutoria.js';
 import Declaracion from './pages/actividades/Declaracion.js';
+import Horarios from './pages/actividades/Horarios.js';
 
 
 
@@ -60,7 +61,7 @@ function AppRoutes() {
         logout();
       }, 3000);*/
     }
-  }, 180000); 
+  }, 1800000); 
 
   return (
     <>
@@ -97,6 +98,7 @@ function AppRoutes() {
             <Route path="participantes/:id" element={<ParticipantesGuias />}/>
             <Route path="tutoria" element={<Tutoria />} />
             <Route path="Declaracion" element={<Declaracion />} />
+            <Route path="Horarios" element={<Horarios />} />
 
         
       
