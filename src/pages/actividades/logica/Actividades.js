@@ -20,7 +20,7 @@ export const obtenerDatosDocente = async (sede, semestre, persona) => {
 
 // 🔹 Export 2
 export const obtenerDatosHorario = async (sede, semestre, persona) => {
-   console.log(`${config.apiUrl}api/horario/datos/${sede}/${semestre}/${persona}`);
+   
   try {
     const res = await axios.get(
       

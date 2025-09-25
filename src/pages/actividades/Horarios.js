@@ -3,55 +3,159 @@ import BreadcrumbUNJ from "../../cuerpos/BreadcrumbUNJ";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import { obtenerDatosHorario } from "./logica/Actividades";
+import FormNoLectiva from "./componentes/formulario";
+import axios from "axios";
 
 import Swal from "sweetalert2";
 import { Accordion, Table } from "react-bootstrap";
 import config from "../../config";
 import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
+import { Button } from "react-bootstrap";
+import { Trash } from "lucide-react"; // o cualquier ícono
 
 function Horarios() {
   const [semestre, setSemestre] = useState("202501");
   const { usuario } = useUsuario();
+  const [cargaNoLectiva, setCargaNoLectiva] = useState([]);
 
   const [docente, setDocente] = useState(null);
   const [cargaLectiva, setCargaLectiva] = useState([]);
   const [actividades, setActividades] = useState([]);
   const [horario, setHorario] = useState([]); // ✅ estado para el horario
+  const [horasDeclaradas, setHorasDeclaradas] = useState([]); // ✅ estado para horas declaradas
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const token = usuario?.codigotokenautenticadorunj;
 
-  useEffect(() => {
-    if (!usuario) return;
-
-    const cargarDatos = async () => {
-      setLoading(true);
-      const result = await obtenerDatosHorario("01", semestre, usuario.docente.persona);
-      console.log("📌 Datos crudos de la API:", result);
-
-      if (result.datos) {
-        setDocente(result.datos.docente);
-        setCargaLectiva(result.datos.cargaLectiva || []);
-
-        const acts = (result.datos.actividades || []).map((a) => ({
-          ...a,
-          descripcion2: a.descripcion2 || "",
-          horas: a.horas ?? 0,
-        }));
-        setActividades(acts);
-
-        setHorario(result.datos.horario || []); // ✅ guardamos horario
-        setMensaje("");
-      } else {
-        setDocente(null);
-        setCargaLectiva([]);
-        setActividades([]);
-        setHorario([]); // ✅ reset en caso de error
-        setMensaje(result.mensaje);
+  // 🔹 FUNCIÓN ELIMINAR CARGA NO LECTIVA
+  const eliminarCargaNoLectiva = async (fila) => {
+  
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: `Se eliminará la actividad`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar"
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.post(
+  `${config.apiUrl}api/horario/eliminarActividad`,
+  {
+    semestre: fila.semestre,
+    per: fila.persona,
+    actividad: fila.actividad,
+    detalle: fila.detalle,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  }
+);
+        if (response.data.error === 0) {
+          Swal.fire("Eliminado", response.data.mensaje, "success");
+          cargarDatos();
+        } else {
+          Swal.fire("Error", response.data.mensaje, "error");
+        }
+      } catch (error) {
+        console.error("Error al eliminar:", error.response?.data || error.message);
+        Swal.fire("Error", "No se pudo eliminar la Actividad.", "error");
       }
-      setLoading(false);
-    };
+    }
+  });
+};
 
+// 🔹 FUNCIÓN GUARDAR CARGA NO LECTIVA
+const guardarCargaNoLectiva = async (datos) => {
+  try {
+    console.log({
+      semestre,
+      persona: usuario.docente.persona,
+      actividad: datos.actividad,
+      dia: datos.dia,
+      inicio: datos.inicio,
+      fin: datos.fin,   // 👈 lo tomamos directo del form
+      horas: datos.horas,
+    });
+
+    const response = await axios.post(
+      `${config.apiUrl}api/horario/guardarActividad`,
+      {
+        semestre,
+        persona: usuario.docente.persona,
+        actividad: datos.actividad,
+        dia: datos.dia,
+        inicio: datos.inicio,
+        fin: datos.fin,   // 👈 se envía al backend
+        horas: datos.horas,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (response.data.error === 0) {
+      Swal.fire("Éxito", "Se asignó la actividad correctamente ✅", "success");
+      cargarDatos(); // refresca la tabla
+    } else {
+      Swal.fire("Error", response.data.mensaje, "error");
+    }
+  } catch (error) {
+    console.error("Error al guardar:", error.response?.data || error.message);
+    Swal.fire("Error", "No se pudo guardar la información.", "error");
+  }
+};
+
+
+
+
+
+
+  // 🔹 FUNCIÓN CARGAR DATOS (global)
+  const cargarDatos = async () => {
+    if (!usuario) return;
+    setLoading(true);
+    const result = await obtenerDatosHorario("01", semestre, usuario.docente.persona);
+   
+
+    if (result.datos) {
+      setDocente(result.datos.docente);
+      setCargaLectiva(result.datos.cargaLectiva || []);
+      setCargaNoLectiva(result.datos.cargaNoLectiva || []); // ✅ guardar cargaNoLectiva
+
+      const acts = (result.datos.actividades || []).map((a) => ({
+        ...a,
+        descripcion2: a.descripcion2 || "",
+        horas: a.horas ?? 0,
+      }));
+      setActividades(acts);
+
+      setHorario(result.datos.horario || []);
+      setHorasDeclaradas(result.datos.horasDeclaradas || []);
+      setMensaje("");
+    } else {
+      setDocente(null);
+      setCargaLectiva([]);
+      setCargaNoLectiva([]); // ✅ reset si no hay datos
+      setActividades([]);
+      setHorario([]);
+      setHorasDeclaradas([]);
+      setMensaje(result.mensaje);
+    }
+    setLoading(false);
+  };
+
+  // 🔹 useEffect
+  useEffect(() => {
     cargarDatos();
   }, [semestre, usuario]);
 
@@ -78,74 +182,6 @@ function Horarios() {
 
   const totalBloquesHorario = totalesPorDiaHorario.reduce((a, b) => a + b, 0);
 
-  // ================== Handlers ==================
-  const handleDescripcionChange = (i, value) => {
-    const nuevas = [...actividades];
-    nuevas[i].descripcion2 = value;
-    setActividades(nuevas);
-  };
-
-  const handleHorasChange = (i, value) => {
-    const nuevas = [...actividades];
-    nuevas[i].horas = value;
-
-    const nuevoTotalNoLectiva = nuevas.reduce((acc, act) => acc + (act.horas ?? 0), 0);
-    const nuevoTotalGeneral = totalCargaLectiva + nuevoTotalNoLectiva;
-
-    if (nuevoTotalGeneral > 40) {
-      Swal.fire({
-        icon: "warning",
-        title: "Límite excedido",
-        text: "La carga horaria total no puede superar 40 horas.",
-      });
-      return;
-    }
-
-    setActividades(nuevas);
-  };
-
-  const handleGuardar = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${config.apiUrl}api/actividades/docente/grabar`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          persona: usuario.docente.persona,
-          semestre,
-          actividades: actividades.map((a) => ({
-            actividad: a.actividad,
-            descripcion: a.descripcion2 || "",
-            horas: a.horas ?? 0,
-          })),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Error al guardar");
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Guardado",
-        text: data.message,
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // ================== Render ==================
   return (
@@ -282,60 +318,177 @@ function Horarios() {
             </div>
           )}
 
-          {/* Horario Semanal */}
-          <div className="mb-4">
-            <h5 className="mb-3">🗓️ Horario Semanal</h5>
-            <Table bordered hover responsive size="sm" className="text-center align-middle">
-              <thead className="table-dark">
-                <tr>
-                  <th>Hora</th>
-                  <th>Lunes</th>
-                  <th>Martes</th>
-                  <th>Miércoles</th>
-                  <th>Jueves</th>
-                  <th>Viernes</th>
-                  <th>Sábado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {horario.map((fila, i) => (
-                  <tr key={i}>
-                    <td className="fw-bold">{fila.horario}</td>
-                    {diasHorario.map((dia, j) => {
-                      const valor = fila[dia];
-                      const match = valor.match(/(#[0-9A-Fa-f]{6})(\[.*\])?/);
-                      const color = match ? match[1] : "#FFFFFF";
-                      const texto = match && match[2] ? match[2].replace(/[\[\]]/g, "") : "";
-                      return (
-                        <td
-                          key={j}
-                          style={{
-                            backgroundColor: color,
-                            color: "#000",
-                            fontWeight: texto ? "bold" : "normal",
-                          }}
-                        >
-                          {texto}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+          <Accordion defaultActiveKey="0" alwaysOpen>
+            {/* Horario Semanal */}
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>🗓️ Horario Semanal</Accordion.Header>
+              <Accordion.Body>
+                <Table bordered hover responsive size="sm" className="text-center align-middle">
+                  <thead className="table-dark">
+                    <tr>
+                      <th>Hora</th>
+                      <th>Lunes</th>
+                      <th>Martes</th>
+                      <th>Miércoles</th>
+                      <th>Jueves</th>
+                      <th>Viernes</th>
+                      <th>Sábado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {horario.map((fila, i) => (
+                      <tr key={i}>
+                        <td className="fw-bold">{fila.horario}</td>
+                        {diasHorario.map((dia, j) => {
+                          const valor = fila[dia];
+                          const match = valor.match(/(#[0-9A-Fa-f]{6})(\[.*\])?/);
+                          const color = match ? match[1] : "#FFFFFF";
+                          const texto = match && match[2] ? match[2].replace(/[\[\]]/g, "") : "";
+                          return (
+                            <td
+                              key={j}
+                              style={{
+                                backgroundColor: color,
+                                color: "#000",
+                                fontWeight: texto ? "bold" : "normal",
+                              }}
+                            >
+                              {texto}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
 
-                {/* Totales dinámicos */}
-                <tr className="fw-bold">
-                  <td>Total</td>
-                  {totalesPorDiaHorario.map((t, i) => (
-                    <td key={i}>{t}</td>
-                  ))}
-                </tr>
-                <tr className="fw-bold table-secondary">
-                  <td>General</td>
-                  <td colSpan={6}>{totalBloquesHorario}</td>
-                </tr>
-              </tbody>
-            </Table>
+                    {/* Totales dinámicos */}
+                    <tr className="fw-bold">
+                      <td>Total</td>
+                      {totalesPorDiaHorario.map((t, i) => (
+                        <td key={i}>{t}</td>
+                      ))}
+                    </tr>
+                    <tr className="fw-bold table-secondary">
+                      <td>General</td>
+                      <td colSpan={6}>{totalBloquesHorario}</td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+
+          {/* Texto aviso */}
+          <div className="alert alert-warning" role="alert">
+            Horas Declaradas por <strong>Actividad</strong>.
           </div>
+
+          <Accordion defaultActiveKey="0" alwaysOpen>
+            <Accordion.Item eventKey="1">
+              <Accordion.Header>📋 Actividades</Accordion.Header>
+              <Accordion.Body>
+                <Table bordered hover responsive size="sm" className="text-center align-middle">
+                  <thead className="table-dark">
+                    <tr>
+                      <th>Nro</th>
+                      <th>Cod.</th>
+                      <th>Descripción</th>
+                      <th>Horas Dec.</th>
+                      <th>Horas Pro.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {horasDeclaradas.map((item, i) => (
+                      <tr key={i}>
+                        <td>{i + 1}</td>
+                        <td>{item.actividad}</td>
+                        <td className="text-start">{item.descripcion}</td>
+                        <td>{item.total_d}</td>
+                        <td>{item.total}</td>
+                      </tr>
+                    ))}
+
+                    {/* Totales */}
+                    <tr className="fw-bold">
+                      <td colSpan={3} className="text-end">TOTAL</td>
+                      <td>
+                        {horasDeclaradas.reduce((acc, a) => acc + (typeof a.total_d === "number" ? a.total_d : 0), 0)}
+                      </td>
+                      <td>
+                        {horasDeclaradas.reduce((acc, a) => acc + (typeof a.total === "number" ? a.total : 0), 0)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+
+          {/* Texto aviso */}
+          <div className="alert alert-warning" role="alert">
+            Horario de carga no lectiva y preparación de clases y evaluación.
+          </div>
+
+          <Accordion defaultActiveKey="0" alwaysOpen>
+            <Accordion.Item eventKey="2">
+              <Accordion.Header>📑 Carga No Lectiva</Accordion.Header>
+              <Accordion.Body>
+                <Table bordered hover responsive size="sm" className="text-center align-middle">
+                  <thead className="table-dark">
+                    <tr>
+                      <th>Nro</th>
+                      <th>Actividad</th>
+                      <th>Día</th>
+                      <th>Inicio</th>
+                      <th>Fin</th>
+                      <th>Horas</th>
+                      <th>Eliminar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cargaNoLectiva.map((item, i) => (
+                      <tr key={i}>
+                        <td>{i + 1}</td>
+                        <td className="text-start">{item.descripcion}</td>
+                        <td>{item.dia}</td>
+                        <td>{item.inicio}</td>
+                        <td>{item.fin}</td>
+                        <td>{item.horas}</td>
+                        <td>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => eliminarCargaNoLectiva(item)}
+                          >
+                            <Trash size={16} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* TOTAL */}
+                    <tr className="fw-bold">
+                      <td colSpan={5} className="text-end">TOTAL</td>
+                      <td>
+                        {cargaNoLectiva.reduce((acc, item) => acc + (item.horas ?? 0), 0)}
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+
+          {/* Texto aviso */}
+          <div className="alert alert-warning" role="alert">
+            Programar horarios.
+          </div>
+
+          {/* ⬅️ Aquí va el formulario */}
+          <FormNoLectiva
+            actividades={actividades}
+            onAgregar={guardarCargaNoLectiva}
+          />
         </div>
       </div>
     </>
