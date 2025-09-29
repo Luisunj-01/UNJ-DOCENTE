@@ -38,28 +38,50 @@ export const obtenerDatosHorario = async (sede, semestre, persona) => {
   }
 };
 
-export const obtenerhorariodocente = async (sede, semestre, personazet, token) => {
-  try {
-    const res = await axios.get(
-      `${config.apiUrl}api/horario/horariosdocente/${sede}/${semestre}/${personazet}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,  // 🔑 El token del usuario
-        },
-      }
-    );
 
-    if (res.data.success) {
-      return {
-        cargaLectiva: res.data.cargaLectiva,
-        horario: res.data.horario,
-        mensaje: ''
-      };
+export const obtenercargadocente = async (sede, semestre, personazet) => {
+  try {
+    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
+      const res = await axios.get(`${config.apiUrl}api/reportes/cargadocente/${sede}/${semestre}/${personazet}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
     } else {
-      return { cargaLectiva: [], horario: [], mensaje: res.data.mensaje };
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
     }
   } catch (err) {
     console.error('Error al obtener datos:', err);
-    return { cargaLectiva: [], horario: [], mensaje: 'Error al obtener el horario.' };
+    return null;
+  }
+};
+
+export const obtenerNombreConfiguracion = async (tipo, parametros = {}) => {
+  try {
+    const response = await axios.get(`${config.apiUrl}api/configuraciones`, {
+      params: {
+        tipo,
+        ...parametros  // extiende cualquier parámetro adicional
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error(`Error al obtener nombre para tipo "${tipo}" con parámetros:`, parametros, error);
+    return null; // o podrías devolver un valor predeterminado como ""
+  }
+};
+
+
+export const obtenerDatoshorariodocente = async (codigo, semestre, persona) => {
+  try {
+    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
+      const res = await axios.get(`${config.apiUrl}api/reportes/horariodocente/${codigo}/${semestre}/${persona}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos del alumno:', err);
+    return null;
   }
 };

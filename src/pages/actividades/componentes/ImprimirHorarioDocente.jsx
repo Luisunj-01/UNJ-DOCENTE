@@ -1,157 +1,187 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { Table } from "react-bootstrap";
-import { obtenerhorariodocente } from "../logica/Actividades";
-import { QRCodeSVG } from "qrcode.react";
-import { FaPrint } from "react-icons/fa";
-import Swal from "sweetalert2";
+import React, { useEffect, useState } from 'react';
+import { useUsuario } from '../../../context/UserContext';
+import { useLocation } from 'react-router-dom';
 
-function ImprimirHorarioDocente() {
-  const { search } = useLocation();
-  const [cargaLectiva, setCargaLectiva] = useState([]);
-  const [horario, setHorario] = useState([]);
-  const [semestre, setSemestre] = useState("");
-  const [sede, setSede] = useState("");
-  const [persona, setPersona] = useState("");
+import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+import TablaCursos from '../../reutilizables/componentes/TablaCursos';
+import { FaPrint } from 'react-icons/fa';
+import Cabecerareporte from './Cabecerareporte';
 
-  // Fecha y hora
-  const fecha = new Date();
-  const fechaFormateada = `${String(fecha.getDate()).padStart(2, "0")}-${String(
-    fecha.getMonth() + 1
-  ).padStart(2, "0")}-${fecha.getFullYear()}`;
-  const horaActual = fecha.toLocaleTimeString("es-PE", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const urlActual = window.location.href;
+import { obtenercargadocente, obtenerNombreConfiguracion } from '../logica/Actividades';
 
-  // 🔹 Decodificar parámetros
-  useEffect(() => {
+const CabeceraMatricula = ({ titulomat, sede, nombredocente, nombreEscuela, semestre }) => {
+    const fecha = new Date();
+    const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
+    
+    return (
+        <>
+            <Cabecerareporte titulomat={titulomat} />
+            <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
+            <table className="table">
+                <tbody>
+                    <tr>
+                        <td><strong>Sede:</strong></td>
+                        <td>{sede}</td>
+                        <td><strong>Docente:</strong></td>
+                        <td>{nombredocente}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Semestre:</strong></td>
+                        <td>{semestre}</td>
+                        <td><strong>Fecha:</strong></td>
+                        <td>{fechaFormateada}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </>
+    );
+};
+
+const ImprimirHorarioDocente = () => {
+    const [datos, setDatos] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [nombresede, setNombresede] = useState('No Definida');
+    const [nombreescuela, setNombreescuela] = useState('No Definida');
+    const { usuario } = useUsuario();
+    const { search } = useLocation();
+    const [titulomat] = useState('REPORTE CARGA ACADÉMICA');
+
+    // 🔹 Manejo seguro del código
     const queryParams = new URLSearchParams(search);
-    const codigoParam = queryParams.get("codigo");
+    const codigo = queryParams.get('codigo');
 
-    if (codigoParam) {
-      try {
-        const decoded = atob(atob(codigoParam));
-        const [sedeDec, semestreDec, personaDec] = decoded.split("|");
-        setSede(sedeDec);
-        setSemestre(semestreDec);
-        setPersona(personaDec);
+    let sede = '', semestre = '', persona = '', dniusuario = '';
 
-        // Cargar datos API
-        cargarDatos(sedeDec, semestreDec, personaDec);
-      } catch (error) {
-        Swal.fire("Error", "Código inválido en la URL", "error");
-      }
+    if (codigo) {
+        try {
+            const decoded = atob(atob(codigo));
+            [sede, semestre, persona, dniusuario] = decoded.split('|');
+            console.log('Decodificado:', { sede, semestre, persona, dniusuario });
+        } catch (err) {
+            console.error('Error al decodificar el código:', err);
+        }
+    } else {
+        console.error('No se encontró parámetro "codigo" en la URL');
     }
-  }, [search]);
 
-  // 🔹 Llamar al API
-  const cargarDatos = async (sede, semestre, persona) => {
-    try {
-      const token = localStorage.getItem("token"); // 👈 trae el token de sesión
-      const resultado = await obtenerhorariodocente(sede, semestre, persona, token);
+    const nombredocente = usuario?.docente?.nombrecompleto || '';
+    const departamentoacademico = usuario?.docente?.departamentoacademico || '';
 
-      if (resultado.mensaje) {
-        Swal.fire("Error", resultado.mensaje, "error");
-      }
+    useEffect(() => {
+        if (!sede || !persona) {
+            console.warn('No se tienen parámetros válidos para llamar a la API');
+            setLoading(false);
+            return;
+        }
 
-      setCargaLectiva(resultado.cargaLectiva || []);
-      setHorario(resultado.horario || []);
-    } catch (error) {
-      Swal.fire("Error", "No se pudo cargar la información", "error");
-    }
-  };
+        const fetchDatos = async () => {
+            try {
+                const resultadomatricula = await obtenercargadocente(sede, semestre, persona);
+                console.log('Respuesta cruda de la API:', resultadomatricula);
 
-  return (
-    <div className="container mt-4">
-      {/* Botón imprimir */}
-      <button className="btn btn-outline-primary mb-3" onClick={() => window.print()}>
-        <FaPrint className="me-2" /> Imprimir
-      </button>
+                // Siempre devolver array aunque esté vacío
+                setDatos(resultadomatricula?.datos || []);
 
-      {/* Logo y QR */}
-      <div className="row mb-3">
-        <div className="col-6 text-start">
-          <img src="/image/logo/logo-unj-v1.svg" alt="Logo" width="120" />
-        </div>
-        <div className="col-6 text-end">
-          <QRCodeSVG value={urlActual} size={96} level="L" includeMargin={true} />
-          <p style={{ fontSize: "0.8rem", marginTop: "5px" }}>
-            <strong>{fechaFormateada} {horaActual}</strong>
-          </p>
-        </div>
-      </div>
+                const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
+                const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico });
 
-      {/* --- TABLA DE CARGA LECTIVA --- */}
-      <h5 className="text-center mt-4">Carga Lectiva</h5>
-      <Table striped bordered hover size="sm" className="mb-5">
-        <thead>
-          <tr>
-            <th>Curso</th>
-            <th>Escuela</th>
-            <th>Créditos</th>
-            <th>HT</th>
-            <th>HP</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cargaLectiva.length > 0 ? (
-            cargaLectiva.map((item, index) => (
-              <tr key={index}>
-                <td>{item.curso}</td>
-                <td>{item.escuela}</td>
-                <td>{item.creditos}</td>
-                <td>{item.ht}</td>
-                <td>{item.hp}</td>
-                <td>{item.total}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="6" className="text-center">
-                No hay datos de carga lectiva
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+                setNombresede(
+                    typeof nombresedeResp === 'object' ? nombresedeResp?.valor || JSON.stringify(nombresedeResp) : nombresedeResp
+                );
+                setNombreescuela(
+                    typeof nombreescuelaResp === 'object' ? nombreescuelaResp?.valor || JSON.stringify(nombreescuelaResp) : nombreescuelaResp
+                );
+            } catch (err) {
+                console.error('Error al cargar datos:', err);
+                setDatos([]);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-      {/* --- TABLA DE HORARIO --- */}
-      <h5 className="text-center">Horario</h5>
-      <Table striped bordered hover size="sm">
-        <thead>
-          <tr>
-            <th>Día</th>
-            <th>Hora Inicio</th>
-            <th>Hora Fin</th>
-            <th>Curso</th>
-            <th>Aula</th>
-          </tr>
-        </thead>
-        <tbody>
-          {horario.length > 0 ? (
-            horario.map((item, index) => (
-              <tr key={index}>
-                <td>{item.dia}</td>
-                <td>{item.horaInicio}</td>
-                <td>{item.horaFin}</td>
-                <td>{item.curso}</td>
-                <td>{item.aula}</td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="text-center">
-                No hay datos de horario
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
-    </div>
-  );
-}
+        fetchDatos();
+    }, [sede, semestre, persona, departamentoacademico]);
+
+    const columnas = [
+        { clave: 'curso', titulo: 'Curso', render: (fila) => String(fila.curso || '') },
+        { clave: 'nombrecurso', titulo: 'Nombre del Curso' },
+        { clave: 'session', titulo: 'Sec.', render: (fila) => `${fila.seccion || ''} ${fila.practica || ''}` },
+        { clave: 'nombreescuela', titulo: 'Escuela' },
+        { clave: 'tipo', titulo: 'Tipo' },
+        { clave: 'practica', titulo: 'Gru' },
+        { clave: 'horasteoria', titulo: 'Ht' },
+        { clave: 'horaspractica', titulo: 'Hp' },
+        { clave: 'horastotal', titulo: 'HT' }
+    ];
+
+    const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteoria || 0), 0);
+    const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
+
+    return (
+        <>
+            <button className="print-button" onClick={() => window.print()}>
+                <FaPrint />
+            </button>
+
+            <div className="container mt-4">
+                <div className="row">
+                    <div className="col-12">
+                        {loading ? (
+                            <TablaSkeleton filas={3} columnas={5} />
+                        ) : (
+                            <CabeceraMatricula
+                                titulomat={titulomat}
+                                sede={nombresede}
+                                nombredocente={nombredocente}
+                                nombreEscuela={nombreescuela}
+                                semestre={semestre}
+                            />
+                        )}
+                    </div>
+                </div>
+
+                <div style={{ border: '2px solid #035aa6', margin: '20px 0' }}></div>
+
+                <div className="row mt-3">
+                    <div className="col-12">
+                        {loading ? (
+                            <TablaSkeleton filas={6} columnas={8} />
+                        ) : (
+                            <>
+                                <TablaCursos
+                                    datos={datos}
+                                    columnas={columnas}
+                                    usarDataTable={true}
+                                    mostrarBuscador={false}
+                                    paginacion={false}
+                                    colorFondoEncabezado="#004080"
+                                    colorTextoEncabezado="#ffffff"
+                                />
+                                {/* 🔹 Depuración temporal */}
+                                <pre>{JSON.stringify(datos, null, 2)}</pre>
+
+                                <div className="row">
+                                    <div className="col-md-7"></div>
+                                    <div className="col-md-5">
+                                        <table className="table">
+                                            <tbody>
+                                                <tr>
+                                                    <td></td><td></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasPractica}</strong></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+};
 
 export default ImprimirHorarioDocente;

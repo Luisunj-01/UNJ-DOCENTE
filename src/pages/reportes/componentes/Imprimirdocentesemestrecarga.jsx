@@ -61,6 +61,7 @@ const Imprimirdocentesemestrecarga = () => {
         const fetchDatos = async () => {
             try {
                 const resultadomatricula = await obtenercargadocente(sede, semestre, persona);
+                console.log(resultadomatricula);
                 const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede: sede });
                 const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico });
 
@@ -82,6 +83,7 @@ const Imprimirdocentesemestrecarga = () => {
 
         fetchDatos();
     }, [sede, semestre, persona, departamentoacademico]);
+    
 
     const columnas = [
         { clave: 'curso', titulo: 'Curso', render: (fila) => String(fila.curso || '') },
