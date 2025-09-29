@@ -37,3 +37,29 @@ export const obtenerDatosHorario = async (sede, semestre, persona) => {
     return { datos: null, mensaje: "Error al conectar con la API." };
   }
 };
+
+export const obtenerhorariodocente = async (sede, semestre, personazet, token) => {
+  try {
+    const res = await axios.get(
+      `${config.apiUrl}api/horario/horariosdocente/${sede}/${semestre}/${personazet}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,  // 🔑 El token del usuario
+        },
+      }
+    );
+
+    if (res.data.success) {
+      return {
+        cargaLectiva: res.data.cargaLectiva,
+        horario: res.data.horario,
+        mensaje: ''
+      };
+    } else {
+      return { cargaLectiva: [], horario: [], mensaje: res.data.mensaje };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos:', err);
+    return { cargaLectiva: [], horario: [], mensaje: 'Error al obtener el horario.' };
+  }
+};

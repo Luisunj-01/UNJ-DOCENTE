@@ -18,9 +18,13 @@ import { FaPrint } from "react-icons/fa";
 
 
 
+
 function Horarios() {
-  const [semestre, setSemestre] = useState("202501");
   const { usuario } = useUsuario();
+  const [semestre, setSemestre] = useState("202501");
+  const persona = usuario.persona;  // 👈 este es tu código de persona
+  const sede = usuario.sede;        // 👈 este es tu código de sede
+
   const [cargaNoLectiva, setCargaNoLectiva] = useState([]);
 
   const [docente, setDocente] = useState(null);
@@ -255,16 +259,18 @@ const guardarCargaNoLectiva = async (datos) => {
             <Accordion.Item eventKey="1">
                 <Accordion.Header>📘 Carga Lectiva</Accordion.Header>
                 <Accordion.Body>
-                {/* Botón de imprimir */}
-                <div className="mb-3 text-end">
-                    <Button 
-                    variant="outline-primary" 
-                    size="sm"
-                    onClick={() => window.print()}
-                    >
-                    <FaPrint className="me-2" /> Imprimir
-                    </Button>
-                </div>
+              <button
+            className="btn btn-outline-primary btn-sm"
+            onClick={() => {
+                const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
+                const cadena = `${sede}|${semestre}|${persona}`;
+                const codigo = btoa(btoa(cadena)); // doble base64
+                window.open(`/imprimirhorario?codigo=${codigo}`, "HorarioDocente", opciones);
+            }}
+            >
+            <FaPrint className="me-2" /> Imprimir horario
+            </button>
+
 
           <Table bordered hover size="sm" responsive>
             <thead className="table-light">

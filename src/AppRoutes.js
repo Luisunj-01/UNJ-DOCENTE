@@ -38,6 +38,8 @@ import ImprimirReporteSesiones from './pages/reportes/componentes/ImprimirReport
 import ImprimirAsistenciaGuia from './pages/reportes/componentes/ImprimirAsistenciaGuia.jsx';
 import ImprimirAsistenciaPorcentaje from './pages/reportes/componentes/ImprimirAsistenciaPorcentaje.jsx';
 import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsistenciaSesiones.jsx';
+import ImprimirHorarioDocente from './pages/actividades/componentes/ImprimirHorarioDocente.jsx';
+
 
 
 import Tutoria from './pages/tutoria/Tutoria.js';
@@ -119,6 +121,7 @@ function AppRoutes() {
 
           <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
           <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
+          <Route path="ImprimirHorarioDocente" element={<ImprimirHorarioDocente />} />
 
 
           
