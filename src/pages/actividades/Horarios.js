@@ -13,6 +13,11 @@ import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 import { Button } from "react-bootstrap";
 import { Trash } from "lucide-react"; // o cualquier ícono
 
+import { FaPrint } from "react-icons/fa";
+
+
+
+
 function Horarios() {
   const [semestre, setSemestre] = useState("202501");
   const { usuario } = useUsuario();
@@ -114,11 +119,6 @@ const guardarCargaNoLectiva = async (datos) => {
     Swal.fire("Error", "No se pudo guardar la información.", "error");
   }
 };
-
-
-
-
-
 
   // 🔹 FUNCIÓN CARGAR DATOS (global)
   const cargarDatos = async () => {
@@ -249,74 +249,85 @@ const guardarCargaNoLectiva = async (datos) => {
           </div>
 
           {/* Carga Lectiva */}
-          {cargaLectiva.length > 0 && (
-            <div className="mb-4">
-              <Accordion defaultActiveKey="0" className="mb-3">
-                <Accordion.Item eventKey="1">
-                  <Accordion.Header>📘 Carga Lectiva</Accordion.Header>
-                  <Accordion.Body>
-                    <Table bordered hover size="sm" responsive>
-                      <thead className="table-light">
-                        <tr>
-                          <th>N°</th>
-                          <th>Código</th>
-                          <th>Curso</th>
-                          <th>Tipo</th>
-                          <th>Escuela</th>
-                          <th>Ciclo</th>
-                          <th>Sec</th>
-                          <th>Tipo</th>
-                          <th>Gru</th>
-                          <th>Ht</th>
-                          <th>Hp</th>
-                          <th>HT</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {cargaLectiva.map((c, i) => (
-                          <tr key={i}>
-                            <td>{i + 1}</td>
-                            <td
-                              style={{
-                                backgroundColor: c.codigo,
-                                color: "#000",
-                                fontWeight: "bold",
-                                textAlign: "center",
-                              }}
-                            >
-                              {c.curso}
-                            </td>
-                            <td>{c.nombrecurso}</td>
-                            <td>{c.tipocurso}</td>
-                            <td>{c.nombreescuela}</td>
-                            <td>{c.ciclo}</td>
-                            <td>{c.seccion}</td>
-                            <td>{c.tipo}</td>
-                            <td>{c.practica}</td>
-                            <td>{c.horasteoria}</td>
-                            <td>{c.horaspractica}</td>
-                            <td>{c.ht}</td>
-                          </tr>
-                        ))}
-                        <tr className="fw-bold">
-                          <td colSpan={9} className="text-end">TOTAL</td>
-                          <td>
-                            {cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0)}
-                          </td>
-                          <td>
-                            {cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0)}
-                          </td>
-                          <td>
-                            {cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </Table>
-                  </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
-            </div>
-          )}
+        {cargaLectiva.length > 0 && (
+        <div className="mb-4">
+            <Accordion defaultActiveKey="0" className="mb-3">
+            <Accordion.Item eventKey="1">
+                <Accordion.Header>📘 Carga Lectiva</Accordion.Header>
+                <Accordion.Body>
+                {/* Botón de imprimir */}
+                <div className="mb-3 text-end">
+                    <Button 
+                    variant="outline-primary" 
+                    size="sm"
+                    onClick={() => window.print()}
+                    >
+                    <FaPrint className="me-2" /> Imprimir
+                    </Button>
+                </div>
+
+          <Table bordered hover size="sm" responsive>
+            <thead className="table-light">
+              <tr>
+                <th>N°</th>
+                <th>Código</th>
+                <th>Curso</th>
+                <th>Tipo</th>
+                <th>Escuela</th>
+                <th>Ciclo</th>
+                <th>Sec</th>
+                <th>Tipo</th>
+                <th>Gru</th>
+                <th>Ht</th>
+                <th>Hp</th>
+                <th>HT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cargaLectiva.map((c, i) => (
+                <tr key={i}>
+                  <td>{i + 1}</td>
+                  <td
+                    style={{
+                      backgroundColor: c.codigo,
+                      color: "#000",
+                      fontWeight: "bold",
+                      textAlign: "center",
+                    }}
+                  >
+                    {c.curso}
+                  </td>
+                  <td>{c.nombrecurso}</td>
+                  <td>{c.tipocurso}</td>
+                  <td>{c.nombreescuela}</td>
+                  <td>{c.ciclo}</td>
+                  <td>{c.seccion}</td>
+                  <td>{c.tipo}</td>
+                  <td>{c.practica}</td>
+                  <td>{c.horasteoria}</td>
+                  <td>{c.horaspractica}</td>
+                  <td>{c.ht}</td>
+                </tr>
+              ))}
+              <tr className="fw-bold">
+                <td colSpan={9} className="text-end">TOTAL</td>
+                <td>
+                  {cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0)}
+                </td>
+                <td>
+                  {cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0)}
+                </td>
+                <td>
+                  {cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0)}
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+        </Accordion.Body>
+      </Accordion.Item>
+    </Accordion>
+  </div>
+)}
 
           <Accordion defaultActiveKey="0" alwaysOpen>
             {/* Horario Semanal */}
