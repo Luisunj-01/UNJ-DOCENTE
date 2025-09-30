@@ -68,7 +68,11 @@ export const obtenerguiasemana = async (sede, semestre, escuela, curricula, curs
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+      
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -84,7 +88,11 @@ export const obtenerreportesesiones = async (sede, semestre, escuela, curricula,
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reporteSesiones/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+     
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -101,7 +109,11 @@ export const obtenerasistenciaguia = async (sede, semestre, escuela, curricula, 
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportasistenciaguia/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+      
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -118,7 +130,11 @@ export const obtenerAsistenciasemana = async (sede, semestre, escuela, curricula
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportAsistenciasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}/${grupo}/${sesion}/${clave}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+      
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -134,7 +150,11 @@ export const obtenerAsistenciaporcentaje = async (sede, semestre, escuela, curri
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportAsistenciaporcentaje/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}/${grupo}/${sesion}/${clave}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+     
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -150,7 +170,10 @@ export const obtenerAsistenciasesiones = async (sede, semestre, escuela, curricu
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportAsistenciasesiones/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}/${grupo}/${sesion}/${clave}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -171,7 +194,11 @@ export const obtenerActaDetalle = async (semestre, sede, escuela, curricula, cur
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reporteacta/${semestre}/${sede}/${escuela}/${curricula}/${curso}/${seccion}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+      
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -187,7 +214,10 @@ export const obtenerListamatriculados = async (semestre, sede, escuela, curricul
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reportelistamatriculados/${semestre}/${sede}/${escuela}/${curricula}/${curso}/${seccion}`);
-      //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+    //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+     
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -203,7 +233,11 @@ export const obtenerReportenotas = async (sede, semestre, escuela, curricula, cu
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
       const res = await axios.get(`${config.apiUrl}api/reportes/reporteregistronotas/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${unidad}`);
+
       //console.log(`${config.apiUrl}api/reportes/reportguiasemana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${semana}`);
+
+      
+
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {

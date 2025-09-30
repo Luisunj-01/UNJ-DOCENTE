@@ -16,9 +16,6 @@ import { Trash } from "lucide-react"; // o cualquier ícono
 import { FaPrint } from "react-icons/fa";
 
 
-
-
-
 function Horarios() {
   const { usuario } = useUsuario();
   const [semestre, setSemestre] = useState("202501");
@@ -79,20 +76,10 @@ function Horarios() {
     }
   });
 };
-
 // 🔹 FUNCIÓN GUARDAR CARGA NO LECTIVA
 const guardarCargaNoLectiva = async (datos) => {
   try {
-    console.log({
-      semestre,
-      persona: usuario.docente.persona,
-      actividad: datos.actividad,
-      dia: datos.dia,
-      inicio: datos.inicio,
-      fin: datos.fin,   // 👈 lo tomamos directo del form
-      horas: datos.horas,
-    });
-
+    
     const response = await axios.post(
       `${config.apiUrl}api/horario/guardarActividad`,
       {
@@ -101,7 +88,7 @@ const guardarCargaNoLectiva = async (datos) => {
         actividad: datos.actividad,
         dia: datos.dia,
         inicio: datos.inicio,
-        fin: datos.fin,   // 👈 se envía al backend
+        fin: datos.fin,
         horas: datos.horas,
       },
       {
@@ -114,7 +101,7 @@ const guardarCargaNoLectiva = async (datos) => {
 
     if (response.data.error === 0) {
       Swal.fire("Éxito", "Se asignó la actividad correctamente ✅", "success");
-      cargarDatos(); // refresca la tabla
+      cargarDatos();
     } else {
       Swal.fire("Error", response.data.mensaje, "error");
     }
@@ -123,6 +110,7 @@ const guardarCargaNoLectiva = async (datos) => {
     Swal.fire("Error", "No se pudo guardar la información.", "error");
   }
 };
+
 
   // 🔹 FUNCIÓN CARGAR DATOS (global)
   const cargarDatos = async () => {
@@ -267,7 +255,10 @@ const guardarCargaNoLectiva = async (datos) => {
                 const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
                 const cadena = `${sede}|${semestre}|${persona}`;
                 const codigo = btoa(btoa(cadena)); // doble base64
+
                 window.open(`/imprimirhorariodocente?codigo=${codigo}`, "HorarioDocente", opciones);
+
+                window.open(`/imprimirHorarioDocente?codigo=${codigo}`, "HorarioDocente", opciones);
             }}
             >
             <FaPrint className="me-2" /> Imprimir horario

@@ -61,7 +61,12 @@ const Imprimirdocentesemestrecarga = () => {
         const fetchDatos = async () => {
             try {
                 const resultadomatricula = await obtenercargadocente(sede, semestre, persona);
+<<<<<<< HEAD
                 console.log(resultadomatricula);
+=======
+               
+              
+>>>>>>> 9a2a6ba (Primer commit)
                 const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede: sede });
                 const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico });
 
