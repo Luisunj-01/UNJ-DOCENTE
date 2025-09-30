@@ -228,7 +228,7 @@ export const obtenerListamatriculados = async (semestre, sede, escuela, curricul
     return null;
   }
 };
-
+//go
 export const obtenerReportenotas = async (sede, semestre, escuela, curricula, curso, seccion, unidad) => {
   try {
     //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);

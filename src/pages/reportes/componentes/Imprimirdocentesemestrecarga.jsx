@@ -63,10 +63,6 @@ const Imprimirdocentesemestrecarga = () => {
                 const resultadomatricula = await obtenercargadocente(sede, semestre, persona);
 
                 console.log(resultadomatricula);
-
-               
-              
-
                 const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede: sede });
                 const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico });
 

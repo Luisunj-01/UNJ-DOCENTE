@@ -257,8 +257,6 @@ const guardarCargaNoLectiva = async (datos) => {
                 const codigo = btoa(btoa(cadena)); // doble base64
 
                 window.open(`/imprimirhorariodocente?codigo=${codigo}`, "HorarioDocente", opciones);
-
-                window.open(`/imprimirHorarioDocente?codigo=${codigo}`, "HorarioDocente", opciones);
             }}
             >
             <FaPrint className="me-2" /> Imprimir horario
