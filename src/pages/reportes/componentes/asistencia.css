@@ -1,0 +1,27 @@
+/* Nro. → se ajusta al contenido */
+.tabla-acta-asistencia th:nth-child(1),
+.tabla-acta-asistencia td:nth-child(1) {
+  width: auto;          /* 👈 sin ancho fijo */
+  white-space: nowrap;  /* evita salto de línea */
+  text-align: center;
+  font-size: 12px;
+  padding: 2px 6px;
+}
+
+/* Código → se ajusta al contenido */
+.tabla-acta-asistencia th:nth-child(2),
+.tabla-acta-asistencia td:nth-child(2) {
+  width: auto;          /* 👈 ajustable */
+  white-space: nowrap;
+  text-align: center;
+  padding: 2px 6px;
+}
+
+/* Nombre y Apellidos → se ajusta también */
+.tabla-acta-asistencia th:nth-child(3),
+.tabla-acta-asistencia td:nth-child(3) {
+  width: auto;          /* 👈 ajustable */
+  white-space: nowrap;
+  text-align: center;
+  padding: 2px 6px;
+}

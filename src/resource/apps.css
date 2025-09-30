@@ -1,0 +1,156 @@
+html,
+body {
+  /* background: linear-gradient(to right,#f3f4f6, #f3f4f6,#f3f4f6); */
+  /* background:rgba(255,255,255,.45); */
+  background-color: #ffffff;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+.cont-app {
+  background-color: #0e9fee;
+  overflow: auto;
+  background-position: cover;
+  background-size: cover;
+}
+.cont-main {
+  background-color: #f2f7fa;
+  border-radius: 10px;
+  height: 100%;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+}
+
+#mySidenav2 {
+  background-color: #f2f7fa;
+  top: 50px;
+  display: none;
+  width: 0px;
+}
+#mySidenav {
+  border-radius: 10px;
+  /* border-radius: 5px; */
+  top: 15px;
+  left: 15px;
+  bottom: 15px;
+  /* margin-left: 10px; */
+  width: 320px;
+
+  /* height: 100vh; */
+  padding: 15px;
+  background-color: #f2f7fa;
+  box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%),
+    0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+
+  position: fixed;
+  z-index: 1031;
+
+  overflow-x: hidden;
+  transition: 0.5s;
+}
+/* .w-page {
+  margin-left: 350px;
+} */
+.page {
+  margin-left: 342px;
+  height: 100%;
+  padding-top: 15px;
+  padding-left: 0px;
+  padding-right: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.page2 {
+  padding-top: 15px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 15px;
+  height: 100%;
+}
+input::placeholder {
+  color: gray;
+}
+/* Estilos para el texto del Navbar */
+#navbar-header {
+  /* background : #1171ef!important; */
+  color: white !important;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.img-blanco {
+  filter: brightness(0) invert(1);
+}
+
+/* Estilos para el dropdown-menu */
+.dropdown-menu {
+  /* width: calc(100% + 0.5rem); */
+  margin-left: -0.5rem; /* Compensación para que el dropdown-menu quede alineado correctamente */
+}
+/* .custom-placeholder::placeholder {
+  color: #ffffff;
+  opacity: 1; 
+} */
+
+/* Empezamos con los estilos del escritorio */
+.custom-data-table .rdt_Table {
+  min-height: 32rem; /* Establece la altura mínima para la tabla */
+}
+
+@media screen and (max-width: 991px) {
+  .page {
+    margin-left: 0px;
+  }
+  .w-page {
+    margin-left: 0px;
+  }
+  .cont-main {
+    border-radius: 0px;
+  }
+  .page2 {
+    padding: 0px;
+    border-radius: 0px;
+  }
+  .page {
+    padding: 0px;
+    border-radius: 0px;
+  }
+  #mySidenav {
+    border-radius: 0px;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  #offcanvasNavbar-expand-sidebar {
+    transition: transform 0.3s ease-in-out;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  /* Aquí van los estilos para tablets medianas */
+}
+
+@media screen and (max-width: 479px) {
+  /* Aquí van los estilos para smartphones */
+}
+
+.hide-split-after .dropdown-toggle::after {
+  display: none !important;
+}
+.hide-split-before .dropdown-toggle::before {
+  display: none !important;
+}
+
+.not-spin input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.not-spin input[type="number"]::-webkit-outer-spin-button,
+.not-spin input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

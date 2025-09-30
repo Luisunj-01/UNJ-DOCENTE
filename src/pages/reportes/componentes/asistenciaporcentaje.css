@@ -1,0 +1,20 @@
+.tabla-acta-asistencia {
+  width: 100%;
+  overflow-x: hidden; /* 🚫 elimina el scroll horizontal */
+}
+
+.tabla-acta-asistencia table {
+  width: 100%;
+  max-width: 100%;  /* ⚡ asegura que nunca exceda el ancho */
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.tabla-acta-asistencia th,
+.tabla-acta-asistencia td {
+  white-space: normal !important; /* permite saltos de línea */
+  word-break: break-word;         /* rompe palabras largas */
+  text-align: center;
+  font-size: 12px;
+  padding: 4px;                   /* reduce espacio */
+}

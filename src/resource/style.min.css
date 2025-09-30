@@ -1,0 +1,84 @@
+.inlineblock, .navbar-right .navbar-nav>li, .navbar-right .navbar-nav>li>a, .sidebar, .right-sidebar .choose-skin li div, .right-sidebar .bg_color li div, .right-sidebar .right_chat .media .message, .right-sidebar .right_chat .media .status, .right-sidebar .theme-light-dark li, .card, .card .header .header-dropdown li, .wizard .actions ul, .dropdown-menu ul.menu .icon-circle, .team-info li, .mcard_3 .social-links li, .mcard_4 .social-links li, .social_icon, .contact .c_list .checkbox, .contact .c_list .c_name {
+    display: inline-block;
+}
+.sidebar {
+    -moz-transition: all 0.5s;
+    -o-transition: all 0.5s;
+    -webkit-transition: all 0.5s;
+    transition: all 0.5s;
+    font-family: "Comfortaa", sans-serif;
+    width: 250px;
+    height: calc(100vh - 0px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: none;
+    z-index: 10;
+}
+
+.navbar-brand {
+    display: flex
+;
+    align-items: center;
+    margin: 10px 10px 0 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+.navbar-brand .btn-menu {
+    -moz-transition: all 0.5s;
+    -o-transition: all 0.5s;
+    -webkit-transition: all 0.5s;
+    transition: all 0.5s;
+    border: 0;
+    background: transparent;
+    line-height: 15px;
+    opacity: 0.6;
+    padding: 6px;
+}
+
+.zmdi {
+    display: inline-block;
+    font: normal normal normal 14px / 1 'Material-Design-Iconic-Font';
+    font-size: 18px;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.zmdi-menu:before {
+    content: '\f197';
+}
+
+
+.navbar-brand a {
+    margin-left: 10px;
+    width: 100%;
+}
+
+button, input, select, a {
+    outline: none !important;
+}
+
+
+a {
+    color: #0c7ce6;
+}
+
+img {
+    max-width: 100%;
+    border-radius: 1px;
+}
+
+.sidebar .menu {
+    position: relative;
+}
+
+.p-l-0, .sidebar .menu .list, .sidebar .menu .list .ml-menu, .dropdown-menu ul.menu, .invoice .nav-tabs {
+    padding-left: 0px;
+}
+
+
+.sidebar .menu .list {
+    list-style: none;
+    margin: 0 10px;
+}

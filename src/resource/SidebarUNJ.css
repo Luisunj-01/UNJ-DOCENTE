@@ -1,0 +1,235 @@
+/*.sidebar {
+    width: 260px;
+    height: 100vh;              
+    background-color: #ffffff;
+    color: #ffffff;
+    font-family: sans-serif;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    overflow: hidden;  
+  }
+  
+  .sidebar-content {
+    background-color: white;
+    margin: 0;
+    padding: 20px;
+    border-radius: 0 0 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;           
+    scrollbar-width: thin;      
+    scrollbar-color: #003580 #f1f1f1;
+  }
+
+  .sidebar-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-content::-webkit-scrollbar-thumb {
+    background-color: #003580;
+    border-radius: 10px;
+  }
+  
+  .sidebar-content::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+  }*/
+  
+
+  
+
+  .sidebar {
+    width: 260px;
+    height: 100vh;
+    /*background-color: #ffffff;*/
+    color: #ffffff;
+    font-family: sans-serif;
+    /*position: fixed;*/
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    /*display: flex;*/
+    display: contents;
+    flex-direction: column;
+    overflow: hidden; /* Esto evita el scroll, lo cambiamos abajo */
+
+    
+    
+  }
+
+  
+  .breadcrumb-item+.breadcrumb-item::before {
+      color: black !important
+  }
+  
+  
+  /* Contenedor con scroll vertical */
+  .sidebar-content {
+    /*background-color: white;*/
+    /*flex-grow: 1; /*  ocupa todo el alto disponible */
+    overflow-y: auto; /*  scroll vertical */
+    padding: 20px 20px 70px;
+    /*border-radius: 0 0 20px 20px;*/
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #003580 #f1f1f1;
+    /*margin-bottom: 70px;*/
+    border-radius: 5px !important;
+  }
+  
+  .sidebar-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-content::-webkit-scrollbar-thumb {
+    background-color: #003580;
+    border-radius: 0px;
+  }
+  
+  .sidebar-content::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+  }
+
+  .btn-outline-UNJ{
+    background-color: white !important;
+    color: #085a9b !important;
+    border: 2px solid #085a9b !important;
+    padding: 10px 15px !important;
+    border-radius: 5px !important;
+    width: 100% !important;
+    font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+  }
+  .btn-outline-UNJ:hover {
+    background-color: #003580  !important;
+    color: white !important;
+  }
+  
+  .logounj {
+    width: 70%;
+    margin-bottom: 10px !important;
+    /*margin-top: 27px;*/
+    margin-top: 4px;
+  }
+  
+  .titulo-uni {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #085a9b;
+    margin-bottom: 20px;
+  }
+  
+  .menu-group {
+    width: 100%;
+  }
+  
+  .menu-btn {
+    background-color: #d3f0fe;
+    border: none;
+    color: #085a9b;
+    width: 100%;
+    padding: 10px 15px;
+    font-weight: bold;
+    border-radius: 5px;
+    margin-top: 8px;
+    cursor: pointer;
+    display: flex;
+    /*justify-content: space-between;*/
+    align-items: center;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  
+  .menu-btn:hover {
+    background-color: #c4e0f7;
+  }
+  
+  .submenu {
+    list-style: none;
+    padding-left: 20px;
+    margin-top: 5px;
+  }
+  
+  .submenu li {
+    margin: 0px 0;
+    /*border-left: 1px solid #86add0;*/
+    border-left: 1px solid #085a9b
+    
+  }
+
+  
+  
+  .submenu a {
+    text-decoration: none;
+    color: #085a9b;
+    font-size: 14px;
+    padding-left: 13px;
+    font-weight: 500;
+}
+  
+  .submenu .active {
+    font-weight: bold;
+    color: #00509e !important;
+    background: #d3f0fe;
+    border-radius: 2px;
+  }
+
+  .submenu .active a {
+    font-weight: bold;
+  }
+  
+  
+  .upload-link {
+    background-color: #d8ecfb;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .salir-btn {
+    margin-top: 20px;
+    background-color: hsl(200deg 60% 97%);
+    color: #085a9b;
+    border: 2px solid #085a9b;
+    padding: 10px 15px;
+    border-radius: 5px;
+    width: 100%;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    cursor: pointer;
+  }
+  
+  .salir-btn:hover {
+    background-color: #f1f1f1;
+  }
+  
+
+  @media only screen and (max-width: 767px) {
+    /*.sidebar {
+        left: 0px;
+    }*/
+    .sidebar {
+        left: 0;
+        top: 0;
+        position: fixed !important;
+        display: flex;
+        width: 210px;
+    }
+}

@@ -1,0 +1,19 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0; /* visible por defecto */
+  width: 250px;
+  height: 100vh;
+  transition: left 0.3s ease;
+  z-index: 999;
+}
+
+.sidebar.hide {
+  left: -250px !important;
+}
+
+@media only screen and (max-width: 767px) {
+    .sidebar {
+        left: -250px;
+    }
+}

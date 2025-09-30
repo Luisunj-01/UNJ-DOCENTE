@@ -1,0 +1,10 @@
+/* ===========================
+   AJUSTE DE ANCHO DE COLUMNAS
+=========================== */
+
+/* Columna 1 = NRO (número de orden) */
+.tabla-acta table td:nth-child(1),
+.tabla-acta table th:nth-child(1) {
+  width: 20px;   /* bien angosta */
+  text-align: center;
+}

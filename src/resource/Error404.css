@@ -1,0 +1,44 @@
+/* src/pages/Error404.css */
+
+.error-container {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f7f9fc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .error-code {
+    font-size: 120px;
+    font-weight: bold;
+    color: #0077b6;
+  }
+  
+  .error-message {
+    font-size: 28px;
+    color: #023e8a;
+    margin: 20px 0 10px;
+  }
+  
+  .error-description {
+    font-size: 16px;
+    color: #495057;
+    margin-bottom: 30px;
+  }
+  
+  .btn-home {
+    padding: 10px 20px;
+    background-color: #0077b6;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+  }
+  
+  .btn-home:hover {
+    background-color: #005f8c;
+  }
+  
