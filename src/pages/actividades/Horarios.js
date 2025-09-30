@@ -250,16 +250,16 @@ const guardarCargaNoLectiva = async (datos) => {
 
                     
               <button
-            className="btn btn-outline-primary btn-sm"
-            onClick={() => {
+              className="btn btn-outline-primary btn-sm"
+              onClick={() => {
                 const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
                 const cadena = `${sede}|${semestre}|${persona}`;
                 const codigo = btoa(btoa(cadena)); // doble base64
 
-                window.open(`/imprimirhorariodocente?codigo=${codigo}`, "HorarioDocente", opciones);
-            }}
+                window.open(`/Imprimirhorariodocente?codigo=${codigo}`, "HorarioDocente", opciones);
+              }}
             >
-            <FaPrint className="me-2" /> Imprimir horario
+              <FaPrint className="me-2" /> Imprimir horario
             </button>
 
 
