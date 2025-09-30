@@ -13,14 +13,15 @@ import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 import { Button } from "react-bootstrap";
 import { Trash } from "lucide-react"; // o cualquier ícono
 
-import { FaPrint } from "react-icons/fa";
+import { FaPrint } from "react-icons/fa"; 
 
 
 function Horarios() {
   const { usuario } = useUsuario();
   const [semestre, setSemestre] = useState("202501");
-  const persona = usuario.persona;  // 👈 este es tu código de persona
-  const sede = usuario.sede;        // 👈 este es tu código de sede
+  const persona = usuario.docente?.persona;  
+  const sede = usuario.docente?.sede;
+
 
   const [cargaNoLectiva, setCargaNoLectiva] = useState([]);
 
@@ -84,7 +85,7 @@ const guardarCargaNoLectiva = async (datos) => {
       `${config.apiUrl}api/horario/guardarActividad`,
       {
         semestre,
-        persona: usuario.docente.persona,
+         persona: persona, 
         actividad: datos.actividad,
         dia: datos.dia,
         inicio: datos.inicio,
@@ -148,8 +149,10 @@ const guardarCargaNoLectiva = async (datos) => {
 
   // 🔹 useEffect
   useEffect(() => {
+    
     cargarDatos();
   }, [semestre, usuario]);
+  console.log(cargarDatos);
 
   // ================== Cálculos de carga ==================
   const totalHT = cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0);
@@ -250,17 +253,16 @@ const guardarCargaNoLectiva = async (datos) => {
 
                     
               <button
-              className="btn btn-outline-primary btn-sm"
-              onClick={() => {
-                const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
-                const cadena = `${sede}|${semestre}|${persona}`;
-                const codigo = btoa(btoa(cadena)); // doble base64
-
-                window.open(`/Imprimirhorariodocente?codigo=${codigo}`, "HorarioDocente", opciones);
-              }}
-            >
-              <FaPrint className="me-2" /> Imprimir horario
-            </button>
+                      className="btn btn-outline-primary btn-sm"
+                      onClick={() => {
+                        const opciones = "width=900,height=700,scrollbars=yes,resizable=yes";
+                        const cadena = `${sede}|${semestre}|${persona}`; // ✅ sede ya no es undefined
+                        const codigo = btoa(btoa(cadena));
+                        window.open(`/Imprimirhorariodocente?codigo=${codigo}`, "HorarioDocente", opciones);
+                      }}
+                    >
+                      <FaPrint className="me-2" /> Imprimir horario
+                    </button>
 
 
           <Table bordered hover size="sm" responsive>

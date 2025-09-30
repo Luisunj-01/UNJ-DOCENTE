@@ -63,6 +63,7 @@ const Imprimirhorariodocente = () => {
     const fetchDatos = async () => {
       try {
         const alumno = await obtenerDatoshorariodocente(sede, semestre, persona);
+        console.log(alumno);
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede: sede });
         const nombreescuelaResp = await obtenerNombreConfiguracion('departamentoacademico', { departamentoacademico: departamentoacademico });
 
