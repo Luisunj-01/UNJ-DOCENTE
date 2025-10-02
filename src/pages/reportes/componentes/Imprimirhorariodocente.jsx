@@ -105,11 +105,13 @@ const Imprimirhorariodocente = () => {
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.practica}</td>
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.horasteoria}</td>
         <td tyle={{textAlign: 'center'}} className="text-center">{curso.horaspractica}</td>
-        <td tyle={{textAlign: 'center'}} className="text-center">{curso.horasteoria}</td>
+        <td tyle={{textAlign: 'center'}} className="text-center">{curso.ht}</td>
       </tr>
     ));
 const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteoria || 0), 0);
-    const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
+const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
+const totalHorasTotales = datos.reduce((sum, fila) => sum + Number(fila.ht || 0), 0);
+
   if (loading) return <TablaSkeleton filas={15} columnas={8} />;
 
   return (
@@ -160,7 +162,7 @@ const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteor
         <strong>{totalHorasPractica}</strong>
       </td>
       <td style={{ textAlign: "center" }}>
-        <strong>{totalHorasTeoria}</strong>
+        <strong>{totalHorasTotales}</strong>
       </td>
     </tr>
   </tbody>

@@ -5,14 +5,12 @@ import { useUsuario } from "../../context/UserContext";
 import { obtenerDatosHorario } from "./logica/Actividades";
 import FormNoLectiva from "./componentes/formulario";
 import axios from "axios";
-
 import Swal from "sweetalert2";
 import { Accordion, Table } from "react-bootstrap";
 import config from "../../config";
 import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 import { Button } from "react-bootstrap";
 import { Trash } from "lucide-react"; // o cualquier ícono
-
 import { FaPrint } from "react-icons/fa"; 
 
 
@@ -20,11 +18,12 @@ function Horarios() {
   const { usuario } = useUsuario();
   const [semestre, setSemestre] = useState("202501");
   const persona = usuario.docente?.persona;  
-  const sede = usuario.docente?.sede;
+  const sede = "01";
+  const [datos, setDatos] = useState(null);
+  
 
 
   const [cargaNoLectiva, setCargaNoLectiva] = useState([]);
-
   const [docente, setDocente] = useState(null);
   const [cargaLectiva, setCargaLectiva] = useState([]);
   const [actividades, setActividades] = useState([]);
@@ -77,88 +76,97 @@ function Horarios() {
     }
   });
 };
-// 🔹 FUNCIÓN GUARDAR CARGA NO LECTIVA
-const guardarCargaNoLectiva = async (datos) => {
-  try {
-    
-    const response = await axios.post(
-      `${config.apiUrl}api/horario/guardarActividad`,
-      {
-        semestre,
-         persona: persona, 
-        actividad: datos.actividad,
-        dia: datos.dia,
-        inicio: datos.inicio,
-        fin: datos.fin,
-        horas: datos.horas,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      }
-    );
 
-    if (response.data.error === 0) {
-      Swal.fire("Éxito", "Se asignó la actividad correctamente ✅", "success");
-      cargarDatos();
-    } else {
-      Swal.fire("Error", response.data.mensaje, "error");
+  // 🔹 FUNCIÓN GUARDAR CARGA NO LECTIVA
+  const guardarCargaNoLectiva = async (nueva) => {
+    try {
+      const response = await axios.post(
+        `${config.apiUrl}api/horario/guardarActividad`,
+        {
+          semestre,
+          persona,
+          actividad: nueva.actividad,
+          dia: nueva.dia,
+          inicio: nueva.inicio,
+          fin: nueva.fin,
+          horas: nueva.horas,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (response.data.error === 0) {
+        Swal.fire("Éxito", response.data.mensaje, "success");
+        cargarDatos(); // refresca la tabla
+      } else {
+        Swal.fire("Error", response.data.mensaje, "error");
+      }
+    } catch (error) {
+      console.error("Error al guardar:", error.response?.data || error.message);
+      Swal.fire("Error", "No se pudo guardar la Actividad.", "error");
     }
-  } catch (error) {
-    console.error("Error al guardar:", error.response?.data || error.message);
-    Swal.fire("Error", "No se pudo guardar la información.", "error");
+  };
+
+// 🔹 FUNCIÓN CARGAR DATOS (global)
+const cargarDatos = async () => {
+  if (!usuario) return;
+  setLoading(true);
+
+  const result = await obtenerDatosHorario(
+    sede,
+    semestre,
+    usuario.docente.persona,
+    usuario.codigotokenautenticadorunj
+  );
+
+  
+
+  if (result.datos) {
+    setDocente(result.datos.docente);
+    setCargaLectiva(result.datos.cargaLectiva || []);
+    setCargaNoLectiva(result.datos.cargaNoLectiva || []);
+
+    const acts = (result.datos.actividades || []).map((a) => ({
+      ...a,
+      descripcion2: a.descripcion2 || "",
+      horas: a.horas ?? 0,
+    }));
+    setActividades(acts);
+
+    setHorario(result.datos.horario || []);
+    setHorasDeclaradas(result.datos.horasDeclaradas || []);
+
+  
+  } else {
+    setDocente(null);
+    setCargaLectiva([]);
+    setCargaNoLectiva([]);
+    setActividades([]);
+    setHorario([]);
+    setHorasDeclaradas([]);
+    setMensaje(result.mensaje);
+   
   }
+
+  setLoading(false);
 };
 
 
-  // 🔹 FUNCIÓN CARGAR DATOS (global)
-  const cargarDatos = async () => {
-    if (!usuario) return;
-    setLoading(true);
-    const result = await obtenerDatosHorario("01", semestre, usuario.docente.persona);
-   
 
-    if (result.datos) {
-      setDocente(result.datos.docente);
-      setCargaLectiva(result.datos.cargaLectiva || []);
-      setCargaNoLectiva(result.datos.cargaNoLectiva || []); // ✅ guardar cargaNoLectiva
-
-      const acts = (result.datos.actividades || []).map((a) => ({
-        ...a,
-        descripcion2: a.descripcion2 || "",
-        horas: a.horas ?? 0,
-      }));
-      setActividades(acts);
-
-      setHorario(result.datos.horario || []);
-      setHorasDeclaradas(result.datos.horasDeclaradas || []);
-      setMensaje("");
-    } else {
-      setDocente(null);
-      setCargaLectiva([]);
-      setCargaNoLectiva([]); // ✅ reset si no hay datos
-      setActividades([]);
-      setHorario([]);
-      setHorasDeclaradas([]);
-      setMensaje(result.mensaje);
-    }
-    setLoading(false);
-  };
 
   // 🔹 useEffect
   useEffect(() => {
     
     cargarDatos();
   }, [semestre, usuario]);
-  console.log(cargarDatos);
-
   // ================== Cálculos de carga ==================
   const totalHT = cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0);
   const prepEval = Math.round(totalHT / 2);
   const totalCargaLectiva = totalHT + prepEval;
-
   const totalNoLectiva = actividades.reduce((acc, a) => acc + (a.horas ?? 0), 0);
   const totalGeneral = totalCargaLectiva + totalNoLectiva;
 
@@ -494,11 +502,13 @@ const guardarCargaNoLectiva = async (datos) => {
             Programar horarios.
           </div>
 
-          {/* ⬅️ Aquí va el formulario */}
-          <FormNoLectiva
-            actividades={actividades}
-            onAgregar={guardarCargaNoLectiva}
-          />
+          {/* ⬅️ Aquí va el formulario, pero se bloquea si no está habilitado */}
+         
+            <FormNoLectiva
+              actividades={actividades}
+              onAgregar={guardarCargaNoLectiva}
+            />
+          
         </div>
       </div>
     </>
