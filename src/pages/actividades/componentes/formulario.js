@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 
-function FormNoLectiva({ actividades, onAgregar }) {
+function FormNoLectiva({ actividades, onAgregar, disabled }) {
   const [actividad, setActividad] = useState("TUTORÍA Y CONSEJERÍA");
   const [dia, setDia] = useState("LUN");
   const [inicio, setInicio] = useState("08:00");
@@ -10,10 +10,10 @@ function FormNoLectiva({ actividades, onAgregar }) {
 
   // 🔹 calcular hora fin
   const calcularHoraFin = (horaInicio, horas) => {
+    if (!horaInicio || !horas) return "";
     const [h, m] = horaInicio.split(":").map(Number);
     const inicioDate = new Date();
-    inicioDate.setHours(h);
-    inicioDate.setMinutes(m);
+    inicioDate.setHours(h, m);
     inicioDate.setHours(inicioDate.getHours() + horas);
 
     return inicioDate.toLocaleTimeString("es-ES", {
@@ -23,21 +23,22 @@ function FormNoLectiva({ actividades, onAgregar }) {
     });
   };
 
-        const handleSubmit = (e) => {
-            e.preventDefault();
-            if (!actividad || !dia || !inicio || !horas) return;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (disabled) return; // 👈 corta si está bloqueado
+    if (!actividad || !dia || !inicio || !horas) return;
 
-            const fin = calcularHoraFin(inicio, horas);
-            const nueva = { 
-        actividad,      // para el backend (código de actividad)
-        descripcion: actividad, // para mostrar en la tabla
-        dia, 
-        inicio, 
-        fin, 
-        horas 
-        };
+    const fin = calcularHoraFin(inicio, horas);
+    const nueva = {
+      actividad,              // para el backend (código de actividad)
+      descripcion: actividad, // para mostrar en la tabla
+      dia,
+      inicio,
+      fin,
+      horas,
+    };
 
-            onAgregar(nueva); // 🔹 se lo pasamos al padre
+    onAgregar(nueva); // 🔹 se lo pasamos al padre
 
     // reset valores
     setActividad("TUTORÍA Y CONSEJERÍA");
@@ -57,6 +58,7 @@ function FormNoLectiva({ actividades, onAgregar }) {
               value={actividad}
               onChange={(e) => setActividad(e.target.value)}
               required
+              disabled={disabled}
             >
               <option value="">-- Actividad --</option>
               {actividades.map((a, i) => (
@@ -76,6 +78,7 @@ function FormNoLectiva({ actividades, onAgregar }) {
               value={dia}
               onChange={(e) => setDia(e.target.value)}
               required
+              disabled={disabled}
             >
               <option value="LUN">Lunes</option>
               <option value="MAR">Martes</option>
@@ -96,6 +99,7 @@ function FormNoLectiva({ actividades, onAgregar }) {
               value={inicio}
               onChange={(e) => setInicio(e.target.value)}
               required
+              disabled={disabled}
             />
           </Form.Group>
         </div>
@@ -110,13 +114,19 @@ function FormNoLectiva({ actividades, onAgregar }) {
               value={horas}
               onChange={(e) => setHoras(Number(e.target.value))}
               required
+              disabled={disabled}
             />
           </Form.Group>
         </div>
 
         {/* Botón */}
         <div className="col-md-2 d-flex align-items-end">
-          <Button type="submit" variant="primary" className="w-100">
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-100"
+            disabled={disabled}
+          >
             Asignar
           </Button>
         </div>

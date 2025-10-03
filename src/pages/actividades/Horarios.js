@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import BreadcrumbUNJ from "../../cuerpos/BreadcrumbUNJ";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
-import { obtenerDatosHorario } from "./logica/Actividades";
+import { obtenerDatosHorario, validarFechas } from "./logica/Actividades";
+
 import FormNoLectiva from "./componentes/formulario";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -31,7 +32,9 @@ function Horarios() {
   const [horasDeclaradas, setHorasDeclaradas] = useState([]); // ✅ estado para horas declaradas
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formHabilitado, setFormHabilitado] = useState(false);
   const token = usuario?.codigotokenautenticadorunj;
+  console.log(usuario);
 
   // 🔹 FUNCIÓN ELIMINAR CARGA NO LECTIVA
   const eliminarCargaNoLectiva = async (fila) => {
@@ -111,58 +114,81 @@ function Horarios() {
     }
   };
 
-// 🔹 FUNCIÓN CARGAR DATOS (global)
-const cargarDatos = async () => {
-  if (!usuario) return;
-  setLoading(true);
+// 🔹 CARGAR DATOS
+  const cargarDatos = async () => {
+    if (!usuario) return;
+    setLoading(true);
 
-  const result = await obtenerDatosHorario(
-    sede,
-    semestre,
-    usuario.docente.persona,
-    usuario.codigotokenautenticadorunj
-  );
+    const result = await obtenerDatosHorario(
+      sede,
+      semestre,
+      persona,
+      token
+    );
 
-  
+    if (result.datos) {
+      setDocente(result.datos.docente);
+      setCargaLectiva(result.datos.cargaLectiva || []);
+      setCargaNoLectiva(result.datos.cargaNoLectiva || []);
+      const acts = (result.datos.actividades || []).map((a) => ({
+        ...a,
+        descripcion2: a.descripcion2 || "",
+        horas: a.horas ?? 0,
+      }));
+      setActividades(acts);
+      setHorario(result.datos.horario || []);
+      setHorasDeclaradas(result.datos.horasDeclaradas || []);
+    } else {
+      setDocente(null);
+      setCargaLectiva([]);
+      setCargaNoLectiva([]);
+      setActividades([]);
+      setHorario([]);
+      setHorasDeclaradas([]);
+      setMensaje(result.mensaje);
+    }
 
-  if (result.datos) {
-    setDocente(result.datos.docente);
-    setCargaLectiva(result.datos.cargaLectiva || []);
-    setCargaNoLectiva(result.datos.cargaNoLectiva || []);
+    setLoading(false);
+  };
 
-    const acts = (result.datos.actividades || []).map((a) => ({
-      ...a,
-      descripcion2: a.descripcion2 || "",
-      horas: a.horas ?? 0,
-    }));
-    setActividades(acts);
-
-    setHorario(result.datos.horario || []);
-    setHorasDeclaradas(result.datos.horasDeclaradas || []);
-
-  
-  } else {
-    setDocente(null);
-    setCargaLectiva([]);
-    setCargaNoLectiva([]);
-    setActividades([]);
-    setHorario([]);
-    setHorasDeclaradas([]);
-    setMensaje(result.mensaje);
-   
-  }
-
-  setLoading(false);
-};
-
-
-
-
-  // 🔹 useEffect
+  // 🔹 VALIDAR FECHAS PARA HABILITAR FORMULARIO
   useEffect(() => {
-    
     cargarDatos();
+
+    const validar = async () => {
+      if (!usuario?.docente) return;
+
+      const resp = await validarFechas(
+        sede,
+        usuario.docente?.estructura,
+        semestre,
+        usuario.docente?.vperfil
+      );
+
+      if (resp.success) {
+        const hoy = new Date();
+        const inicio = new Date(resp.inicio);
+        const fin = new Date(resp.fin);
+
+        if (hoy >= inicio && hoy <= fin) {
+          setFormHabilitado(true);
+        } else {
+          setFormHabilitado(false);
+          Swal.fire(
+            "Formulario cerrado",
+            `La carga no lectiva solo se puede registrar entre ${resp.inicio} y ${resp.fin}`,
+            "warning"
+          );
+        }
+      } else {
+        setFormHabilitado(false);
+        Swal.fire("Fechas no válidas", resp.message, "warning");
+      }
+    };
+
+    validar();
   }, [semestre, usuario]);
+  
   // ================== Cálculos de carga ==================
   const totalHT = cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0);
   const prepEval = Math.round(totalHT / 2);
@@ -504,10 +530,14 @@ const cargarDatos = async () => {
 
           {/* ⬅️ Aquí va el formulario, pero se bloquea si no está habilitado */}
          
+           {/* FORMULARIO DE CARGA NO LECTIVA */}
+          <div className="mt-4">
             <FormNoLectiva
               actividades={actividades}
               onAgregar={guardarCargaNoLectiva}
+              disabled={!formHabilitado}
             />
+          </div>
           
         </div>
       </div>
