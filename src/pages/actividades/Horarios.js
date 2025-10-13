@@ -152,42 +152,51 @@ function Horarios() {
   };
 
   // 🔹 VALIDAR FECHAS PARA HABILITAR FORMULARIO
-  useEffect(() => {
-    cargarDatos();
+useEffect(() => {
+  const cargarYValidar = async () => {
+    if (!usuario?.docente?.persona) return;
 
-    const validar = async () => {
-      if (!usuario?.docente) return;
+    const sede = "01";
+    const semestreActual = semestre;
+    const persona = usuario.docente.persona;
 
-      const resp = await validarFechas(
-        sede,
-        usuario.docente?.estructura,
-        semestre,
-        usuario.docente?.vperfil
-      );
+    console.log("Cargando datos del docente:", { sede, semestre: semestreActual, persona });
 
-      if (resp.success) {
-        const hoy = new Date();
-        const inicio = new Date(resp.inicio);
-        const fin = new Date(resp.fin);
+    // 🔹 1. Siempre carga las tablas (aunque luego se bloquee el formulario)
+    await cargarDatos();
 
-        if (hoy >= inicio && hoy <= fin) {
-          setFormHabilitado(true);
-        } else {
-          setFormHabilitado(false);
-          Swal.fire(
-            "Formulario cerrado",
-            `La carga no lectiva solo se puede registrar entre ${resp.inicio} y ${resp.fin}`,
-            "warning"
-          );
-        }
+    // 🔹 2. Luego valida las fechas
+    console.log("Validando fechas con:", { sede, semestre: semestreActual, persona });
+    const resp = await validarFechas(sede, semestreActual, persona);
+    console.log("Respuesta validación:", resp);
+
+    if (resp.success) {
+      const hoy = new Date(resp.hoy);
+      const inicio = new Date(resp.inicio);
+      const fin = new Date(resp.fin);
+
+      if (hoy >= inicio && hoy <= fin) {
+        setFormHabilitado(true);
+        console.log("✅ Formulario habilitado");
       } else {
         setFormHabilitado(false);
-        Swal.fire("Fechas no válidas", resp.message, "warning");
+        Swal.fire(
+          "Formulario cerrado",
+          `Solo se puede registrar entre ${resp.inicio} y ${resp.fin}`,
+          "warning"
+        );
       }
-    };
+    } else {
+      setFormHabilitado(false);
+      Swal.fire("Fechas no válidas", resp.message, "warning");
+    }
+  };
 
-    validar();
-  }, [semestre, usuario]);
+  cargarYValidar();
+}, [semestre, usuario]);
+
+
+
   
   // ================== Cálculos de carga ==================
   const totalHT = cargaLectiva.reduce((sum, c) => sum + Number(c.ht), 0);
@@ -498,13 +507,22 @@ function Horarios() {
                         <td>{item.fin}</td>
                         <td>{item.horas}</td>
                         <td>
+
                           <Button
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => eliminarCargaNoLectiva(item)}
-                          >
-                            <Trash size={16} />
-                          </Button>
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => eliminarCargaNoLectiva(item)}
+                          disabled={!formHabilitado} // 🔒 deshabilita si está fuera de rango
+                          title={
+                            formHabilitado
+                              ? "Eliminar actividad"
+                              : "Fuera de rango de fechas — no se puede eliminar"
+                          }
+                        >
+                          <Trash size={16} />
+                        </Button>
+
+
                         </td>
                       </tr>
                     ))}

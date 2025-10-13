@@ -17,6 +17,8 @@ function Declaracion() {
   const [actividades, setActividades] = useState([]); // 👈 estado único
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formHabilitado, setFormHabilitado] = useState(false);
+  const [mensajeFecha, setMensajeFecha] = useState("");
   const token = usuario?.codigotokenautenticadorunj;
 
   const maxHorasPorActividad = {
@@ -30,6 +32,33 @@ function Declaracion() {
     "10": 10,
     "11": 19,
   };
+  // ✅ Validar fechas para habilitar el botón de Guardar
+  useEffect(() => {
+    const validarFecha = async () => {
+      try {
+        const res = await fetch(`${config.apiUrl}api/validar-fecha`);
+        const data = await res.json();
+
+        if (data.success) {
+          setFormHabilitado(true);
+          setMensajeFecha("");
+        } else {
+          setFormHabilitado(false);
+          setMensajeFecha(
+            "⚠️ El registro está cerrado. Solo disponible entre las fechas permitidas."
+          );
+        }
+        
+      } catch (error) {
+        console.error("Error validando fecha:", error);
+        setFormHabilitado(false);
+        setMensajeFecha("❌ No se pudo verificar la fecha.");
+      }
+    };
+
+    validarFecha();
+  }, [semestre]);
+
 
   useEffect(() => {
     if (!usuario) return;
@@ -336,9 +365,25 @@ function Declaracion() {
 
           {/* ✅ Botón guardar dentro del acordeón */}
           <div className="text-center mt-3">
-            <button className="btn btn-primary" onClick={handleGuardar}>
-              Guardar Declaración
-            </button>
+             <button
+                        className="btn btn-primary"
+                        onClick={handleGuardar}
+                        disabled={!formHabilitado}
+                      >
+                        Guardar Declaración
+                      </button>
+
+                      {mensajeFecha && (
+                        <p
+                          style={{
+                            color: "red",
+                            fontSize: "0.85rem",
+                            marginTop: "8px",
+                          }}
+                        >
+                          {mensajeFecha}
+                        </p>
+                      )}
           </div>
         </Accordion.Body>
       </Accordion.Item>

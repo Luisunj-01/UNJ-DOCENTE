@@ -129,7 +129,9 @@ function FormNoLectiva({ actividades, onAgregar, disabled }) {
           >
             Asignar
           </Button>
+          
         </div>
+        
       </div>
     </Form>
   );

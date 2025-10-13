@@ -41,22 +41,18 @@ export const obtenerDatosHorario = async (sede, semestre, persona, token) => {
 };
 
 // 🔹 Export 3: Validar fechas
-export const validarFechas = async (sede, estructura, semestre, vperfil) => {
+
+export const validarFechas = async (sede, semestre, persona) => {
   try {
-    const url = `${config.apiUrl}api/horario/validar-fechas`;
-    console.log("🌐 Llamando a:", url);  // 👈 ver la URL exacta
-
-    const res = await axios.post(url, {
+    const res = await axios.post(`${config.apiUrl}api/horario/validar-fechas`, {
       sede,
-      estructura,
       semestre,
-      vperfil,
+      persona,
     });
-
     return res.data;
-  } catch (err) {
-    console.error("❌ Error al validar fechas:", err.response?.data || err.message);
-    return { success: false, message: "Error al conectar con la API." };
+  } catch (error) {
+    console.error("Error validando fechas:", error);
+    return { success: false, message: "Error al validar fechas." };
   }
 };
 
