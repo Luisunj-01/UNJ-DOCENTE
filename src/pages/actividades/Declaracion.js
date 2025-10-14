@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import BreadcrumbUNJ from "../../cuerpos/BreadcrumbUNJ";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
-import { obtenerDatosDocente } from "./logica/Actividades";
+import { obtenerDatosDocente, validarFechas } from "./logica/Actividades";
 import Swal from "sweetalert2";
 import { Accordion, Table } from "react-bootstrap";
 import config from "../../config";
@@ -34,31 +34,29 @@ function Declaracion() {
   };
   // ✅ Validar fechas para habilitar el botón de Guardar
   useEffect(() => {
-    const validarFecha = async () => {
-      try {
-        const res = await fetch(`${config.apiUrl}api/validar-fecha`);
-        const data = await res.json();
+  if (!usuario) return;
 
-        if (data.success) {
-          setFormHabilitado(true);
-          setMensajeFecha("");
-        } else {
-          setFormHabilitado(false);
-          setMensajeFecha(
-            "⚠️ El registro está cerrado. Solo disponible entre las fechas permitidas."
-          );
-        }
-        
-      } catch (error) {
-        console.error("Error validando fecha:", error);
+  const validarFecha = async () => {
+    try {
+      const data = await validarFechas("01", semestre, usuario.docente.persona);
+
+      if (data.success) {
+        setFormHabilitado(true);
+        setMensajeFecha("");
+      } else {
         setFormHabilitado(false);
-        setMensajeFecha("❌ No se pudo verificar la fecha.");
+        setMensajeFecha(`⚠️ ${data.message || "El registro está cerrado."}`);
       }
-    };
 
-    validarFecha();
-  }, [semestre]);
+    } catch (error) {
+      console.error("Error validando fecha:", error);
+      setFormHabilitado(false);
+      setMensajeFecha("❌ No se pudo verificar la fecha.");
+    }
+  };
 
+  validarFecha();
+}, [semestre, usuario]);
 
   useEffect(() => {
     if (!usuario) return;
