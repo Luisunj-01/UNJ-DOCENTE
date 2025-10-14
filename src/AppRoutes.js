@@ -12,7 +12,8 @@ import Ingresonotasdoc from './pages/notas/Ingresonotasdoc.js';
 import IngresoRezaAplaz from './pages/notas/IngresoRezaAplaz.js';
 import ReporteDoc from './pages/reportes/ReporteDoc.js';
 import Reportecurricular from './pages/reportes/Reportecurricular.js';
-import ObsRendimiento from './pages/tutoria/ObsRendimiento.js';
+
+
 import Sesionlibre from './pages/tutoria/Sesionlibre.js';
 import Sesionciclo from './pages/tutoria/Sesionciclo.js';
 import SesionIndiv from './pages/tutoria/Sesionindiv.js';
@@ -43,6 +44,7 @@ import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsi
 import Tutoria from './pages/tutoria/Tutoria.js';
 import Declaracion from './pages/actividades/Declaracion.js';
 import Horarios from './pages/actividades/Horarios.js';
+import ObsRendimiento from './pages/tutoria/ObsRendimiento.js';
 
 
 
@@ -62,7 +64,7 @@ function AppRoutes() {
       }, 3000);*/
     }
   }, 1800000); 
-
+ 
   return (
     <>
       <Routes>
@@ -88,7 +90,8 @@ function AppRoutes() {
             <Route path="IngresoRezaAplaz" element={<IngresoRezaAplaz />} />
             <Route path="ReporteDoc" element={<ReporteDoc />} />
             <Route path="Reportecurricular" element={<Reportecurricular />} />
-            <Route path="ObsRendimiento" element={<ObsRendimiento />} />
+
+            <Route path="/tutoria/obs" element={<ObsRendimiento />} />
             <Route path="Sesionciclo" element={<Sesionciclo />} />
             <Route path="Sesionlibre" element={<Sesionlibre />} />
             <Route path="Sesionindiv" element={<SesionIndiv />} />

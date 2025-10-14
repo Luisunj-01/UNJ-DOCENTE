@@ -22,16 +22,14 @@ export const obtenerDatosDocente = async (sede, semestre, persona) => {
 export const obtenerDatosHorario = async (sede, semestre, persona, token) => {
   try {
     const url = `${config.apiUrl}api/horario/datos/${sede}/${semestre}/${persona}`;
-    console.log("📡 URL solicitada:", url);
-    console.log("🔑 Token enviado:", token);
-
+    
     const res = await axios.get(url, {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
     });
-
+ 
     
     return { datos: res.data, mensaje: "" };
   } catch (err) {
