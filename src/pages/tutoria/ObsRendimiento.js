@@ -45,6 +45,7 @@ function ObsRendimiento({ semestreValue }) {
         );
 
         if (datos && datos.length > 0) {
+          console.log("Datos recibidos de la API:", datos); // <--- Aquí
           setAlumnos(datos);
           setMensaje("");
         } else {
@@ -66,12 +67,28 @@ function ObsRendimiento({ semestreValue }) {
   const handleChange = (value) => setSemestre(value);
 
   const handleObservacion = async (alumno, alumnos, setAlumnos, token) => {
-  const { value: formValues } = await Swal.fire({
-    title: `Observación`,
-    html: `
+     console.log("Alumno con observación:", alumno);
+    // Extraer los campos correctamente
+    const { persona, docente, personaalumno, alumno: idAlumno, estructura, semestre } = alumno;
+
+    // Validar que todos los campos necesarios existan
+    if (!persona || !docente || !personaalumno || !idAlumno || !estructura || !semestre) {
+      Swal.fire("Error", "Faltan datos necesarios para generar el código del alumno.", "error");
+     
+      return;
+    }
+
+    // Generar el código igual que en PHP
+    const codigo = persona + docente + personaalumno + idAlumno + estructura + semestre;
+    
+
+    // Mostrar SweetAlert para ingresar comentario y recomendación
+    const { value: formValues } = await Swal.fire({
+      title: ``,
+      html: `
       <div style="font-weight:bold; font-size:1em;">${alumno.nombrecompleto}</div>
       <div style="font-size:0.85em; color:#0d6efd; margin-bottom:10px;">
-        ${alumno.nombreescuela || ""}
+       
       </div>
 
       <label for="swal-comentario" style="font-weight:bold;">Comentario:</label>
@@ -80,22 +97,23 @@ function ObsRendimiento({ semestreValue }) {
       <label for="swal-recomendacion" style="font-weight:bold; margin-top:10px;">Recomendación:</label>
       <textarea id="swal-recomendacion" class="swal2-textarea" placeholder="Ingrese la recomendación">${alumno.recomendacion || ""}</textarea>
     `,
-    showCancelButton: true,
-    confirmButtonText: "Guardar",
-    cancelButtonText: "Cancelar",
-    focusConfirm: false,
-    width: '600px',
-    preConfirm: () => {
-      const comentario = document.getElementById("swal-comentario").value;
-      const recomendacion = document.getElementById("swal-recomendacion").value;
-      return { comentario, recomendacion };
-    },
-  });
+      showCancelButton: true,
+      confirmButtonText: "Guardar",
+      cancelButtonText: "Cancelar",
+      focusConfirm: false,
+      width: '450px',
+      preConfirm: () => {
+        const comentario = document.getElementById("swal-comentario").value;
+        const recomendacion = document.getElementById("swal-recomendacion").value;
+        return { comentario, recomendacion };
+      },
+    });
 
-  if (formValues) {
+    if (!formValues) return;
+
     try {
       const payload = {
-        codigo: alumno.codigo, // identificador único
+        codigo: codigo,
         comentario: formValues.comentario,
         recomendacion: formValues.recomendacion
       };
@@ -105,7 +123,7 @@ function ObsRendimiento({ semestreValue }) {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}` // Solo si la ruta requiere autenticación
         },
         body: JSON.stringify(payload)
       });
@@ -126,7 +144,7 @@ function ObsRendimiento({ semestreValue }) {
       const data = await respuesta.json();
 
       if (data.success) {
-        // Actualizar estado local
+        // Actualizar estado local del alumno
         const actualizados = alumnos.map((a) =>
           a.alumno === alumno.alumno
             ? { ...a, obs: formValues.comentario, recomendacion: formValues.recomendacion }
@@ -149,8 +167,9 @@ function ObsRendimiento({ semestreValue }) {
       console.error("Error al conectar con la API:", error);
       Swal.fire("Error", "Error al conectar con la API.", "error");
     }
-  }
-};
+  };
+
+
 
 
 
@@ -192,13 +211,13 @@ function ObsRendimiento({ semestreValue }) {
           </thead>
           <tbody>
             {alumnos.map((alumno, index) => (
-                <tr key={index}>
+              <tr key={index}>
                 <td>{alumno.alumno}</td>
                 <td>
-                    {alumno.nombrecompleto}
-                    <div style={{ fontSize: "0.8em", color: "#0d6efd" }}>
+                  {alumno.nombrecompleto}
+                  <div style={{ fontSize: "0.8em", color: "#0d6efd" }}>
                     {alumno.nombreescuela}
-                    </div>
+                  </div>
                 </td>
                 <td>{alumno.telefono}</td>
                 <td>{alumno.estructura}</td>
@@ -206,24 +225,25 @@ function ObsRendimiento({ semestreValue }) {
                 <td>{alumno.tercera}</td>
                 <td>{alumno.cuarta}</td>
                 <td>
-                    <Button
+                  <Button
                     variant="outline-primary"
                     size="sm"
-                    onClick={() => handleObservacion(alumno)}
-                    >
+                    onClick={() => handleObservacion(alumno, alumnos, setAlumnos, usuario?.codigotokenautenticadorunj)}
+                  >
                     📝
-                    </Button>
-                    <span className="ms-2">
+                  </Button>
+
+                  <span className="ms-2">
                     {alumno.obs ? (
-                        <small className="text-success">✔</small>
+                      <small className="text-success">✔</small>
                     ) : (
-                        <small className="text-muted">Sin obs.</small>
+                      <small className="text-muted">Sin obs.</small>
                     )}
-                    </span>
+                  </span>
                 </td>
-                </tr>
+              </tr>
             ))}
-            </tbody>
+          </tbody>
 
         </Table>
       )}
