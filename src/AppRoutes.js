@@ -92,7 +92,7 @@ function AppRoutes() {
             <Route path="Reportecurricular" element={<Reportecurricular />} />
 
             <Route path="/tutoria/obs" element={<ObsRendimiento />} />
-            <Route path="Sesionciclo" element={<Sesionciclo />} />
+            <Route path="tutoria/ciclo" element={<Sesionciclo />} />
             <Route path="Sesionlibre" element={<Sesionlibre />} />
             <Route path="Sesionindiv" element={<SesionIndiv />} />
             <Route path="Reportes" element={<Reportes />} />
