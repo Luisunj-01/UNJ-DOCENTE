@@ -94,12 +94,13 @@ function SesionesCiclo({ semestreValue }) {
       semestre={semestre}
       sesion={sesionSeleccionada.sesion}
       onVolver={() => {
-        setAccion(null);
-        setSesionSeleccionada(null);
+        setAccion(null);             // 🔹 Limpia la acción
+        setSesionSeleccionada(null); // 🔹 Limpia la sesión
       }}
     />
   );
 }
+
 
   return (
     <div className="container mt-3">

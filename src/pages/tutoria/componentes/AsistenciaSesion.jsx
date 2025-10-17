@@ -4,16 +4,14 @@ import Swal from "sweetalert2";
 import { useUsuario } from "../../../context/UserContext";
 import { guardarAsistenciaSesiones, obtenerAsistenciaSesiones } from "../logica/DatosTutoria";
 
-
-
-
-function AsistenciaSesion({ persona, semestre, sesion }) {
+function AsistenciaSesion({ persona, semestre, sesion, onVolver }) {
   const { usuario } = useUsuario();
   const token = usuario?.codigotokenautenticadorunj;
 
   const [alumnos, setAlumnos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [busqueda, setBusqueda] = useState(""); // 🔹 Nuevo: para filtrar
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -25,7 +23,8 @@ function AsistenciaSesion({ persona, semestre, sesion }) {
 
       const { datos, mensaje } = await obtenerAsistenciaSesiones(persona, semestre, sesion, token);
       if (datos) {
-        setAlumnos(datos);
+        // Inicializa la visibilidad de todos los alumnos
+        setAlumnos(datos.map((a) => ({ ...a, visible: true })));
       } else {
         Swal.fire("Error", mensaje, "error");
       }
@@ -58,6 +57,13 @@ function AsistenciaSesion({ persona, semestre, sesion }) {
     setGuardando(false);
   };
 
+  // 🔹 Filtrar alumnos según búsqueda
+  const alumnosFiltrados = alumnos.filter(
+    (a) =>
+      a.nombrecompleto.toLowerCase().includes(busqueda.toLowerCase()) ||
+      a.alumno.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="text-center p-4">
@@ -69,46 +75,143 @@ function AsistenciaSesion({ persona, semestre, sesion }) {
 
   return (
     <div className="p-3">
-      <h5 className="mb-3">📋 Asistencia de Sesión {sesion}</h5>
+      {/* 🔹 Botón de regresar */}
+      <Button
+        variant="secondary"
+        size="sm"
+        className="mb-3"
+        onClick={onVolver}
+      >
+        ⬅ Regresar
+      </Button>
 
-      <Table bordered hover responsive>
-        <thead className="table-light">
-          <tr>
-            <th>#</th>
-            <th>Código</th>
-            <th>Nombre</th>
-            <th>Asistencia</th>
-            <th>Observación</th>
-          </tr>
-        </thead>
-        <tbody>
-          {alumnos.map((a, i) => (
-            <tr key={a.codigo}>
-              <td>{i + 1}</td>
-              <td>{a.alumno}</td>
-              <td>{a.nombrecompleto}</td>
-              <td className="text-center">
-                <input
-                  type="checkbox"
-                  checked={a.asistencia === 1}
-                  onChange={(e) => handleAsistenciaChange(a.codigo, e.target.checked)}
-                />
-              </td>
-              <td>
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  value={a.observacion || ""}
-                  onChange={(e) => handleObservacionChange(a.codigo, e.target.value)}
-                  placeholder="Escriba una observación..."
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
+      <h5 className="mb-3 text-primary fw-bold">📋 Asistencia de Sesión</h5>
 
-      <div className="text-end">
+      {/* 🔎 Campo de búsqueda */}
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        
+        <input
+          type="text"
+          className="form-control form-control-sm"
+          placeholder="Buscar alumno o código..."
+          style={{ width: "250px" }}
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+<Table
+  className="table table-sm table-hover shadow-sm text-center align-middle"
+  responsive
+  style={{
+    backgroundColor: "white",
+    borderRadius: "10px",
+    overflow: "hidden",
+  }}
+>
+  <thead
+    style={{
+      backgroundColor: "#f1f3f4",
+      color: "#333",
+      fontWeight: "bold",
+      borderBottom: "2px solid #dee2e6",
+    }}
+  >
+    <tr>
+      <th style={{ width: "50px", padding: "6px" }}>#</th>
+      <th style={{ width: "90px", padding: "6px" }}>Código</th>
+      <th style={{ width: "250px", padding: "6px" }}>Nombre</th>
+      <th style={{ width: "90px", padding: "6px" }}>
+        <div className="form-check d-flex justify-content-center align-items-center mb-1">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="check-todos"
+            checked={
+              alumnos.length > 0 &&
+              alumnos.every((a) => Number(a.asistencia) === 1)
+            }
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setAlumnos((prev) =>
+                prev.map((a) => ({ ...a, asistencia: checked ? 1 : 0 }))
+              );
+            }}
+          />
+        </div>
+        <div style={{ fontSize: "0.85rem" }}>Asistencia</div>
+      </th>
+      <th style={{ width: "220px", padding: "6px" }}>Observación</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {alumnosFiltrados.map((a, i) => (
+      <tr
+        key={a.codigo ?? i}
+        style={{
+          transition: "background-color 0.2s ease",
+          cursor: "pointer",
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.backgroundColor = "#f8f9fa")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.backgroundColor = "white")
+        }
+      >
+        <td style={{ padding: "6px" }}>{i + 1}</td>
+        <td style={{ padding: "6px" }}>{a.alumno}</td>
+        <td
+          style={{
+            padding: "6px",
+            maxWidth: "250px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          title={a.nombrecompleto} // tooltip al pasar el mouse
+        >
+          {a.nombrecompleto}
+        </td>
+        <td style={{ padding: "6px" }}>
+          <input
+            type="checkbox"
+            id={`chk-${i}`}
+            checked={Number(a.asistencia) === 1}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setAlumnos((prev) =>
+                prev.map((al, idx) =>
+                  idx === i ? { ...al, asistencia: checked ? 1 : 0 } : al
+                )
+              );
+            }}
+          />
+        </td>
+        <td style={{ padding: "6px" }}>
+          <input
+            type="text"
+            className="form-control form-control-sm text-center"
+            value={a.observacion || ""}
+            onChange={(e) =>
+              setAlumnos((prev) =>
+                prev.map((al, idx) =>
+                  idx === i ? { ...al, observacion: e.target.value } : al
+                )
+              )
+            }
+            placeholder="Escriba una observación..."
+          />
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</Table>
+
+
+
+
+      <div className="text-end mt-3">
         <Button
           variant="primary"
           size="sm"
