@@ -146,8 +146,11 @@ input::placeholder {
 }
 
 .not-spin input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield;       /* versión estándar moderna */
+  -moz-appearance: textfield;  /* compatibilidad Firefox */
+  -webkit-appearance: textfield; /* compatibilidad Chrome, Safari */
 }
+
 
 .not-spin input[type="number"]::-webkit-outer-spin-button,
 .not-spin input[type="number"]::-webkit-inner-spin-button {
