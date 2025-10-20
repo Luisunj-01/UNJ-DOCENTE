@@ -80,6 +80,73 @@ export const obtenerAsistenciaSesiones = async (persona, semestre, sesion, token
   }
 };
 
+
+export const obtenerTemasDisponibles = async (semestre, persona, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/temas/${semestre}/${persona}`;
+    
+
+    const res = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+   
+
+    // Verificamos si viene con el formato del controlador
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      return res.data.data;
+    }
+
+    // Si por alguna razón no hay data
+    return [];
+  } catch (err) {
+    console.error("❌ Error al obtener temas:", err.response?.data || err.message);
+    return [];
+  }
+};
+
+
+export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo = "N", token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/guardar-sesion`;
+    console.log("📡 Solicitando :", url);
+ 
+
+    const res = await axios.post(
+      url,
+      {
+        codigo,
+        cboSemana: semana,
+        txtLink: aula,
+        txtFecha: fecha,
+        chkActivo: concluida ? 1 : 0,
+        txtTipo: tipo,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+        if (res.data?.exito) {
+      return { exito: true, mensaje: res.data.mensaje };
+    } else {
+      return { exito: false, mensaje: res.data.mensaje || "Error al guardar." };
+    }
+
+  } catch (err) {
+    console.error("❌ Error al guardar sesión:", err.response?.data || err.message);
+    return { exito: false, mensaje: "Error al conectar con la API." };
+  }
+};
+
+
+
+
 // 4.
 export const guardarAsistenciaSesiones = async (persona, semestre, sesion, detalles, token) => {
   try {

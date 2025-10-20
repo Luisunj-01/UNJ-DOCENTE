@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Table, Button, Spinner } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
-import { obtenerSesionesCiclo } from "./logica/DatosTutoria"; // función nueva
+import { obtenerSesionesCiclo, guardarSesion, obtenerTemasDisponibles   } from "./logica/DatosTutoria"; // función nueva
 import AsistenciaSesion from './componentes/AsistenciaSesion';
 import Swal from "sweetalert2";
 
@@ -176,60 +176,110 @@ function SesionesCiclo({ semestreValue }) {
             border: "none",
             boxShadow: "none",
           }}
-          onClick={() =>
-            Swal.fire({
-              title: "Nueva Sesión",
-              width: "600px", // ⬅️ más ancho (puedes probar 600–800px)
-              html: `
-                <table style="width:100%; text-align:left; border-collapse:collapse;">
-                  <tr>
-                    <td style="width:30%; padding:6px;"><label>Sesión:</label></td>
-                    <td style="padding:6px;"><input id="sesion" class="swal2-input" style="width:90%;"></td>
-                  </tr>
-                  <tr>
-                    <td style="padding:6px;"><label>Escuela y Nro. aula:</label></td>
-                    <td style="padding:6px;"><input id="aula" class="swal2-input" style="width:90%;"></td>
-                  </tr>
-                  <tr>
-                    <td style="padding:6px;"><label>Fecha:</label></td>
-                    <td style="padding:6px;"><input id="fecha" type="date" class="swal2-input" style="width:50%;"></td>
-                  </tr>
-                  <tr>
-                    <td style="padding:6px;"><label>Concluida:</label></td>
-                    <td style="padding:6px;"><input type="checkbox" id="concluida"></td>
-                  </tr>
-                </table>
-              `,
-              showCancelButton: true,
-              confirmButtonText: "Grabar",
-              cancelButtonText: "Cancelar",
-              focusConfirm: false,
-              preConfirm: () => {
-                const sesion = document.getElementById("sesion").value.trim();
-                const aula = document.getElementById("aula").value.trim();
-                const fecha = document.getElementById("fecha").value;
-                const concluida = document.getElementById("concluida").checked ? 1 : 0;
+          onClick={async () => {
+  const token = usuario?.codigotokenautenticadorunj;
+  const persona = usuario?.docente?.persona;
 
-                if (!sesion || !aula || !fecha) {
-                  Swal.showValidationMessage("Por favor complete todos los campos obligatorios.");
-                  return false;
-                }
+  // 🧩 1️⃣ Cargar sesiones disponibles desde API
+  const temas = await obtenerTemasDisponibles(semestre, persona, token);
 
-                return { sesion, aula, fecha, concluida };
-              },
-            }).then((result) => {
-              if (result.isConfirmed) {
-                const nuevaSesion = {
-                  sesion: result.value.sesion,
-                  descripcion: result.value.aula,
-                  fecha: result.value.fecha,
-                  activo: result.value.concluida,
-                };
-                setSesiones([...sesiones, nuevaSesion]);
-                Swal.fire("✅ Guardado", "La sesión fue registrada correctamente.", "success");
-              }
-            })
-          }
+  if (!temas.length) {
+    Swal.fire("⚠️", "No hay sesiones disponibles para este semestre.", "warning");
+    return;
+  }
+
+  // 🧩 2️⃣ Generar las opciones HTML para el combo
+  const opcionesHtml = temas
+    .map(
+      (t) =>
+        `<option value="${t.tema}">${t.tema} - ${t.descripcion}</option>`
+    )
+    .join("");
+
+  // 🧩 3️⃣ Mostrar modal con combo real
+  Swal.fire({
+    title: "Nueva Sesión",
+    width: "600px",
+    html: `
+      <table style="width:100%; text-align:left; border-collapse:collapse;">
+        <tr>
+          <td style="width:30%; padding:6px;"><label>Sesión:</label></td>
+          <td style="padding:6px;">
+            <select id="sesion" class="swal2-input" style="width:90%;">
+              <option value="">-- Seleccione sesión --</option>
+              ${opcionesHtml}
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:6px;"><label>Escuela y Nro. aula:</label></td>
+          <td style="padding:6px;"><input id="aula" class="swal2-input" style="width:90%;"></td>
+        </tr>
+        <tr>
+          <td style="padding:6px;"><label>Fecha:</label></td>
+          <td style="padding:6px;"><input id="fecha" type="date" class="swal2-input" style="width:50%;"></td>
+        </tr>
+        <tr>
+          <td style="padding:6px;"><label>Concluida:</label></td>
+          <td style="padding:6px;"><input type="checkbox" id="concluida"></td>
+        </tr>
+      </table>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Grabar",
+    cancelButtonText: "Cancelar",
+    focusConfirm: false,
+    preConfirm: () => {
+      const sesion = document.getElementById("sesion").value;
+      const aula = document.getElementById("aula").value.trim();
+      const fecha = document.getElementById("fecha").value;
+      const concluida = document.getElementById("concluida").checked ? 1 : 0;
+
+      if (!sesion || !aula || !fecha) {
+        Swal.showValidationMessage("Por favor complete todos los campos obligatorios.");
+        return false;
+      }
+
+      return { sesion, aula, fecha, concluida };
+    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+    const { sesion, aula, fecha, concluida } = result.value;
+
+    const codigo = btoa(btoa(usuario.docente.persona + semestre));
+    const token = usuario?.codigotokenautenticadorunj;
+
+    guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token)
+      .then((resp) => {
+        if (resp.exito) {
+          Swal.fire("✅ Guardado", resp.mensaje, "success");
+
+          // 🔹 Aquí debes obtener el texto limpio de la sesión
+          const sesionSelect = document.getElementById("sesion");
+          const sesionTexto = sesionSelect.options[sesionSelect.selectedIndex].text;
+          const sesionTextoLimpio = sesionTexto.replace(/^\d+\s*[-.]\s*/, '');
+
+          // 🔹 Refrescar la tabla con el texto limpio
+          setSesiones([
+            ...sesiones,
+            {
+              descripcion: sesionTextoLimpio,
+              fecha,
+              activo: concluida,
+              sesion // opcional si lo necesitas para otras acciones
+            }
+          ]);
+        } else {
+          Swal.fire("⚠️ Error", resp.mensaje, "warning");
+        }
+      })
+      .catch(() =>
+        Swal.fire("❌ Error", "No se pudo conectar con el servidor.", "error")
+      );
+  }
+  });
+}}
+
         >
           <i className="fa fa-plus"></i> Nueva Sesión
         </Button>
