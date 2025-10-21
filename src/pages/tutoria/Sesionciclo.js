@@ -176,7 +176,7 @@ function SesionesCiclo({ semestreValue }) {
             border: "none",
             boxShadow: "none",
           }}
-          onClick={async () => {
+  onClick={async () => {
   const token = usuario?.codigotokenautenticadorunj;
   const persona = usuario?.docente?.persona;
 
@@ -242,42 +242,42 @@ function SesionesCiclo({ semestreValue }) {
 
       return { sesion, aula, fecha, concluida };
     },
-  }).then((result) => {
-    if (result.isConfirmed) {
+ }).then(async (result) => {
+  if (result.isConfirmed) {
     const { sesion, aula, fecha, concluida } = result.value;
 
     const codigo = btoa(btoa(usuario.docente.persona + semestre));
     const token = usuario?.codigotokenautenticadorunj;
 
-    guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token)
-      .then((resp) => {
-        if (resp.exito) {
-          Swal.fire("✅ Guardado", resp.mensaje, "success");
+    try {
+      const res = await guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token);
 
-          // 🔹 Aquí debes obtener el texto limpio de la sesión
-          const sesionSelect = document.getElementById("sesion");
-          const sesionTexto = sesionSelect.options[sesionSelect.selectedIndex].text;
-          const sesionTextoLimpio = sesionTexto.replace(/^\d+\s*[-.]\s*/, '');
+      if (res.exito) {
+        Swal.fire("✅ Guardado", res.mensaje, "success");
 
-          // 🔹 Refrescar la tabla con el texto limpio
-          setSesiones([
-            ...sesiones,
-            {
-              descripcion: sesionTextoLimpio,
-              fecha,
-              activo: concluida,
-              sesion // opcional si lo necesitas para otras acciones
-            }
-          ]);
-        } else {
-          Swal.fire("⚠️ Error", resp.mensaje, "warning");
-        }
-      })
-      .catch(() =>
-        Swal.fire("❌ Error", "No se pudo conectar con el servidor.", "error")
-      );
+        // Busca el texto de la sesión seleccionada usando el array original
+const sesionObj = sesiones.find(s => s.codigo === sesion);
+const sesionTextoLimpio = sesionObj
+  ? sesionObj.descripcion.replace(/^\d+\s*[-.]\s*/, '')
+  : `Sesión ${sesion}`;
+
+setSesiones([
+  ...sesiones,
+  { descripcion: sesionTextoLimpio, fecha, activo: concluida, sesion }
+]);
+
+
+      } else {
+        Swal.fire("⚠️ Aviso", res.mensaje, "warning");
+      }
+
+    } catch (err) {
+      Swal.fire("❌ Error", "No se pudo conectar con la API.", "error");
+      console.error("Error inesperado:", err);
+    }
   }
-  });
+});
+
 }}
 
         >

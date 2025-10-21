@@ -111,8 +111,7 @@ export const obtenerTemasDisponibles = async (semestre, persona, token) => {
 export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo = "N", token) => {
   try {
     const url = `${config.apiUrl}api/Tutoria/guardar-sesion`;
-    console.log("📡 Solicitando :", url);
- 
+    console.log("📡 Solicitando:", url);
 
     const res = await axios.post(
       url,
@@ -127,22 +126,30 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
       {
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json", // 👈 evita que Axios lo tome como HTML
           Authorization: `Bearer ${token}`,
         },
+        timeout: 10000, // ⏳ evita falsos errores por demora
+        validateStatus: () => true, // 👈 evita que Axios lance catch por códigos 4xx/5xx
       }
     );
 
-        if (res.data?.exito) {
+    console.log("✅ Respuesta API:", res);
+
+    // Si llega aquí, la conexión fue exitosa
+    if (res.data?.exito) {
       return { exito: true, mensaje: res.data.mensaje };
     } else {
-      return { exito: false, mensaje: res.data.mensaje || "Error al guardar." };
+      return { exito: false, mensaje: res.data?.mensaje || "Error al guardar." };
     }
 
   } catch (err) {
-    console.error("❌ Error al guardar sesión:", err.response?.data || err.message);
+    console.error("❌ Error al guardar sesión:", err.message);
+    console.log("🧩 err.response:", err.response);
     return { exito: false, mensaje: "Error al conectar con la API." };
   }
 };
+
 
 
 
