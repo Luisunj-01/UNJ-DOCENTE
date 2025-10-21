@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { Table, Button, Spinner } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
-import { obtenerSesionesCiclo, guardarSesion, obtenerTemasDisponibles   } from "./logica/DatosTutoria"; // función nueva
+import { 
+  obtenerSesionesCiclo, 
+  guardarSesion, 
+  obtenerTemasDisponibles, 
+  obtenerRecomendacion,
+  guardarRecomendacion
+} from "./logica/DatosTutoria";
+
 import AsistenciaSesion from './componentes/AsistenciaSesion';
 import Swal from "sweetalert2";
 
@@ -13,10 +20,49 @@ function SesionesCiclo({ semestreValue }) {
   const [sesiones, setSesiones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
-  const [ciclo, setCiclo] = useState("No asignado");
+  const [ciclo, setCiclo] = useState("No asignado");  
   const [accion, setAccion] = useState(null);
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
+  const [temasDisponibles, setTemasDisponibles] = useState([]);
+  const [cargandoTemas, setCargandoTemas] = useState(false); 
 
+
+  // 🧩 Aquí puedes colocar la función de formateo
+  const formatearFecha = (fecha) => {
+    if (!fecha) return "";
+    const partes = fecha.split("-");
+    if (partes.length === 3) {
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return fecha;
+  };
+  // ✅ useEffect independiente para cargar temas disponibles
+useEffect(() => {
+  if (!usuario || !usuario.docente) return;
+
+  const cargarTemas = async () => {
+    try {
+      setCargandoTemas(true);
+      const token = usuario?.codigotokenautenticadorunj;
+      const persona = usuario?.docente?.persona;
+      const temas = await obtenerTemasDisponibles(semestre, persona, token);
+
+      // 🔹 Filtrar los temas que ya tienen sesión registrada
+      const temasNoRegistrados = (temas || []).filter(
+        (t) => !sesiones.some((s) => s.sesion === t.tema)
+      );
+
+      setTemasDisponibles(temasNoRegistrados);
+    } catch (err) {
+      console.error("❌ Error al cargar temas:", err);
+      setTemasDisponibles([]);
+    } finally {
+      setCargandoTemas(false);
+    }
+  };
+
+  cargarTemas();
+}, [usuario, semestre, sesiones]); // 🔹 importante agregar "sesiones" aquí
 
 
   // 🧩 Cargar sesiones
@@ -36,16 +82,15 @@ function SesionesCiclo({ semestreValue }) {
 
       try {
         const persona = usuario.docente.persona;
-
         const { ciclo, datos, mensaje } = await obtenerSesionesCiclo(persona, semestre, token);
 
         if (datos && datos.length > 0) {
           setSesiones(datos);
-          setCiclo(ciclo || "No asignado"); // ✅ nuevo
+          setCiclo(ciclo || "No asignado");
           setMensaje("");
         } else {
           setSesiones([]);
-          setCiclo(ciclo || "No asignado"); // ✅ nuevo
+          setCiclo(ciclo || "No asignado");
           setMensaje(mensaje || "No se encontraron sesiones de ciclo.");
         }
       } catch (error) {
@@ -79,6 +124,7 @@ function SesionesCiclo({ semestreValue }) {
     return;
   }
 
+
     Swal.fire({
       title: `${acciones[tipo]}`,
       text: `Sesión: ${sesion.descripcion}`,
@@ -100,6 +146,8 @@ function SesionesCiclo({ semestreValue }) {
     />
   );
 }
+
+
 
 
   return (
@@ -176,27 +224,27 @@ function SesionesCiclo({ semestreValue }) {
             border: "none",
             boxShadow: "none",
           }}
-  onClick={async () => {
-  const token = usuario?.codigotokenautenticadorunj;
-  const persona = usuario?.docente?.persona;
 
-  // 🧩 1️⃣ Cargar sesiones disponibles desde API
-  const temas = await obtenerTemasDisponibles(semestre, persona, token);
 
-  if (!temas.length) {
-    Swal.fire("⚠️", "No hay sesiones disponibles para este semestre.", "warning");
+              onClick={async () => {
+  if (cargandoTemas) {
+    Swal.fire("⏳", "Cargando temas disponibles...", "info");
     return;
   }
 
-  // 🧩 2️⃣ Generar las opciones HTML para el combo
-  const opcionesHtml = temas
+  if (!temasDisponibles.length) {
+    Swal.fire("⚠️", "Ya no hay sesiones disponibles para este semestre.", "warning");
+    return;
+  }
+
+  // Generar las opciones del combo
+  const opcionesHtml = temasDisponibles
     .map(
-      (t) =>
-        `<option value="${t.tema}">${t.tema} - ${t.descripcion}</option>`
+      (t) => `<option value="${t.tema}">${t.tema} - ${t.descripcion}</option>`
     )
     .join("");
 
-  // 🧩 3️⃣ Mostrar modal con combo real
+  // Mostrar el modal
   Swal.fire({
     title: "Nueva Sesión",
     width: "600px",
@@ -242,46 +290,41 @@ function SesionesCiclo({ semestreValue }) {
 
       return { sesion, aula, fecha, concluida };
     },
- }).then(async (result) => {
-  if (result.isConfirmed) {
-    const { sesion, aula, fecha, concluida } = result.value;
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const { sesion, aula, fecha, concluida } = result.value;
 
-    const codigo = btoa(btoa(usuario.docente.persona + semestre));
-    const token = usuario?.codigotokenautenticadorunj;
+      const codigo = btoa(btoa(usuario.docente.persona + semestre));
+      const token = usuario?.codigotokenautenticadorunj;
 
-    try {
-      const res = await guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token);
+      try {
+        const res = await guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token);
 
-      if (res.exito) {
-        Swal.fire("✅ Guardado", res.mensaje, "success");
+        if (res.exito) {
+          Swal.fire("✅ Guardado", res.mensaje, "success");
 
-        // Busca el texto de la sesión seleccionada usando el array original
-const sesionObj = sesiones.find(s => s.codigo === sesion);
-const sesionTextoLimpio = sesionObj
-  ? sesionObj.descripcion.replace(/^\d+\s*[-.]\s*/, '')
-  : `Sesión ${sesion}`;
+          // Agregar a la tabla
+          const temaSeleccionado = temasDisponibles.find(t => t.tema === sesion);
+          setSesiones([
+            ...sesiones,
+            { descripcion: temaSeleccionado.descripcion, fecha, activo: concluida, sesion }
+          ]);
 
-setSesiones([
-  ...sesiones,
-  { descripcion: sesionTextoLimpio, fecha, activo: concluida, sesion }
-]);
-
-
-      } else {
-        Swal.fire("⚠️ Aviso", res.mensaje, "warning");
+          // Eliminar ese tema del combo
+          setTemasDisponibles(prev => prev.filter(t => t.tema !== sesion));
+        } else {
+          Swal.fire("⚠️ Aviso", res.mensaje, "warning");
+        }
+      } catch (err) {
+        Swal.fire("❌ Error", "No se pudo conectar con la API.", "error");
+        console.error("Error inesperado:", err);
       }
-
-    } catch (err) {
-      Swal.fire("❌ Error", "No se pudo conectar con la API.", "error");
-      console.error("Error inesperado:", err);
     }
-  }
-});
-
+  });
 }}
 
-        >
-          <i className="fa fa-plus"></i> Nueva Sesión
+
+        ><i className="fa fa-plus"></i> Nueva Sesión
         </Button>
       </th>
     </tr>
@@ -292,7 +335,8 @@ setSesiones([
       <tr key={index}>
         <td style={{ textAlign: "center" }}>{index + 1}</td>
         <td>{sesion.descripcion}</td>
-        <td style={{ textAlign: "center" }}>{sesion.fecha}</td>
+        <td style={{ textAlign: "center" }}>{formatearFecha(sesion.fecha)}</td>
+
         <td style={{ textAlign: "center" }}>
           {sesion.activo === 1 ? (
             <span className="badge bg-primary">Concluida</span>
@@ -356,23 +400,29 @@ setSesiones([
 
                   return { logro, dificultad, recomendacion };
                 },
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  const { logro, dificultad, recomendacion } = result.value;
-                  console.log("💾 Datos guardados:", {
-                    sesion: sesion.descripcion,
-                    logro,
-                    dificultad,
-                    recomendacion,
-                  });
 
-                  Swal.fire(
-                    "✅ Guardado",
-                    "Las observaciones fueron registradas correctamente.",
-                    "success"
-                  );
+              }).then(async (result) => {
+              if (result.isConfirmed) {
+                const { logro, dificultad, recomendacion } = result.value;
+                const codigo = btoa(btoa(usuario.docente.persona + semestre));
+                const token = usuario?.codigotokenautenticadorunj;
+                const semana = sesion.sesion; // o el campo correcto según tu SP
+                const tipo = "I"; // 'I' insertar o 'U' actualizar
+
+                try {
+                  const res = await guardarRecomendacion(codigo, semana, logro, dificultad, recomendacion, tipo, token);
+
+                  if (res.error === 0) {
+                    Swal.fire("✅ Guardado", res.mensaje, "success");
+                  } else {
+                    Swal.fire("⚠️ Error", res.mensaje || "No se pudo guardar la información.", "warning");
+                  }
+                } catch (error) {
+                  Swal.fire("❌ Error", "No se pudo conectar con el servidor.", "error");
+                  console.error(error);
                 }
-              });
+              }
+            });
             }}
             className="me-1"
           >

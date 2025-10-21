@@ -134,7 +134,7 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
       }
     );
 
-    console.log("✅ Respuesta API:", res);
+    
 
     // Si llega aquí, la conexión fue exitosa
     if (res.data?.exito) {
@@ -151,6 +151,64 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
 };
 
 
+export const obtenerRecomendacion = async (codigo, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/obtener-recomendacion/${codigo}`;
+    const res = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al obtener recomendación:", error);
+    return { success: false, message: "Error de conexión con el servidor" };
+  }
+};
+
+export const guardarRecomendacion = async (
+  codigo,
+  semana,
+  logro,
+  dificultad,
+  recomendacion,
+  tipo = "I", // I = insertar, U = actualizar
+  token
+) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/guardar-recomendacion`;
+    console.log("📡 Enviando datos a:", url);
+
+    const res = await axios.post(
+      url,
+      {
+        codigo,
+        cboSemana: semana,
+        txtLogroZet: logro,
+        txtDificultadZet: dificultad,
+        txtRecomendacionZet: recomendacion,
+        txtTipo: tipo,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 10000,
+        validateStatus: () => true,
+      }
+    );
+
+    console.log("📥 Respuesta del servidor:", res.data);
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error en guardarRecomendacion:", error);
+    return { error: 1, mensaje: "Error de conexión con el servidor." };
+  }
+};
 
 
 
