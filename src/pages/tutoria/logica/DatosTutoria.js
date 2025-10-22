@@ -1,7 +1,6 @@
 import axios from "axios";
 import config from "../../../config"; // ajusta según tu proyecto
 
-
 /**
  * Obtiene los alumnos de un docente tutor por semestre
  */
@@ -151,41 +150,65 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
 };
 
 
-export const obtenerRecomendacion = async (codigo, token) => {
+
+
+export const obtenerRecomendacion = async (persona, semestre, sesion, token) => {
   try {
+    // 🔹 Concatenar el código directamente en texto plano
+    const codigo = `${persona}${semestre}${sesion}`;
+    console.log("🔍 Código generado:", codigo);
     const url = `${config.apiUrl}api/Tutoria/obtener-recomendacion/${codigo}`;
-    const res = await axios.get(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return res.data;
+
+    console.log("🌐 URL:", url);
+    console.log("🔑 Token:", token);
+
+    const respuesta = await fetch(url, {
+  method: "GET",
+  headers: {
+    Accept: "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+});
+
+const json = await respuesta.json();
+console.log("📥 Respuesta obtenerRecomendacion:", json);
+
+if (json.success && json.data) {
+  return {
+    descripcion: json.data.descripcion || "",
+    logrozet: json.data.logrozet || "",
+    dificultadzet: json.data.dificultadzet || "",
+    recomendacionzet: json.data.recomendacionzet || "",
+  };
+} else {
+  return {
+    descripcion: "",
+    logrozet: "",
+    dificultadzet: "",
+    recomendacionzet: "",
+  };
+}
+
+
   } catch (error) {
     console.error("❌ Error al obtener recomendación:", error);
-    return { success: false, message: "Error de conexión con el servidor" };
+    return { logro: "", dificultad: "", recomendacion: "" };
   }
 };
 
-export const guardarRecomendacion = async (
-  codigo,
-  semana,
-  logro,
-  dificultad,
-  recomendacion,
-  tipo = "I", // I = insertar, U = actualizar
-  token
-) => {
+
+
+
+export const guardarRecomendacion = async (codigo, semana, logro, dificultad, recomendacion, tipo = "U", token) => {
   try {
     const url = `${config.apiUrl}api/Tutoria/guardar-recomendacion`;
-    console.log("📡 Enviando datos a:", url);
+    console.log("📡 Solicitando:", url);
 
     const res = await axios.post(
       url,
       {
         codigo,
-        cboSemana: semana,
+        cboSemana: semana,          // 👈 usa los mismos nombres del backend Laravel
         txtLogroZet: logro,
         txtDificultadZet: dificultad,
         txtRecomendacionZet: recomendacion,
@@ -194,8 +217,8 @@ export const guardarRecomendacion = async (
       {
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+          "Accept": "application/json",
+          Authorization: `Bearer ${token}`, // 👈 token igual que en Postman
         },
         timeout: 10000,
         validateStatus: () => true,
@@ -203,12 +226,22 @@ export const guardarRecomendacion = async (
     );
 
     console.log("📥 Respuesta del servidor:", res.data);
-    return res.data;
-  } catch (error) {
-    console.error("❌ Error en guardarRecomendacion:", error);
-    return { error: 1, mensaje: "Error de conexión con el servidor." };
+
+    if (res.data?.success) {
+      return { error: 0, mensaje: res.data.message || "✅ Información guardada correctamente" };
+    } else {
+      return {
+        error: 1,
+        mensaje: res.data?.message || "⚠️ No se pudo guardar la información.",
+      };
+    }
+  } catch (err) {
+    console.error("❌ Error al guardar recomendación:", err.message);
+    console.log("🧩 Detalle del error:", err.response);
+    return { error: 1, mensaje: "Error de conexión o autorización con el servidor." };
   }
 };
+
 
 
 

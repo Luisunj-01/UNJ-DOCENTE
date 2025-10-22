@@ -347,87 +347,94 @@ useEffect(() => {
         <td style={{ textAlign: "center" }}>
 
           <Button
-            variant="outline-secondary"
-            size="sm"
-            onClick={() => {
-              Swal.fire({
-                title: `📘 Logros, dificultades y observaciones`,
-                width: "650px", // 🔹 un poco más ancho
-                customClass: {
-                  popup: "no-scroll-modal", // 🔹 clase personalizada
-                },
-                html: `
-                  <div style="text-align:left; font-size:15px; padding:5px;">
-                    <p style="margin-bottom:15px;">
-                      <b>Sesión:</b> ${sesion.descripcion}
-                    </p>
+  variant="outline-secondary"
+  size="sm"
+  onClick={async () => {
+    const persona = usuario.docente.persona;
+    const semana = sesion.sesion;
+    const token = usuario?.codigotokenautenticadorunj;
 
-                    <div style="margin-bottom:12px;">
-                      <label style="font-weight:bold;">Logro:</label><br>
-                      <textarea id="logro"
-                        placeholder="Ingrese los logros"
-                        style="width:100%; min-height:70px; border-radius:6px; border:1px solid #ccc; padding:8px; resize:none; font-size:14px;"></textarea>
-                    </div>
+    try {
+      const datosReco = await obtenerRecomendacion(persona, semestre, semana, token);
 
-                    <div style="margin-bottom:12px;">
-                      <label style="font-weight:bold;">Dificultad:</label><br>
-                      <textarea id="dificultad"
-                        placeholder="Ingrese las dificultades"
-                        style="width:100%; min-height:70px; border-radius:6px; border:1px solid #ccc; padding:8px; resize:none; font-size:14px;"></textarea>
-                    </div>
+// ✅ Verifica que los datos llegaron
+console.log("🧪 Datos recibidos:", datosReco);
 
-                    <div style="margin-bottom:5px;">
-                      <label style="font-weight:bold;">Recomendación:</label><br>
-                      <textarea id="recomendacion"
-                        placeholder="Ingrese recomendaciones"
-                        style="width:100%; min-height:70px; border-radius:6px; border:1px solid #ccc; padding:8px; resize:none; font-size:14px;"></textarea>
-                    </div>
-                  </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: "Guardar",
-                cancelButtonText: "Cancelar",
-                focusConfirm: false,
-                preConfirm: () => {
-                  const logro = document.getElementById("logro").value.trim();
-                  const dificultad = document.getElementById("dificultad").value.trim();
-                  const recomendacion = document.getElementById("recomendacion").value.trim();
+// ✅ Escapa caracteres especiales para evitar errores en el HTML
+const escapeHtml = (text) =>
+  String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 
-                  if (!logro && !dificultad && !recomendacion) {
-                    Swal.showValidationMessage("Debe ingresar al menos un campo antes de guardar.");
-                    return false;
-                  }
+const logroActual = escapeHtml(datosReco.logrozet);
+const dificultadActual = escapeHtml(datosReco.dificultadzet);
+const recomendacionActual = escapeHtml(datosReco.recomendacionzet);
+console.log("✅ Datos para el modal:", {
+  logroActual,
+  dificultadActual,
+  recomendacionActual
+});
+Swal.fire({
+  title: "📘 Logros, dificultades y recomendaciones",
+  width: "650px",
+  html: `
+    <div style="text-align:left; font-size:15px; padding:5px;">
+      <p><b>Sesión:</b> ${escapeHtml(datosReco.descripcion)}</p>
 
-                  return { logro, dificultad, recomendacion };
-                },
+      <label><b>Logro:</b></label>
+      <textarea id="logro" style="width:100%; min-height:70px;">${logroActual}</textarea>
 
-              }).then(async (result) => {
-              if (result.isConfirmed) {
-                const { logro, dificultad, recomendacion } = result.value;
-                const codigo = btoa(btoa(usuario.docente.persona + semestre));
-                const token = usuario?.codigotokenautenticadorunj;
-                const semana = sesion.sesion; // o el campo correcto según tu SP
-                const tipo = "I"; // 'I' insertar o 'U' actualizar
+      <label><b>Dificultad:</b></label>
+      <textarea id="dificultad" style="width:100%; min-height:70px;">${dificultadActual}</textarea>
 
-                try {
-                  const res = await guardarRecomendacion(codigo, semana, logro, dificultad, recomendacion, tipo, token);
+      <label><b>Recomendación:</b></label>
+      <textarea id="recomendacion" style="width:100%; min-height:70px;">${recomendacionActual}</textarea>
+    </div>
+  `,
+  showCancelButton: true,
+  confirmButtonText: "Guardar",
+  cancelButtonText: "Cancelar",
+  preConfirm: () => {
+    const logro = document.getElementById("logro").value.trim();
+    const dificultad = document.getElementById("dificultad").value.trim();
+    const recomendacion = document.getElementById("recomendacion").value.trim();
+    return { logro, dificultad, recomendacion };
+  },
 
-                  if (res.error === 0) {
-                    Swal.fire("✅ Guardado", res.mensaje, "success");
-                  } else {
-                    Swal.fire("⚠️ Error", res.mensaje || "No se pudo guardar la información.", "warning");
-                  }
-                } catch (error) {
-                  Swal.fire("❌ Error", "No se pudo conectar con el servidor.", "error");
-                  console.error(error);
-                }
-              }
-            });
-            }}
-            className="me-1"
-          >
-            <i className="fa fa-book"></i>
-          </Button>
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const { logro, dificultad, recomendacion } = result.value;
+          const res = await guardarRecomendacion(
+            `${persona}${semestre}${semana}`,
+            semana,
+            logro,
+            dificultad,
+            recomendacion,
+            "U",
+            token
+          );
+
+          if (res.error === 0) {
+            Swal.fire("✅ Guardado", res.mensaje, "success");
+          } else {
+            Swal.fire("⚠️ Aviso", res.mensaje || "No se pudo guardar la información", "warning");
+          }
+        }
+      });
+    } catch (err) {
+      Swal.fire("❌ Error", "No se pudo cargar la información previa", "error");
+      console.error(err);
+    }
+  }}
+>
+  <i className="fa fa-book"></i>
+</Button>
+
+
+
 
           <Button
             variant="outline-secondary"
