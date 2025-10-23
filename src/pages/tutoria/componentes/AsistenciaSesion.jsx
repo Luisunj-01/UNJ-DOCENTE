@@ -4,7 +4,8 @@ import Swal from "sweetalert2";
 import { useUsuario } from "../../../context/UserContext";
 import { guardarAsistenciaSesiones, obtenerAsistenciaSesiones } from "../logica/DatosTutoria";
 
-function AsistenciaSesion({ persona, semestre, sesion, onVolver }) {
+function AsistenciaSesion({ persona, semestre, sesion, descripcion, onVolver }) {
+
   const { usuario } = useUsuario();
   const token = usuario?.codigotokenautenticadorunj;
 
@@ -51,11 +52,28 @@ function AsistenciaSesion({ persona, semestre, sesion, onVolver }) {
   };
 
   const handleGuardar = async () => {
-    setGuardando(true);
-    const { exito, mensaje } = await guardarAsistenciaSesiones(persona, semestre, sesion, alumnos, token);
-    Swal.fire(exito ? "✅ Éxito" : "❌ Error", mensaje, exito ? "success" : "error");
-    setGuardando(false);
-  };
+  setGuardando(true);
+
+  // 🔹 Construimos los detalles correctamente
+  const detalles = alumnos.map((a) => ({
+    personaAlumno: a.personaalumno,
+    alumno: a.alumno,
+    estructura: a.estructura,
+    observacion: a.observacion || "",
+    asistencia: a.asistencia || 0,
+  }));
+
+  const { exito, mensaje } = await guardarAsistenciaSesiones(
+    persona,
+    semestre,
+    sesion,
+    detalles,
+    token
+  );
+
+  Swal.fire(exito ? "✅ Éxito" : "❌ Error", mensaje, exito ? "success" : "error");
+  setGuardando(false);
+};
 
   // 🔹 Filtrar alumnos según búsqueda
   const alumnosFiltrados = alumnos.filter(
@@ -87,9 +105,30 @@ function AsistenciaSesion({ persona, semestre, sesion, onVolver }) {
 
       <h5 className="mb-3 text-primary fw-bold">📋 Asistencia de Sesión</h5>
 
+
+     {/* 🔹 Información del docente y la sesión (solo texto) */}
+<div className="mb-3">
+  <p className="mb-1">
+    <strong>👩‍🏫 Docente:</strong>{" "}
+    {usuario?.docente?.nombrecompleto || "Sin nombre"}
+  </p>
+  <p className="mb-0">
+    <strong>🗓️ Sesión:</strong> {descripcion || "Sin descripción"}
+  </p>
+</div>
+
+
+
       {/* 🔎 Campo de búsqueda */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        
+
+
+       
+
+                
+
+
+
         <input
           type="text"
           className="form-control form-control-sm"
@@ -161,18 +200,28 @@ function AsistenciaSesion({ persona, semestre, sesion, onVolver }) {
       >
         <td style={{ padding: "6px" }}>{i + 1}</td>
         <td style={{ padding: "6px" }}>{a.alumno}</td>
+
         <td
-          style={{
-            padding: "6px",
-            maxWidth: "250px",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-          title={a.nombrecompleto} // tooltip al pasar el mouse
-        >
+        style={{
+          padding: "6px",
+          maxWidth: "260px",
+          whiteSpace: "normal",
+          lineHeight: "1.2",
+        }}
+      >
+        <div style={{ fontWeight: "500", color: "#212529" }}>
           {a.nombrecompleto}
-        </td>
+        </div>
+        <div style={{ fontSize: "0.8em", color: "#6c757d" }}>
+          {a.email_institucional || "Sin correo"}
+        </div>
+        <div style={{ fontSize: "0.8em", color: "#6c757d" }}>
+          {a.celular || "Sin teléfono"}
+        </div>
+      </td>
+
+
+
         <td style={{ padding: "6px" }}>
           <input
             type="checkbox"

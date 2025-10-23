@@ -193,9 +193,6 @@ if (json.success && json.data) {
   }
 };
 
-
-
-
 export const guardarRecomendacion = async (
   persona,
   semestre,
@@ -251,6 +248,33 @@ export const guardarRecomendacion = async (
 };
 
 
+export const eliminarSesion = async (persona, semestre, sesion, token) => {
+  try {
+    const codigo = `${persona}${semestre}${sesion}`;
+    const url = `${config.apiUrl}api/Tutoria/eliminar-sesion/${codigo}`;
+    console.log("🗑️ Eliminando sesión:", url);
+
+    const respuesta = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await respuesta.json();
+    console.log("📥 Respuesta eliminarSesion:", data);
+
+    if (data.success) {
+      return { error: 0, mensaje: data.message };
+    } else {
+      return { error: 1, mensaje: data.message || "⚠️ No se pudo eliminar la sesión" };
+    }
+  } catch (error) {
+    console.error("❌ Error al eliminar sesión:", error);
+    return { error: 1, mensaje: "Error de conexión con el servidor." };
+  }
+};
 
 
 // 4.
@@ -281,6 +305,40 @@ export const guardarAsistenciaSesiones = async (persona, semestre, sesion, detal
 };
 
 
+// 🔹 Obtener sesión
+export const obtenerSesion = async (persona, semestre, sesion, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesion/${persona}/${semestre}/${sesion}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("❌ Error al obtener sesión:", err);
+    return { success: false, message: "Error al conectar con el servidor." };
+  }
+};
+
+// 🔹 Actualizar sesión
+export const actualizarSesion = async (persona, semestre, sesion, aula, fecha, activo, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesion/actualizar`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ persona, semestre, sesion, aula, fecha, activo }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("❌ Error al actualizar sesión:", err);
+    return { success: false, message: "Error al conectar con la API." };
+  }
+};
 
 
 
