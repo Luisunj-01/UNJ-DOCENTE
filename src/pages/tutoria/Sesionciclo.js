@@ -408,14 +408,15 @@ Swal.fire({
         if (result.isConfirmed) {
           const { logro, dificultad, recomendacion } = result.value;
           const res = await guardarRecomendacion(
-            `${persona}${semestre}${semana}`,
-            semana,
-            logro,
-            dificultad,
-            recomendacion,
-            "U",
-            token
-          );
+  persona,
+  semestre,
+  semana,
+  logro,
+  dificultad,
+  recomendacion,
+  token
+);
+
 
           if (res.error === 0) {
             Swal.fire("✅ Guardado", res.mensaje, "success");

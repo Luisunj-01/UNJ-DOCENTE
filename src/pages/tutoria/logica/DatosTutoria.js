@@ -149,9 +149,6 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
   }
 };
 
-
-
-
 export const obtenerRecomendacion = async (persona, semestre, sesion, token) => {
   try {
     // 🔹 Concatenar el código directamente en texto plano
@@ -199,35 +196,44 @@ if (json.success && json.data) {
 
 
 
-export const guardarRecomendacion = async (codigo, semana, logro, dificultad, recomendacion, tipo = "U", token) => {
+export const guardarRecomendacion = async (
+  persona,
+  semestre,
+  sesion,
+  logro,
+  dificultad,
+  recomendacion,
+  token
+) => {
   try {
     const url = `${config.apiUrl}api/Tutoria/guardar-recomendacion`;
-    console.log("📡 Solicitando:", url);
+
+    console.log("📡 Enviando datos a:", url);
 
     const res = await axios.post(
       url,
       {
-        codigo,
-        cboSemana: semana,          // 👈 usa los mismos nombres del backend Laravel
-        txtLogroZet: logro,
-        txtDificultadZet: dificultad,
-        txtRecomendacionZet: recomendacion,
-        txtTipo: tipo,
+        persona,          // 👈 mismos nombres que espera el backend Laravel
+        semestre,
+        sesion,
+        logrozet: logro,
+        dificultadzet: dificultad,
+        recomendacionzet: recomendacion,
       },
       {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          Authorization: `Bearer ${token}`, // 👈 token igual que en Postman
+          Authorization: `Bearer ${token}`,
         },
         timeout: 10000,
-        validateStatus: () => true,
       }
     );
 
     console.log("📥 Respuesta del servidor:", res.data);
 
-    if (res.data?.success) {
+    // ✅ Manejo correcto de la respuesta
+    if (res.status === 200 && res.data?.success) {
       return { error: 0, mensaje: res.data.message || "✅ Información guardada correctamente" };
     } else {
       return {
@@ -237,8 +243,10 @@ export const guardarRecomendacion = async (codigo, semana, logro, dificultad, re
     }
   } catch (err) {
     console.error("❌ Error al guardar recomendación:", err.message);
-    console.log("🧩 Detalle del error:", err.response);
-    return { error: 1, mensaje: "Error de conexión o autorización con el servidor." };
+    return {
+      error: 1,
+      mensaje: "Error de conexión o autorización con el servidor.",
+    };
   }
 };
 
