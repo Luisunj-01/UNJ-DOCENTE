@@ -4,6 +4,8 @@ import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import config from "../../config";
 import confetti from "canvas-confetti";
+import "./SesionesCiclo.css";
+
 
 
 import { 
@@ -222,13 +224,6 @@ if (tipo === "edit") {
   return;
 }
 
-
-
-
-
-
-
-
     Swal.fire({
       title: `${acciones[tipo]}`,
       text: `Sesión: ${sesion.descripcion}`,
@@ -287,7 +282,7 @@ if (tipo === "edit") {
         </div>
         <div>
           <Button
-            variant="outline-secondary"
+            variant="outline-primary"
             size="sm"
             onClick={() => Swal.fire("🖨 Registro de reuniones", "Función en desarrollo.")}
           >
@@ -300,7 +295,10 @@ if (tipo === "edit") {
       {loading && <Spinner animation="border" variant="primary" />}
       {!loading && mensaje && <p>{mensaje}</p>}
       {!loading && sesiones.length > 0 && (
-        <Table bordered hover size="sm" responsive>
+
+
+  <Table bordered hover size="sm" responsive className="table-tutoria">
+
   <thead className="table-light">
     <tr>
       <th style={{ width: "5%", textAlign: "center" }}>Nro.</th>
@@ -447,8 +445,9 @@ if (tipo === "edit") {
         <td style={{ textAlign: "center" }}>
 
           <Button
-                  variant="outline-secondary"
+                  variant="outline-light"
                   size="sm"
+                  className="me-1 btn-icon"
                   onClick={async () => {
                     const persona = usuario.docente.persona;
                     const semana = sesion.sesion;
@@ -458,7 +457,7 @@ if (tipo === "edit") {
                       const datosReco = await obtenerRecomendacion(persona, semestre, semana, token);
 
                 // ✅ Verifica que los datos llegaron
-                console.log("🧪 Datos recibidos:", datosReco);
+             
 
                 // ✅ Escapa caracteres especiales para evitar errores en el HTML
                 const escapeHtml = (text) =>
@@ -529,14 +528,15 @@ if (tipo === "edit") {
             }
           }}
         >
-          <i className="fa fa-book"></i>
+          <i className="fa fa-book icono-verde"></i>
         </Button>
 
           <Button
-  variant="outline-secondary"
-  size="sm"
-  onClick={() => {
-    let vistaPrevia = ""; // para guardar el HTML de la imagen temporal
+          variant="outline-light"
+          size="sm"
+          className="me-1 btn-icon"
+          onClick={() => {
+            let vistaPrevia = ""; // para guardar el HTML de la imagen temporal
 
     Swal.fire({
       title: "📸 Subir foto de la sesión",
@@ -647,35 +647,38 @@ if (tipo === "edit") {
                       }
               });
             }}
-            className="me-1"
+           
           >
-            <i className="far fa-smile"></i>
+            <i className="far fa-smile icono-amarillo"></i>
           </Button>
 
           <Button
-            variant="outline-secondary"
+            variant="outline-light"
             size="sm"
+            className="me-1 btn-icon"
             onClick={() => handleAccion("asis", sesion)}
-            className="me-1"
+           
           >
-            <i className="fa fa-male"></i>
+            <i className="fa fa-male icono-azul"></i>
           </Button>
 
 
           <Button
-            variant="outline-secondary"
+            variant="outline-light"
             size="sm"
+            className="me-1 btn-icon"
             onClick={() => handleAccion("edit", sesion)}
-            className="me-1"
+            
           >
-            <i className="fa fa-edit"></i>
+            <i className="fa fa-edit icono-negro"></i>
           </Button>
 
 
           {/* Botón eliminar corregido */}
           <Button
-            variant="outline-danger"
+            variant="outline-light"
             size="sm"
+            className="me-1 btn-icon"
             onClick={async () => {
               const persona = usuario.docente.persona;
               const token = usuario?.codigotokenautenticadorunj;
@@ -702,7 +705,7 @@ if (tipo === "edit") {
               }
             }}
           >
-            <i className="fa fa-trash"></i>
+            <i className="fa fa-trash icono-rojo"></i>
           </Button>
 
 

@@ -1,0 +1,83 @@
+/* 🎨 ESTILOS PERSONALIZADOS PARA SESIONES DE TUTORÍA */
+.table-tutoria {
+  background-color: #ffffff;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table-tutoria thead {
+  background: linear-gradient(90deg, #0056b3, #007bff);
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.table-tutoria tbody tr:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.table-tutoria td,
+.table-tutoria th {
+  vertical-align: middle;
+  padding: 10px;
+  border: 1px solid #dee2e6;
+}
+
+.badge {
+  font-size: 0.85rem !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  border-radius: 50% !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.table-tutoria thead {
+  background: #f8f9fa !important;
+  color: #333 !important;
+  font-weight: bold;
+}
+
+
+/* 🎨 COLORES DE ÍCONOS POR ACCIÓN */
+.icono-verde { color: #7e7311 !important; }      /* 📗 Libro */
+.icono-amarillo { color: #97f31e !important; }   /* 😄 Carita */
+.icono-azul { color: #007bff !important; }       /* 👨‍🏫 Personita */
+.icono-negro { color: #212529 !important; }      /* ✏️ Editar */
+.icono-rojo { color: #dc3545 !important; }       /* 🗑 Eliminar */
+
+/* ⚪ Fondo de botones tipo “outline” */
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50% !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white !important; /* Fondo blanco */
+  border: 1px solid #000000 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* ✨ Efecto hover elegante */
+.btn-icon:hover {
+  background-color: #f8f9fa !important; /* Gris muy suave */
+  transform: scale(1.08);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ✨ Que el ícono no cambie de color al pasar el mouse */
+.btn-icon:hover i {
+  opacity: 0.9;
+}
