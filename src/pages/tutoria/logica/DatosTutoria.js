@@ -341,6 +341,145 @@ export const actualizarSesion = async (persona, semestre, sesion, aula, fecha, a
 };
 
 
+export const obtenerSesionesLibres = async (persona, semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesiones-libres/${persona}/${semestre}`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Error al obtener sesiones libres:", err);
+    return [];
+  }
+};
+
+
+export const obtenerSesionLibre = async (persona, semestre, sesion, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/obtener-sesion-libre/${persona}/${semestre}/${sesion}`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Error al obtener sesión libre:", err);
+    return { success: false };
+  }
+};
+
+
+
+// 🔹 Obtener sesiones disponibles (no registradas)
+export const obtenerSesionesLibresDisponibles = async (persona, semestre, token) => {
+  
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesiones-libres-disponibles/${persona}/${semestre}`;
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    if (data.success) return data.data || [];
+    return [];
+  } catch (error) {
+    console.error("❌ Error al obtener sesiones disponibles libres:", error);
+    return [];
+  }
+};
+
+
+export const guardarSesionLibre = async (persona, semestre, sesion, descripcion, fecha, concluida, link, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/guardar-sesion-libre`;
+
+    const body = {
+      persona,
+      semestre,
+      sesion,
+      descripcion,   // 👈 se envía al backend
+      fecha,
+      activo: concluida,
+      aula: link,
+    };
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Error al guardar sesión libre:", err);
+    return { success: false };
+  }
+};
+
+
+
+export const actualizarSesionLibre = async (
+  persona,
+  semestre,
+  sesion,
+  descripcion,
+  fecha,
+  concluida,
+  link,
+  token
+) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/actualizar-sesion-libre`;
+
+    const body = {
+      persona,
+      semestre,
+      sesion,
+      descripcion,
+      fecha,
+      activo: concluida,
+      aula: link,
+    };
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Error al actualizar sesión libre:", err);
+    return { success: false };
+  }
+};
+
+
+
+
+export const eliminarSesionLibre = async (persona, semestre, sesion, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/eliminar-sesion-libre`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ persona, semestre, sesion }),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error("❌ Error al eliminar sesión libre:", err);
+    return { success: false };
+  }
+};
+
+
 
 
 

@@ -97,7 +97,7 @@ function AppRoutes() {
             <Route path="/tutoria/asistencia" element={<AsistenciaSesion />} />
 
 
-            <Route path="Sesionlibre" element={<Sesionlibre />} />
+            <Route path="/tutoria/libre" element={<Sesionlibre />} />
             <Route path="Sesionindiv" element={<SesionIndiv />} />
             <Route path="Reportes" element={<Reportes />} />
             <Route path="Curso" element={<Cursos />} />
