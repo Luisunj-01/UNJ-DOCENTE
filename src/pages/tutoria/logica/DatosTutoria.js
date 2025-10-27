@@ -459,8 +459,6 @@ export const actualizarSesionLibre = async (
 };
 
 
-
-
 export const eliminarSesionLibre = async (persona, semestre, sesion, token) => {
   try {
     const url = `${config.apiUrl}api/Tutoria/eliminar-sesion-libre`;
@@ -481,6 +479,59 @@ export const eliminarSesionLibre = async (persona, semestre, sesion, token) => {
 
 
 
+// 🔹 Trae la lista de alumnos tutorados del docente
+export const obtenerSesionesIndividuales = async (
+  semestre,
+  persona,
+  docente,
+  escuela,
+  vperfil,
+  token
+) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesiones-individuales/${semestre}/${persona}/${docente}/${escuela}/${vperfil}`;
 
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("❌ Error al obtener sesiones individuales:", err);
+    return { success: false, message: "Error al conectar con el servidor." };
+  }
+};
+
+// 🔹 (opcional) ver detalle de un tutorando específico
+export const obtenerSesionIndividual = async (
+  semestre,
+  persona,
+  docente,
+  alumno,
+  estructura,
+  vperfil,
+  token
+) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesion-individual/${semestre}/${persona}/${docente}/${alumno}/${estructura}/${vperfil}`;
+
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("❌ Error al obtener detalle tutorando:", err);
+    return { success: false, message: "Error al conectar con el servidor." };
+  }
+};
 
 
