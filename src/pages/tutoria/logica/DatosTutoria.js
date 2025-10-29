@@ -562,3 +562,121 @@ export const obtenerAtencionesAlumno = async (
 };
 
  
+export const obtenerDatosNuevaAtencion = async (
+  personaTutor,     // per
+  semestre,         // semestre
+  usuarioDocente,   // doc (código usuario docente)
+  personaAlumno,    // peralu
+  codAlumno,        // alu
+  estructura,       // estructura
+  token
+) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/atencion/combos/${personaTutor}/${semestre}/${usuarioDocente}/${personaAlumno}/${codAlumno}/${estructura}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    console.log("📥 obtenerDatosNuevaAtencion ->", data);
+
+    return data; 
+    // Esperamos:
+    // {
+    //   success: true,
+    //   header: { semestre, tutorNombre, alumnoNombre },
+    //   fechaHoy: "2025-10-29",
+    //   motivos: [{codigo:'01', descripcion:'Académico'}, ...],
+    //   areas:   [{codigo:'00', descripcion:'No derivado'}, ...]
+    // }
+  } catch (err) {
+    console.error("❌ Error al cargar combos atención:", err);
+    return {
+      success: false,
+      message: "Error al conectar con el servidor.",
+    };
+  }
+};
+
+export const grabarAtencionIndividual = async (
+  {
+    per,           // persona tutor (8 chars, ej "00003694")
+    semestre,      // ej "202501"
+    doc,           // usuario docente (10 chars) - lo mandamos por si acaso auditoría
+    peralu,        // persona alumno (8 chars)
+    alu,           // código alumno (matrícula, ej "2024220007")
+    estructura,    // estructura/carrera del alumno, ej "02"  <-- IMPORTANTE QUE SEA CORTO
+
+    descripcion,   // tema tratado / resumen corto: ej "sin dinero", "problema familiar"
+    motivo,        // código del motivo seleccionado, ej "01","02","03"
+    fecha,         // "YYYY-MM-DD" desde el form (ej "2025-10-29")
+    areaDerivada,  // "00" si NO derivó, o por ej "03" si derivó a psicología/bienestar/etc
+    observacion,   // texto libre detallado
+  },
+  token
+) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/atencion/grabar`;
+
+    const payload = {
+      per,
+      semestre,
+      doc,
+      peralu,
+      alu,
+      estructura,   // este llega al controlador y termina en el parámetro 6 del SP ✅
+      descripcion,  // este termina como _tema en el SP (parámetro 7)
+      motivo,       // este llega al parámetro 10 del SP
+      fecha,        // el backend lo convierte a YYYYMMDD
+      areaDerivada, // esto sirve para marcar si es derivado y a dónde
+      observacion,  // parámetro 11 del SP
+    };
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    console.log("💾 grabarAtencionIndividual ->", data);
+
+    return data;
+    // Ejemplo esperado:
+    // { success: true, message: "Atención registrada correctamente", data: [...] }
+
+  } catch (err) {
+    console.error("❌ Error al grabar atención:", err);
+    return {
+      success: false,
+      message: "Error al conectar con el servidor.",
+    };
+  }
+};
+
+
+// ./logica/DatosTutoria.js
+export const obtenerAtencionParaEditar = async (per, semestre, doc, peralu, alu, estructura, sesion, token) => {
+  const url = `${config.apiUrl}api/Tutoria/atencion/editar/${per}/${semestre}/${doc}/${peralu}/${alu}/${estructura}/${sesion}`;
+  const res = await fetch(url, { headers: { Accept: "application/json", Authorization: `Bearer ${token}` }});
+  return await res.json();
+};
+
+export const actualizarAtencionIndividual = async (payload, token) => {
+  const url = `${config.apiUrl}api/Tutoria/atencion/actualizar`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+};

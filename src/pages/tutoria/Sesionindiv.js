@@ -7,6 +7,10 @@ import {
   obtenerSesionesIndividuales,
   obtenerSesionIndividual,
   obtenerAtencionesAlumno,
+  obtenerDatosNuevaAtencion,
+  grabarAtencionIndividual,
+  obtenerAtencionParaEditar,
+  actualizarAtencionIndividual
 } from "./logica/DatosTutoria";
 
 function SesionesIndividuales({ semestreValue }) {
@@ -35,6 +39,7 @@ function SesionesIndividuales({ semestreValue }) {
     alumnoPersona: "",
     alumnoCodigo: "",
     alumnoNombre: "",
+    alumnoEstructura: "" // 👈 agregado para poder llamar combos/guardar derivación
   });
 
   const [atenciones, setAtenciones] = useState([]);
@@ -154,6 +159,41 @@ function SesionesIndividuales({ semestreValue }) {
   };
 
   // =====================================================
+  // Utilidad: cargar historial de atenciones del alumno
+  // =====================================================
+  const cargarHistorialAtenciones = async (contexto) => {
+    setLoadingDetalle(true);
+
+    const token = usuario.codigotokenautenticadorunj;
+
+    const resp = await obtenerAtencionesAlumno(
+      contexto.per,        // per
+      contexto.semestre,   // semestre
+      contexto.doc,        // doc
+      contexto.peralu,     // peralu
+      contexto.alu,        // alu
+      token
+    );
+
+    console.log("📝 Respuesta atenciones-individuales:", resp);
+
+    if (resp.success) {
+      // resp.data = [{ codigo, descripcion, fecha }, ...]
+      setAtenciones(resp.data || []);
+    } else {
+      setAtenciones([]);
+      Swal.fire(
+        "⚠️",
+        resp.message ||
+          "No se pudo cargar el historial de atenciones del estudiante.",
+        "warning"
+      );
+    }
+
+    setLoadingDetalle(false);
+  };
+
+  // =====================================================
   // ✏ -> Abrir vista DETALLE con historial de atenciones
   // (equivalente a tut_atencion_detalle.php)
   // =====================================================
@@ -167,6 +207,7 @@ function SesionesIndividuales({ semestreValue }) {
       doc: rowAlumno.tutorUsuario,         // dni/usuario tutor
       peralu: rowAlumno.personaalumno,     // persona del alumno
       alu: rowAlumno.alumno,               // código del alumno
+      estructura: rowAlumno.estructura,    // 👈 agregamos la estructura aquí
 
       alumnoNombre: rowAlumno.nombrecompletos,
       tutorNombre: usuario.docente?.nombrecompleto || "",
@@ -200,38 +241,12 @@ function SesionesIndividuales({ semestreValue }) {
       alumnoPersona: contexto.peralu,
       alumnoCodigo: contexto.alu,
       alumnoNombre: contexto.alumnoNombre,
+      alumnoEstructura: contexto.estructura || "" // 👈 guardamos estructura
     });
 
     // llamamos backend para traer historial
-    setLoadingDetalle(true);
+    await cargarHistorialAtenciones(contexto);
 
-    const token = usuario.codigotokenautenticadorunj;
-
-    const resp = await obtenerAtencionesAlumno(
-      contexto.per,        // per
-      contexto.semestre,   // semestre
-      contexto.doc,        // doc
-      contexto.peralu,     // peralu
-      contexto.alu,        // alu
-      token
-    );
-
-    console.log("📝 Respuesta atenciones-individuales:", resp);
-
-    if (resp.success) {
-      // resp.data = [{ codigo, descripcion, fecha }, ...]
-      setAtenciones(resp.data || []);
-    } else {
-      setAtenciones([]);
-      Swal.fire(
-        "⚠️",
-        resp.message ||
-          "No se pudo cargar el historial de atenciones del estudiante.",
-        "warning"
-      );
-    }
-
-    setLoadingDetalle(false);
     setVista("detalle");
   };
 
@@ -244,23 +259,354 @@ function SesionesIndividuales({ semestreValue }) {
     setVista("lista");
   };
 
-  // botón "Nuevo" (ícono fa-file-o)
-  const handleNuevoAtencion = () => {
-    Swal.fire(
-      "📝 Nuevo",
-      "Aquí iremos con el formulario para registrar una nueva atención individual.",
-      "info"
+  // botón "Nuevo" (ícono fa-file-o / + Derivación)
+  const handleNuevoAtencion = async () => {
+    // Usamos datos actuales del contexto (alumno seleccionado en vista detalle)
+    const token = usuario.codigotokenautenticadorunj;
+
+    // Armamos los parámetros que necesita la API para combos
+    const per = ctxAtencion.tutorPersona;          // persona tutor
+    const sem = ctxAtencion.semestre;              // semestre
+    const doc = ctxAtencion.tutorUsuario;          // usuario docente
+    const peralu = ctxAtencion.alumnoPersona;      // persona alumno
+    const alu = ctxAtencion.alumnoCodigo;          // código alumno
+    const estructura = ctxAtencion.alumnoEstructura; // escuela/programa
+
+    if (!per || !sem || !doc || !peralu || !alu) {
+      Swal.fire(
+        "⚠️",
+        "No se puede abrir el formulario. Faltan datos internos.",
+        "warning"
+      );
+      return;
+    }
+
+    // 1. Cargar combos iniciales (motivos / áreas derivación / fechaHoy)
+    const combosData = await obtenerDatosNuevaAtencion(
+      per,
+      sem,
+      doc,
+      peralu,
+      alu,
+      estructura,
+      token
     );
+
+    console.log("📥 Datos para nueva atención:", combosData);
+
+    if (!combosData.success) {
+      Swal.fire(
+        "⚠️",
+        combosData.message || "No se pudo cargar datos iniciales.",
+        "warning"
+      );
+      return;
+    }
+
+    // Prearmar selects y campos
+    const motivosOptions = (combosData.motivos || [])
+      .map(
+        (m) =>
+          `<option value="${m.codigo}">${m.descripcion}</option>`
+      )
+      .join("");
+
+    const areasOptions = (combosData.areas || [])
+      .map(
+        (a) =>
+          `<option value="${a.codigo}">${a.descripcion}</option>`
+      )
+      .join("");
+
+    const fechaHoy = combosData.fechaHoy || "";
+
+    // 2. Mostrar Swal con el formulario completo (Descripción, Motivo, Fecha, Derivado, Observación)
+    const { value: formValues } = await Swal.fire({
+  title: "➕ Nueva Atención / Derivación",
+  width: 650,
+  html: `
+    <style>
+      .swal2-popup .form-wrap { font-size: .95rem; }
+      .swal2-popup .row { margin-bottom: 12px; }
+      .swal2-popup .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+      .swal2-popup label { font-weight: 600; display:block; margin-bottom: 6px; }
+      .swal2-popup .swal2-input { width: 100%; margin: 0; }
+      .swal2-popup select.swal2-input { height: 38px; }
+      @media (max-width: 520px) {
+        .swal2-popup .grid-2 { grid-template-columns: 1fr; }
+      }
+    </style>
+
+
+    <div style="margin-bottom:12px;">
+  <span style="font-weight:600;">Sesión:</span>
+  <span style="margin-left:8px;">&laquo;&laquo; Automático &raquo;&raquo;</span>
+</div>
+    <div class="form-wrap" style="text-align:left;">
+      
+      <!-- Descripción -->
+      <div class="row">
+        <label for="swal-descripcion">Descripción:</label>
+        <input id="swal-descripcion" class="swal2-input" placeholder="Describir brevemente la atención" />
+      </div>
+
+      <!-- Motivo / Fecha -->
+      <div class="grid-2">
+        <div>
+          <label for="swal-motivo">Motivo:</label>
+          <select id="swal-motivo" class="swal2-input">
+            <option value="00">Seleccione...</option>
+            ${motivosOptions}
+          </select>
+        </div>
+        <div>
+          <label for="swal-fecha-mostrar">Fecha:</label>
+          <input id="swal-fecha-mostrar" class="swal2-input" value="${(fechaHoy || '').split('-').reverse().join('/')}" disabled />
+          <input id="swal-fecha" type="hidden" value="${fechaHoy}" />
+        </div>
+      </div>
+
+      <!-- Derivado / Observación -->
+      <div class="grid-2">
+        <div>
+          <label for="swal-derivado">Derivado:</label>
+          <select id="swal-derivado" class="swal2-input">
+            ${areasOptions}
+          </select>
+        </div>
+        <div>
+          <label for="swal-observacion">Observación:</label>
+          <input id="swal-observacion" class="swal2-input" placeholder="Observación / recomendación" />
+        </div>
+      </div>
+
+    </div>
+  `,
+  focusConfirm: false,
+  showCancelButton: true,
+  confirmButtonText: "Grabar",
+  cancelButtonText: "Cancelar",
+  preConfirm: () => {
+    const descripcion = document.getElementById("swal-descripcion").value.trim();
+    const motivo = document.getElementById("swal-motivo").value;
+    const fechaSel = document.getElementById("swal-fecha").value; // YYYY-MM-DD (hidden)
+    const areaDerivada = document.getElementById("swal-derivado").value;
+    const observacion = document.getElementById("swal-observacion").value.trim();
+
+    if (!descripcion) {
+      Swal.showValidationMessage("La descripción es obligatoria");
+      return;
+    }
+    if (!fechaSel) {
+      Swal.showValidationMessage("La fecha es obligatoria");
+      return;
+    }
+
+    return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
+  },
+});
+
+
+    // si canceló, salimos
+    if (!formValues) {
+      return;
+    }
+
+  
+
+    // 3. Enviar al backend para grabar
+    const respGrabar = await grabarAtencionIndividual(
+      {
+        per: per,                     // persona tutor
+        semestre: sem,                // semestre
+        doc: doc,                     // usuario docente
+        peralu: peralu,               // persona alumno
+        alu: alu,                     // código alumno
+        estructura: estructura,       // estructura/escuela
+
+        descripcion: formValues.descripcion,
+        motivo: formValues.motivo,
+        fecha: formValues.fecha,               // "YYYY-MM-DD"
+        areaDerivada: formValues.areaDerivada, // "00" => no derivado
+        observacion: formValues.observacion,
+      },
+      token
+    );
+
+
+
+    if (!respGrabar.success) {
+      Swal.fire(
+        "⚠️",
+        respGrabar.message || "No se pudo guardar la atención.",
+        "warning"
+      );
+      return;
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "Guardado",
+      text: "La atención fue registrada correctamente.",
+    });
+
+    // 4. Recargar historial de atenciones en la vista detalle
+    await cargarHistorialAtenciones({
+      per,
+      semestre: sem,
+      doc,
+      peralu,
+      alu,
+    });
   };
 
-  // botón editar (ícono fa-edit)
-  const handleEditarAtencion = (item) => {
-    Swal.fire(
-      "✏ Editar",
-      `Aquí se editaría la atención código ${item.codigo}.`,
-      "info"
-    );
-  };
+
+  // ✅ Helper: si trabajamos con código en TEXTO PLANO
+const extraerSesionDeCodigo = (codigo) => {
+  try {
+    return (codigo || "").substring(44, 46); // pos 44, largo 2
+  } catch {
+    return "";
+  }
+};
+
+// ✏ Botón editar
+const handleEditarAtencion = async (item) => {
+  const token = usuario.codigotokenautenticadorunj;
+
+  const per        = ctxAtencion.tutorPersona;
+  const semestre   = ctxAtencion.semestre;
+  const doc        = ctxAtencion.tutorUsuario;
+  const peralu     = ctxAtencion.alumnoPersona;
+  const alu        = ctxAtencion.alumnoCodigo;
+  const estructura = String(ctxAtencion.alumnoEstructura || "").padStart(2, "0");
+
+  // 👇 YA NO ADIVINAMOS. Viene del backend en el listado:
+  const sesion = item?.sesion || "00";
+
+  // 1) Traer data para editar (M)
+  const datos = await obtenerAtencionParaEditar(per, semestre, doc, peralu, alu, estructura, sesion, token);
+  if (!datos?.success) {
+    Swal.fire("⚠️", datos?.message || "No se pudo obtener la atención.", "warning");
+    return;
+  }
+  const info = datos.data || {};
+
+  // 2) Catálogos
+  const combosData = await obtenerDatosNuevaAtencion(per, semestre, doc, peralu, alu, estructura, token);
+  if (!combosData?.success) {
+    Swal.fire("⚠️", "No se pudieron cargar los catálogos.", "warning");
+    return;
+  }
+
+  const motivosOptions = (combosData.motivos || [])
+    .map(m => `<option value="${m.codigo}" ${m.codigo===info.motivo?'selected':''}>${m.descripcion}</option>`)
+    .join("");
+
+  const areasOptions = (combosData.areas || [])
+    .map(a => `<option value="${a.codigo}" ${a.codigo===(info.areaDerivada||'00')?'selected':''}>${a.descripcion}</option>`)
+    .join("");
+
+  const fechaISO = (info.fecha && info.fecha.includes('-')) ? info.fecha : "";
+  const fechaMostrar = fechaISO ? fechaISO.split('-').reverse().join('/') : "";
+
+  // 3) Modal EDITAR (mismo layout)
+  const { value: formValues } = await Swal.fire({
+    title: "✏️ Modificar Atención / Derivación",
+    width: 650,
+    html: `
+      <style>
+        .swal2-popup .form-wrap { font-size: .95rem; }
+        .swal2-popup .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .swal2-popup label { font-weight: 600; display:block; margin-bottom: 6px; }
+        .swal2-popup .swal2-input { width: 100%; margin: 0; }
+        .swal2-popup select.swal2-input { height: 38px; }
+      </style>
+
+      <div class="form-wrap" style="text-align:left;">
+        <div style="margin-bottom:12px;">
+          <span style="font-weight:600;">Sesión:</span>
+          <span style="margin-left:8px;">${sesion}</span>
+        </div>
+
+        <div style="margin-bottom:12px;">
+          <label for="swal-descripcion">Descripción:</label>
+          <input id="swal-descripcion" class="swal2-input" value="${(info.descripcion||'').replace(/"/g,'&quot;')}" />
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label for="swal-motivo">Motivo:</label>
+            <select id="swal-motivo" class="swal2-input">
+              <option value="00">Seleccione...</option>
+              ${motivosOptions}
+            </select>
+          </div>
+          <div>
+            <label for="swal-fecha-mostrar">Fecha:</label>
+            <input id="swal-fecha-mostrar" class="swal2-input" value="${fechaMostrar}" disabled />
+            <input id="swal-fecha" type="hidden" value="${fechaISO}" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label for="swal-derivado">Derivado:</label>
+            <select id="swal-derivado" class="swal2-input">
+              ${areasOptions}
+            </select>
+          </div>
+          <div>
+            <label for="swal-observacion">Observación:</label>
+            <input id="swal-observacion" class="swal2-input" value="${(info.observacion||'').replace(/"/g,'&quot;')}" />
+          </div>
+        </div>
+      </div>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: "Guardar cambios",
+    cancelButtonText: "Cancelar",
+    preConfirm: () => {
+      const descripcion = document.getElementById("swal-descripcion").value.trim();
+      const motivo = document.getElementById("swal-motivo").value;
+      const fechaSel = document.getElementById("swal-fecha").value;
+      const areaDerivada = document.getElementById("swal-derivado").value;
+      const observacion = document.getElementById("swal-observacion").value.trim();
+
+      if (!descripcion) return Swal.showValidationMessage("La descripción es obligatoria");
+      if (!fechaSel)     return Swal.showValidationMessage("La fecha es obligatoria");
+
+      return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
+    },
+  });
+
+  if (!formValues) return;
+
+  // 4) Actualizar (W)
+  const resp = await actualizarAtencionIndividual({
+    per, semestre, doc, peralu, alu, estructura,
+    sesion,
+    descripcion: formValues.descripcion,
+    motivo: formValues.motivo,
+    fecha: formValues.fecha,
+    areaDerivada: formValues.areaDerivada,
+    observacion: formValues.observacion,
+  }, token);
+
+  if (!resp?.success) {
+    Swal.fire("⚠️", resp?.message || "No se pudo actualizar.", "warning");
+    return;
+  }
+
+  await Swal.fire({ icon: "success", title: "Actualizado", text: "Cambios guardados correctamente." });
+
+  // 5) Recargar historial
+  await cargarHistorialAtenciones({ per, semestre, doc, peralu, alu });
+};
+
+
+
 
   // botón eliminar (ícono fa-ban)
   const handleEliminarAtencion = (item) => {
@@ -438,32 +784,40 @@ function SesionesIndividuales({ semestreValue }) {
 
       {/* Botón "Nuevo" alineado a la derecha */}
       <div className="d-flex justify-content-end mb-2">
-  <button
-    className="btn btn-light btn-sm border-secondary"
-    style={{
-      fontSize: "12px",
-      lineHeight: 1.2,
-      padding: "4px 8px",
-    }}
-    onClick={handleNuevoAtencion}
-    title="Registrar derivación"
-  >
-    + Derivación
-  </button> 
-</div>
-
-
+        <button
+          className="btn btn-light btn-sm border-secondary"
+          style={{
+            fontSize: "12px",
+            lineHeight: 1.2,
+            padding: "4px 8px",
+          }}
+          onClick={handleNuevoAtencion}
+          title="Registrar derivación"
+        >
+          + Derivación
+        </button>
+      </div>
 
       {/* Tabla historial de atenciones */}
       {loadingDetalle ? (
         <Spinner animation="border" />
       ) : (
-        <Table striped bordered size="sm" responsive>
-          <thead className="text-center" style={{ fontSize: "0.8rem" }}>
+        <Table 
+        bordered
+          hover
+          size="sm"
+          responsive
+          className="table-tutoria"
+          style={{ backgroundColor: "white" }}
+        >
+          <thead className="table-light text-center">
+
             <tr>
               <th style={{ width: "10%" }}>Código</th>
               <th>Descripción</th>
               <th style={{ width: "12%" }}>Fecha</th>
+              <th style={{ width: "12%" }}>Fecha_Atencion</th>
+              <th style={{ width: "12%" }}>Estado</th>
               <th style={{ width: "15%" }}>Acción</th>
             </tr>
           </thead>
@@ -473,35 +827,36 @@ function SesionesIndividuales({ semestreValue }) {
                 <td className="text-center">{item.codigo || "-"}</td>
                 <td>{item.descripcion || ""}</td>
                 <td className="text-center">{item.fecha || ""}</td>
+                <td className="text-center">{item.fecha_atencion || ""}</td>
+                <td className="text-center">{item.estado_atencion || ""}</td>
+
                 <td className="text-center">
-  {/* Editar */}
-  <button
-    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-2"
-    style={{ width: "28px", height: "28px" }}
-    onClick={() => handleEditarAtencion(item)}
-    title="Editar"
-  >
-    <i
-      className="fa fa-edit"
-      style={{ color: "#1f98cfff", fontSize: "13px" }}
-    ></i>
-  </button>
+                  {/* Editar */}
+                  <button
+                    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-2"
+                    style={{ width: "28px", height: "28px" }}
+                    onClick={() => handleEditarAtencion(item)}
+                    title="Editar"
+                  >
+                    <i
+                      className="fa fa-edit"
+                      style={{ color: "#1f98cfff", fontSize: "13px" }}
+                    ></i>
+                  </button>
 
-  {/* Eliminar */}
-  <button
-    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
-    style={{ width: "28px", height: "28px" }}
-    onClick={() => handleEliminarAtencion(item)}
-    title="Eliminar"
-  >
-    <i
-      className="fa fa-ban"
-      style={{ color: "#970000ff", fontSize: "13px" }}
-    ></i>
-  </button>
-</td>
-
-
+                  {/* Eliminar */}
+                  <button
+                    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                    style={{ width: "28px", height: "28px" }}
+                    onClick={() => handleEliminarAtencion(item)}
+                    title="Eliminar"
+                  >
+                    <i
+                      className="fa fa-ban"
+                      style={{ color: "#970000ff", fontSize: "13px" }}
+                    ></i>
+                  </button>
+                </td>
               </tr>
             ))}
 
