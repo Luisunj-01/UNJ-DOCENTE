@@ -662,7 +662,7 @@ export const grabarAtencionIndividual = async (
     };
   }
 };
-
+  
 
 // ./logica/DatosTutoria.js
 export const obtenerAtencionParaEditar = async (per, semestre, doc, peralu, alu, estructura, sesion, token) => {
@@ -670,6 +670,7 @@ export const obtenerAtencionParaEditar = async (per, semestre, doc, peralu, alu,
   const res = await fetch(url, { headers: { Accept: "application/json", Authorization: `Bearer ${token}` }});
   return await res.json();
 };
+
 
 export const actualizarAtencionIndividual = async (payload, token) => {
   const url = `${config.apiUrl}api/Tutoria/atencion/actualizar`;
@@ -679,4 +680,27 @@ export const actualizarAtencionIndividual = async (payload, token) => {
     body: JSON.stringify(payload)
   });
   return await res.json();
+};
+
+
+export const eliminarAtencionIndividual = async (
+  per, semestre, doc, peralu, alu, estructura, sesion, token
+) => {
+  const pad2 = (v) => String(v ?? "").padStart(2, "0");
+  const enc = (v) => encodeURIComponent(String(v ?? ""));
+  const url = `${config.apiUrl}api/Tutoria/atencion/eliminar/${enc(per)}/${enc(semestre)}/${enc(doc)}/${enc(peralu)}/${enc(alu)}/${enc(estructura)}/${enc(pad2(sesion))}`;
+
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.success) {
+    return { success: false, message: data?.message || `Error ${res.status} al eliminar.` };
+  }
+  return { success: true, message: data?.message || "Eliminado." };
 };

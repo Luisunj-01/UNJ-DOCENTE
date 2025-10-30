@@ -3,6 +3,8 @@ import { Table, Button, Spinner } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import Swal from "sweetalert2";
+
+import EstadoBadge from "./componentes/EstadoBadge";
 import {
   obtenerSesionesIndividuales,
   obtenerSesionIndividual,
@@ -10,7 +12,8 @@ import {
   obtenerDatosNuevaAtencion,
   grabarAtencionIndividual,
   obtenerAtencionParaEditar,
-  actualizarAtencionIndividual
+  actualizarAtencionIndividual,
+  eliminarAtencionIndividual
 } from "./logica/DatosTutoria";
 
 function SesionesIndividuales({ semestreValue }) {
@@ -580,7 +583,7 @@ const handleEditarAtencion = async (item) => {
       return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
     },
   });
-
+ 
   if (!formValues) return;
 
   // 4) Actualizar (W)
@@ -609,24 +612,39 @@ const handleEditarAtencion = async (item) => {
 
 
   // botón eliminar (ícono fa-ban)
-  const handleEliminarAtencion = (item) => {
-    Swal.fire({
-      icon: "warning",
-      title: "¿Eliminar?",
-      text: `¿Seguro que deseas eliminar la atención ${item.codigo}?`,
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-    }).then((r) => {
-      if (r.isConfirmed) {
-        Swal.fire(
-          "🗑 Eliminado",
-          "Eliminar pendiente de implementar en backend.",
-          "success"
-        );
-      }
-    });
-  };
+  const handleEliminarAtencion = async (item) => {
+  const token = usuario?.codigotokenautenticadorunj;
+
+  const per        = ctxAtencion.tutorPersona;
+  const semestre   = ctxAtencion.semestre;
+  const doc        = ctxAtencion.tutorUsuario;
+  const peralu     = ctxAtencion.alumnoPersona;
+  const alu        = ctxAtencion.alumnoCodigo;
+  const estructura = String(ctxAtencion.alumnoEstructura || "").toUpperCase().padStart(2, "0");
+  const sesion     = item?.sesion; // '01'..'12'
+
+  const ask = await Swal.fire({
+    icon: "warning",
+    title: "¿Eliminar atención?",
+    text: `Se eliminará la sesión ${sesion} del alumno ${item?.nombre || ""}. Esta acción no se puede deshacer.`,
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  });
+  if (!ask.isConfirmed) return;
+
+  const r = await eliminarAtencionIndividual(per, semestre, doc, peralu, alu, estructura, sesion, token);
+
+  if (!r.success) {
+    Swal.fire("⚠️", r.message || "No se pudo eliminar.", "warning");
+    return;
+  }
+
+  await Swal.fire({ icon: "success", title: "Eliminado", text: r.message });
+  // Recarga el historial/listado
+  await cargarHistorialAtenciones({ per, semestre, doc, peralu, alu });
+};
+
 
   // =====================================================
   // RENDER: VISTA LISTA (todos los tutorados)
@@ -815,7 +833,7 @@ const handleEditarAtencion = async (item) => {
             <tr>
               <th style={{ width: "10%" }}>Código</th>
               <th>Descripción</th>
-              <th style={{ width: "12%" }}>Fecha</th>
+              <th style={{ width: "12%" }}>Fecha_derivación</th>
               <th style={{ width: "12%" }}>Fecha_Atencion</th>
               <th style={{ width: "12%" }}>Estado</th>
               <th style={{ width: "15%" }}>Acción</th>
@@ -828,7 +846,10 @@ const handleEditarAtencion = async (item) => {
                 <td>{item.descripcion || ""}</td>
                 <td className="text-center">{item.fecha || ""}</td>
                 <td className="text-center">{item.fecha_atencion || ""}</td>
-                <td className="text-center">{item.estado_atencion || ""}</td>
+
+                <td className="text-center">
+        <EstadoBadge estado={item.estado_atencion} />
+      </td>
 
                 <td className="text-center">
                   {/* Editar */}

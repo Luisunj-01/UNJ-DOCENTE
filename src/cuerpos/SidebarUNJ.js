@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation,NavLink,useNavigate } from 'react-router-dom';
 import '../resource/SidebarUNJ.css';
 import {
   FaChevronDown,
@@ -19,6 +19,7 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const [modo, setModo] = useState('gestion'); // gestion o actividades
   const location = useLocation();
+  const navigate = useNavigate();
 
   const { darkMode } = useTheme();
   const logo = darkMode
@@ -141,49 +142,55 @@ const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
               )}
             </div>
 
-            {/* Tutoria */}
-            <div className="menu-group">
-              <button
-                className="menu-btn"
-                onClick={() => toggleMenu('tutoria')}
-              >
-                <FaChalkboardTeacher className="me-2" /> Tutoria
-                {openMenu === 'tutoria' ? (
-                  <FaChevronDown className="ms-auto" />
-                ) : (
-                  <FaChevronRight className="ms-auto" />
-                )}
-              </button>
-              {openMenu === 'tutoria' && (
-                <ul className="submenu">
-                  <li>
-                    <Link to="/tutoria/obs" onClick={toggleSidebar}>
-                      Obs. Rendimiento
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/tutoria/ciclo" onClick={toggleSidebar}>
-                      Sesión Ciclo
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/tutoria/libre" onClick={toggleSidebar}>
-                      Sesión Libre
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/tutoria/individual" onClick={toggleSidebar}>
-                      Sesión Individual
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/tutoria/reportes" onClick={toggleSidebar}>
-                      Reportes
-                    </Link>
-                  </li>
-                </ul>
-              )}
-            </div>
+          
+  <div className={`menu-group ${openMenu === 'tutoria' ? 'open' : ''}`}>
+    <button
+      className="menu-btn"
+      onClick={() => {
+        // abre/cierra acordeón
+        setOpenMenu(openMenu === 'tutoria' ? null : 'tutoria');
+        // navega a la vista calendario de tutoría
+        navigate('/tutoria');
+      }}
+    >
+      <FaChalkboardTeacher className="me-2" /> Tutoria
+      {openMenu === 'tutoria' ? (
+        <FaChevronDown className="ms-auto" />
+      ) : (
+        <FaChevronRight className="ms-auto" />
+      )}
+    </button>
+
+    {openMenu === 'tutoria' && (
+      <ul className="submenu">
+        <li className="submenu-link">
+          <NavLink to="/tutoria/obs" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
+            Obs. Rendimiento
+          </NavLink>
+        </li>
+        <li className="submenu-link">
+          <NavLink to="/tutoria/ciclo" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
+            Sesión Ciclo
+          </NavLink>
+        </li>
+        <li className="submenu-link">
+          <NavLink to="/tutoria/libre" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
+            Sesión Libre
+          </NavLink>
+        </li>
+        <li className="submenu-link">
+          <NavLink to="/tutoria/individual" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
+            Sesión Individual
+          </NavLink>
+        </li>
+        <li className="submenu-link">
+          <NavLink to="/tutoria/reportes" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
+            Reportes
+          </NavLink>
+        </li>
+      </ul>
+    )}
+  </div>
 
             {/* Actividades No Lectivas con submenús */}
             <div className="menu-group">

@@ -17,6 +17,10 @@ import Reportecurricular from './pages/reportes/Reportecurricular.js';
 import Sesionlibre from './pages/tutoria/Sesionlibre.js';
 import Sesionciclo from './pages/tutoria/Sesionciclo.js';
 import SesionIndiv from './pages/tutoria/Sesionindiv.js';
+
+import TutoriaCalendario from './pages/tutoria/componentes/TutoriaCalendario.jsx';
+
+
 import Reportes from './pages/tutoria/Reportes.js';
 import Error404 from './pages/error404/Error404.js';
 import Apps from './pages/apps/apps.js';
@@ -91,14 +95,14 @@ function AppRoutes() {
             <Route path="IngresoRezaAplaz" element={<IngresoRezaAplaz />} />
             <Route path="ReporteDoc" element={<ReporteDoc />} />
             <Route path="Reportecurricular" element={<Reportecurricular />} />
-
             <Route path="/tutoria/obs" element={<ObsRendimiento />} />
             <Route path="tutoria/ciclo" element={<Sesionciclo />} />
             <Route path="/tutoria/asistencia" element={<AsistenciaSesion />} />
-
-
             <Route path="/tutoria/libre" element={<Sesionlibre />} />
             <Route path="/tutoria/individual" element={<SesionIndiv />} />
+            <Route path="/tutoria" element={<TutoriaCalendario />} />
+
+
             <Route path="Reportes" element={<Reportes />} />
             <Route path="Curso" element={<Cursos />} />
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
