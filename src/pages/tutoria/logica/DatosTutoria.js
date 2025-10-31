@@ -704,3 +704,32 @@ export const eliminarAtencionIndividual = async (
   }
   return { success: true, message: data?.message || "Eliminado." };
 };
+
+
+// ✅ Evidencias por sesión (asistencias y fotos)
+export const obtenerEvidenciasSesion = async (persona, semestre, sesion, token) => {
+  const ses = String(sesion).padStart(2, "0"); // 👈 fuerza 2 dígitos
+  const url = `${config.apiUrl}api/Tutoria/evidencias/${persona}/${semestre}/${ses}`;
+  const res = await fetch(url, {
+    headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  if (data?.success) return data.data || { asistencias: 0, fotos: 0 };
+  return { asistencias: 0, fotos: 0 };
+};
+
+
+// ✅ Concluir sesión (marca activo=1 si cumple reglas)
+export const concluirSesion = async (persona, semestre, sesion, token) => {
+  const url = `${config.apiUrl}api/Tutoria/concluir-sesion`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ persona, semestre, sesion }),
+  });
+  return await res.json(); // Espera: { success: true, message: "..." }
+};

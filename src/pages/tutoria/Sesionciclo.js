@@ -14,7 +14,9 @@ import {
   guardarRecomendacion,
   eliminarSesion,
   obtenerSesion,        // 👈 ya estaba
-  actualizarSesion
+  actualizarSesion,
+  obtenerEvidenciasSesion,    // 👈 nuevo
+  concluirSesion              // 👈 nuevo
 } from "./logica/DatosTutoria";
 
 import AsistenciaSesion from "./componentes/AsistenciaSesion";
@@ -47,39 +49,58 @@ function SesionesCiclo({ semestreValue }) {
 
   // ✅ Cargar sesiones (para refrescar después de eliminar/editar/crear)
   const cargarSesiones = async () => {
-    if (!usuario || !usuario.docente) return;
+  if (!usuario || !usuario.docente) return;
 
-    setLoading(true);
-    const token = usuario?.codigotokenautenticadorunj;
+  setLoading(true);
+  const token = usuario?.codigotokenautenticadorunj;
 
-    if (!token) {
-      setMensaje("Token no disponible. Inicie sesión nuevamente.");
-      setSesiones([]);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const persona = usuario.docente.persona;
-      const { ciclo, datos, mensaje } = await obtenerSesionesCiclo(persona, semestre, token);
-
-      if (datos && datos.length > 0) {
-        setSesiones(datos);
-        setCiclo(ciclo || "No asignado");
-        setMensaje("");
-      } else {
-        setSesiones([]);
-        setCiclo(ciclo || "No asignado");
-        setMensaje(mensaje || "No se encontraron sesiones de ciclo.");
-      }
-    } catch (error) {
-      console.error("❌ Error al cargar sesiones:", error);
-      setSesiones([]);
-      setMensaje("Error al obtener datos del servidor.");
-    }
-
+  if (!token) {
+    setMensaje("Token no disponible. Inicie sesión nuevamente.");
+    setSesiones([]);
     setLoading(false);
-  };
+    return;
+  }
+
+  try {
+    const persona = usuario.docente.persona;
+    const { ciclo, datos, mensaje } = await obtenerSesionesCiclo(persona, semestre, token);
+
+    if (datos && datos.length > 0) {
+
+      // 🔎 Obtener evidencias por sesión en paralelo
+        const toBool = (v) => Number(v) > 0; // "0"/0/null -> false | "1"/1 -> true
+
+        const conEvidencias = await Promise.all(
+        datos.map(async (s) => {
+          const sesion2 = String(s.sesion).padStart(2, "0"); // normaliza "01", "02"...
+          const ev = await obtenerEvidenciasSesion(persona, semestre, sesion2, token);
+          return {
+            ...s,
+            sesion: sesion2,
+            tieneAsistencia: toBool(ev?.asistencias),
+            tieneFoto: toBool(ev?.fotos),
+          };
+        })
+      );
+
+
+      setSesiones(conEvidencias);
+      setCiclo(ciclo || "No asignado");
+      setMensaje("");
+    } else {
+      setSesiones([]);
+      setCiclo(ciclo || "No asignado");
+      setMensaje(mensaje || "No se encontraron sesiones de ciclo.");
+    }
+  } catch (error) {
+    console.error("❌ Error al cargar sesiones:", error);
+    setSesiones([]);
+    setMensaje("Error al obtener datos del servidor.");
+  }
+
+  setLoading(false);
+};
+
 
   // ✅ useEffect para cargar temas disponibles (filtra los ya registrados)
   useEffect(() => {
@@ -141,99 +162,102 @@ function SesionesCiclo({ semestreValue }) {
     }
 
     // 👉 Editar sesión
-    if (tipo === "edit") {
-      const token = usuario?.codigotokenautenticadorunj;
-      const persona = usuario.docente.persona;
+    // 👉 Editar sesión (sin checkbox de Concluida)
+if (tipo === "edit") {
+  const token = usuario?.codigotokenautenticadorunj;
+  const persona = usuario.docente.persona;
 
-      try {
-        const { success, data, message } = await obtenerSesion(persona, semestre, sesion.sesion, token);
-        if (!success) {
-          Swal.fire("❌ Error", message, "error");
-          return;
-        }
-
-        // Normaliza fecha a yyyy-mm-dd para <input type="date">
-        let fechaFormateada = "";
-        if (data.fecha) {
-          if (data.fecha.includes("/")) {
-            const [dia, mes, anio] = data.fecha.split("/");
-            fechaFormateada = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-          } else if (data.fecha.includes("-")) {
-            fechaFormateada = data.fecha.split(" ")[0];
-          }
-        }
-
-        Swal.fire({
-          title: "✏️ Modificar sesión",
-          width: "600px",
-          html: `
-            <table style="width:100%; text-align:left; border-collapse:collapse;">
-              <tr>
-                <td style="width:35%; padding:6px;"><b>Sesión:</b></td>
-                <td>${data.descripcion || ""}</td>
-              </tr>
-              <tr>
-                <td style="padding:6px;"><label>Escuela y Nro. aula:</label></td>
-                <td style="padding:6px;">
-                  <input id="aula" class="swal2-input" style="width:90%;" value="${data.link || ""}">
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:6px;"><label>Fecha:</label></td>
-                <td style="padding:6px;">
-                  <input id="fecha" type="date" class="swal2-input" style="width:60%;" value="${fechaFormateada || ""}">
-                </td>
-              </tr>
-              <tr>
-                <td style="padding:6px;"><label>Concluida:</label></td>
-                <td style="padding:6px;">
-                  <input type="checkbox" id="activo" ${Number(data.activo) === 1 ? "checked" : ""}>
-                </td>
-              </tr>
-            </table>
-          `,
-          showCancelButton: true,
-          confirmButtonText: "Grabar",
-          cancelButtonText: "Cancelar",
-          focusConfirm: false,
-          preConfirm: () => {
-            const aula = document.getElementById("aula").value.trim();
-            const fecha = document.getElementById("fecha").value;
-            const activo = document.getElementById("activo").checked;
-            if (!aula || !fecha) {
-              Swal.showValidationMessage("Por favor complete todos los campos.");
-              return false;
-            }
-            return { aula, fecha, activo };
-          },
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            const { aula, fecha, activo } = result.value;
-            const respuesta = await actualizarSesion(
-              persona,
-              semestre,
-              sesion.sesion,
-              aula,
-              fecha,
-              activo,
-              token
-            );
-
-            if (respuesta.success) {
-              Swal.fire("✅ Éxito", respuesta.message, "success");
-              cargarSesiones();
-            } else {
-              Swal.fire("⚠️ Error", respuesta.message || "No se pudo actualizar.", "warning");
-            }
-          }
-        });
-      } catch (error) {
-        Swal.fire("❌ Error", "No se pudo cargar la sesión.", "error");
-        console.error(error);
-      }
-
+  try {
+    const { success, data, message } = await obtenerSesion(persona, semestre, sesion.sesion, token);
+    if (!success) {
+      Swal.fire("❌ Error", message, "error");
       return;
     }
+
+    // Guardamos el estado original para enviarlo tal cual
+    const activoOriginal = Number(data.activo) === 1 ? 1 : 0;
+
+    // Normaliza fecha a yyyy-mm-dd para <input type="date">
+    let fechaFormateada = "";
+    if (data.fecha) {
+      if (data.fecha.includes("/")) {
+        const [dia, mes, anio] = data.fecha.split("/");
+        fechaFormateada = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      } else if (data.fecha.includes("-")) {
+        fechaFormateada = data.fecha.split(" ")[0];
+      }
+    }
+
+    Swal.fire({
+      title: "✏️ Modificar sesión",
+      width: "600px",
+      html: `
+        <table style="width:100%; text-align:left; border-collapse:collapse;">
+          <tr>
+            <td style="width:35%; padding:6px;"><b>Sesión:</b></td>
+            <td>${data.descripcion || ""}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px;"><label>Escuela y Nro. aula:</label></td>
+            <td style="padding:6px;">
+              <input id="aula" class="swal2-input" style="width:90%;" value="${data.link || ""}">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px;"><label>Fecha:</label></td>
+            <td style="padding:6px;">
+              <input id="fecha" type="date" class="swal2-input" style="width:60%;" value="${fechaFormateada || ""}">
+            </td>
+          </tr>
+        </table>
+        <small style="color:#666;display:block;margin-top:6px;">
+          * El estado de la sesión (<b>Pendiente/Concluida</b>) no se modifica desde este formulario.
+        </small>
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Grabar",
+      cancelButtonText: "Cancelar",
+      focusConfirm: false,
+      preConfirm: () => {
+        const aula = document.getElementById("aula").value.trim();
+        const fecha = document.getElementById("fecha").value;
+        if (!aula || !fecha) {
+          Swal.showValidationMessage("Por favor complete todos los campos.");
+          return false;
+        }
+        // devolvemos solo lo editable; el estado se mantiene
+        return { aula, fecha };
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const { aula, fecha } = result.value;
+
+        const respuesta = await actualizarSesion(
+          persona,
+          semestre,
+          sesion.sesion,
+          aula,
+          fecha,
+          activoOriginal, // 👈 se mantiene igual que en BD
+          token
+        );
+
+        if (respuesta.success) {
+          Swal.fire("✅ Éxito", respuesta.message, "success");
+          cargarSesiones();
+        } else {
+          Swal.fire("⚠️ Error", respuesta.message || "No se pudo actualizar.", "warning");
+        }
+      }
+    });
+  } catch (error) {
+    Swal.fire("❌ Error", "No se pudo cargar la sesión.", "error");
+    console.error(error);
+  }
+
+  return;
+}
+
 
     Swal.fire({
       title: `${acciones[tipo]}`,
@@ -253,6 +277,7 @@ function SesionesCiclo({ semestreValue }) {
         onVolver={() => {
           setAccion(null);
           setSesionSeleccionada(null);
+          cargarSesiones(); // 👈 refresca
         }}
       />
     );
@@ -344,106 +369,118 @@ function SesionesCiclo({ semestreValue }) {
                   verticalAlign: "middle",
                 }}
               >
-                <Button
-                  variant="success"
-                  size="sm"
-                  style={{ fontWeight: "bold", border: "none", boxShadow: "none" }}
-                  onClick={async () => {
-                    if (cargandoTemas) {
-                      Swal.fire("⏳", "Cargando temas disponibles...", "info");
-                      return;
-                    }
-                    if (!temasDisponibles.length) {
-                      Swal.fire("⚠️", "Ya no hay sesiones disponibles para este semestre.", "warning");
-                      return;
-                    }
-                    const opcionesHtml = temasDisponibles
-                      .map((t) => `<option value="${t.tema}">${t.tema} - ${t.descripcion}</option>`)
-                      .join("");
+                          <Button
+            variant="success"
+            size="sm"
+            style={{ fontWeight: "bold", border: "none", boxShadow: "none" }}
+            onClick={async () => {
+              if (cargandoTemas) {
+                Swal.fire("⏳", "Cargando temas disponibles...", "info");
+                return;
+              }
+              if (!temasDisponibles.length) {
+                Swal.fire("⚠️", "Ya no hay sesiones disponibles para este semestre.", "warning");
+                return;
+              }
 
-                    Swal.fire({
-                      title: "Nueva Sesión",
-                      width: "600px",
-                      html: `
-                        <table style="width:100%; text-align:left; border-collapse:collapse;">
-                          <tr>
-                            <td style="width:30%; padding:6px;"><label>Sesión:</label></td>
-                            <td style="padding:6px;">
-                              <select id="sesion" class="swal2-input" style="width:90%;">
-                                <option value="">-- Seleccione sesión --</option>
-                                ${opcionesHtml}
-                              </select>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Escuela y Nro. aula:</label></td>
-                            <td style="padding:6px;"><input id="aula" class="swal2-input" style="width:90%;"></td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Fecha:</label></td>
-                            <td style="padding:6px;"><input id="fecha" type="date" class="swal2-input" style="width:50%;"></td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Concluida:</label></td>
-                            <td style="padding:6px;"><input type="checkbox" id="concluida"></td>
-                          </tr>
-                        </table>
-                      `,
-                      showCancelButton: true,
-                      confirmButtonText: "Grabar",
-                      cancelButtonText: "Cancelar",
-                      focusConfirm: false,
-                      preConfirm: () => {
-                        const sesion = document.getElementById("sesion").value;
-                        const aula = document.getElementById("aula").value.trim();
-                        const fecha = document.getElementById("fecha").value;
-                        const concluida = document.getElementById("concluida").checked ? 1 : 0;
-                        if (!sesion || !aula || !fecha) {
-                          Swal.showValidationMessage("Por favor complete todos los campos obligatorios.");
-                          return false;
-                        }
-                        return { sesion, aula, fecha, concluida };
-                      },
-                    }).then(async (result) => {
-                      if (result.isConfirmed) {
-                        const { sesion, aula, fecha, concluida } = result.value;
-                        const codigo = btoa(btoa(usuario.docente.persona + semestre));
-                        const token = usuario?.codigotokenautenticadorunj;
-                        try {
-                          const res = await guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token);
-                          if (res.exito) {
-                            Swal.fire("✅ Guardado", res.mensaje, "success");
-                            const temaSeleccionado = temasDisponibles.find((t) => String(t.tema) === String(sesion));
-                            setSesiones([
-                              ...sesiones,
-                              {
-                                descripcion: temaSeleccionado?.descripcion || "",
-                                fecha,
-                                activo: concluida,
-                                sesion,
-                              },
-                            ]);
-                            setTemasDisponibles((prev) => prev.filter((t) => String(t.tema) !== String(sesion)));
-                          } else {
-                            Swal.fire("⚠️ Aviso", res.mensaje || "No se pudo guardar.", "warning");
-                          }
-                        } catch (err) {
-                          Swal.fire("❌ Error", "No se pudo conectar con la API.", "error");
-                          console.error("Error inesperado:", err);
-                        }
-                      }
-                    });
-                  }}
-                >
-                  <i className="fa fa-plus"></i> Nueva Sesión
-                </Button>
+              const opcionesHtml = temasDisponibles
+                .map((t) => `<option value="${t.tema}">${t.tema} - ${t.descripcion}</option>`)
+                .join("");
+
+              Swal.fire({
+                title: "Nueva Sesión",
+                width: "600px",
+                html: `
+              <table style="width:100%; text-align:left; border-collapse:collapse;">
+                <tr>
+                  <td style="width:30%; padding:6px;"><label>Sesión:</label></td>
+                  <td style="padding:6px;">
+                    <select id="sesion" class="swal2-input" style="width:90%;">
+                      <option value="">-- Seleccione sesión --</option>
+                      ${opcionesHtml}
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:6px;"><label>Escuela y Nro. aula:</label></td>
+                  <td style="padding:6px;"><input id="aula" class="swal2-input" style="width:90%;"></td>
+                </tr>
+                <tr>
+                  <td style="padding:6px;"><label>Fecha:</label></td>
+                  <td style="padding:6px;"><input id="fecha" type="date" class="swal2-input" style="width:50%;"></td>
+                </tr>
+              </table>
+              <small style="color:#666;display:block;margin-top:6px;">
+                * La sesión se registrará como <b>Pendiente</b> por defecto.
+              </small>
+            `,
+      showCancelButton: true,
+      confirmButtonText: "Grabar",
+      cancelButtonText: "Cancelar",
+      focusConfirm: false,
+      preConfirm: () => {
+        const sesion = (document.getElementById("sesion") || {}).value;
+        const aula = (document.getElementById("aula") || {}).value?.trim();
+        const fecha = (document.getElementById("fecha") || {}).value;
+
+        if (!sesion || !aula || !fecha) {
+          Swal.showValidationMessage("Por favor complete todos los campos obligatorios.");
+          return false;
+        }
+
+        // 🔒 Siempre pendiente en alta
+        const concluida = 0;
+        return { sesion, aula, fecha, concluida };
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const { sesion, aula, fecha, concluida } = result.value; // concluida = 0
+        const codigo = btoa(btoa(usuario.docente.persona + semestre));
+        const token = usuario?.codigotokenautenticadorunj;
+
+        try {
+          const res = await guardarSesion(codigo, sesion, aula, fecha, concluida, "N", token);
+          if (res.exito) {
+            Swal.fire("✅ Guardado", res.mensaje, "success");
+
+             // ✅ Recarga desde el backend para traer evidencias frescas (foto/asis en false)
+              await cargarSesiones();
+
+            // Agregar a la tabla con estado Pendiente
+            const temaSeleccionado = temasDisponibles.find((t) => String(t.tema) === String(sesion));
+            setSesiones([
+              ...sesiones,
+              {
+                descripcion: temaSeleccionado?.descripcion || "",
+                fecha,
+                activo: 0,            // 👈 pendiente
+                sesion,
+              },
+            ]);
+
+            // Remover de “temas disponibles”
+            setTemasDisponibles((prev) => prev.filter((t) => String(t.tema) !== String(sesion)));
+          } else {
+            Swal.fire("⚠️ Aviso", res.mensaje || "No se pudo guardar.", "warning");
+          }
+        } catch (err) {
+          Swal.fire("❌ Error", "No se pudo conectar con la API.", "error");
+          console.error("Error inesperado:", err);
+        }
+      }
+    });
+  }}
+>
+  <i className="fa fa-plus"></i> Nueva Sesión
+</Button>
+
               </th>
             </tr>
           </thead>
 
           <tbody>
             {sesiones.map((sesion, index) => (
-              <tr key={`${sesion.sesion}-${index}`}>
+              <tr key={`ses-${semestre}-${sesion.sesion}`}>
                 <td style={{ textAlign: "center" }}>{index + 1}</td>
                 <td>{sesion.descripcion}</td>
                 <td style={{ textAlign: "center" }}>{formatearFecha(sesion.fecha)}</td>
@@ -607,35 +644,40 @@ function SesionesCiclo({ semestreValue }) {
                           formData.append("sesion", sesion.sesion);
 
                           fetch(`${config.apiUrl}api/Tutoria/subir-foto`, {
-                            method: "POST",
-                            headers: { Authorization: `Bearer ${token}` },
-                            body: formData,
+                          method: "POST",
+                          headers: { Authorization: `Bearer ${token}` },
+                          body: formData,
+                        })
+                          .then((res) => res.json())
+                          .then((data) => {
+                            if (data.success) {
+                              confetti({
+                                particleCount: 150,
+                                spread: 80,
+                                origin: { y: 0.6 },
+                                colors: ["#bb0000", "#ffffff", "#00bb00", "#FFD700"],
+                              });
+
+                              // Muestra el OK y LUEGO refresca
+                              Swal.fire({
+                                title: "✨ ¡Foto subida con éxito!",
+                                text: "Tu evidencia fue guardada correctamente.",
+                                icon: "success",
+                                confirmButtonText: "Aceptar",
+                                confirmButtonColor: "#3085d6",
+                                showClass: { popup: "animate__animated animate__fadeInDown" },
+                                hideClass: { popup: "animate__animated animate__fadeOutUp" },
+                              }).then(() => {
+                                cargarSesiones(); // ✅ refresca evidencias tras cerrar el alert
+                              });
+                            } else {
+                              Swal.fire("⚠️ Error", data.message || "No se pudo subir la imagen.", "error");
+                            }
                           })
-                            .then((res) => res.json())
-                            .then((data) => {
-                              if (data.success) {
-                                confetti({
-                                  particleCount: 150,
-                                  spread: 80,
-                                  origin: { y: 0.6 },
-                                  colors: ["#bb0000", "#ffffff", "#00bb00", "#FFD700"],
-                                });
-                                Swal.fire({
-                                  title: "✨ ¡Foto subida con éxito!",
-                                  text: "Tu evidencia fue guardada correctamente.",
-                                  icon: "success",
-                                  confirmButtonText: "Aceptar",
-                                  confirmButtonColor: "#3085d6",
-                                  showClass: { popup: "animate__animated animate__fadeInDown" },
-                                  hideClass: { popup: "animate__animated animate__fadeOutUp" },
-                                });
-                              } else {
-                                Swal.fire("⚠️ Error", data.message || "No se pudo subir la imagen.", "error");
-                              }
-                            })
-                            .catch(() => Swal.fire("❌ Error", "Error de conexión con el servidor.", "error"));
+                          .catch(() => Swal.fire("❌ Error", "Error de conexión con el servidor.", "error"));
                         }
                       });
+                        
                     }}
                   >
                     <i className="far fa-smile icono-amarillo"></i>
@@ -660,6 +702,58 @@ function SesionesCiclo({ semestreValue }) {
                   >
                     <i className="fa fa-edit icono-negro"></i>
                   </Button>
+
+                   {/* 🔍 DEBUG rápido: quítalo luego 
+                   
+                    
+                   */}
+                 
+<span className="badge bg-light text-dark me-1">
+                    A:{String(!!sesion.tieneAsistencia)} F:{String(!!sesion.tieneFoto)} act:{Number(sesion.activo)}
+                  </span>
+
+
+
+                  {/* Marcar Concluida (solo si: Pendiente && tiene Foto && tiene Asistencia) */}
+                  {Number(sesion.activo) === 0 && sesion.tieneAsistencia && sesion.tieneFoto && (
+                    <Button
+                      variant="outline-light"
+                      size="sm"
+                      className="me-1 btn-icon"
+                      onClick={async () => {
+                        const persona = usuario.docente.persona;
+                        const token = usuario?.codigotokenautenticadorunj;
+
+                        const ok = await Swal.fire({
+                          title: "¿Marcar como concluida?",
+                          text: `Sesion: ${sesion.descripcion}. Se validará que tenga asistencia y foto.`,
+                          icon: "question",
+                          showCancelButton: true,
+                          confirmButtonText: "Sí, concluir",
+                          cancelButtonText: "Cancelar",
+                        });
+
+                        if (!ok.isConfirmed) return;
+
+                        try {
+                          const resp = await concluirSesion(persona, semestre, sesion.sesion, token);
+                          if (resp?.success) {
+                            Swal.fire("✅ Concluida", resp.message || "La sesión fue marcada como concluida.", "success");
+                            cargarSesiones(); // refresca estado y evidencias
+                          } else {
+                            Swal.fire("⚠️ No se pudo concluir", resp?.message || "Verifique las evidencias.", "warning");
+                          }
+                        } catch (e) {
+                          console.error(e);
+                          Swal.fire("❌ Error", "No se pudo concluir la sesión.", "error");
+                        }
+                      }}
+                    >
+                      <i className="fa fa-check-circle icono-verde"></i>
+                    </Button>
+                  )}
+
+
 
                   {/* Eliminar */}
                   <Button
@@ -693,6 +787,10 @@ function SesionesCiclo({ semestreValue }) {
                   >
                     <i className="fa fa-trash icono-rojo"></i>
                   </Button>
+
+
+
+
                 </td>
               </tr>
             ))}
