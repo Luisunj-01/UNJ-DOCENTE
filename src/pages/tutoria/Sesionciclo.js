@@ -14,6 +14,7 @@ import {
   guardarRecomendacion,
   eliminarSesion,
   obtenerSesion,        // 👈 ya estaba
+ verificarSesion,
   actualizarSesion,
   obtenerEvidenciasSesion,    // 👈 nuevo
   concluirSesion              // 👈 nuevo
@@ -33,6 +34,8 @@ function SesionesCiclo({ semestreValue }) {
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
   const [temasDisponibles, setTemasDisponibles] = useState([]);
   const [cargandoTemas, setCargandoTemas] = useState(false);
+
+  const [estadoSesiones, setEstadoSesiones] = useState({});
 
   // 🧩 Formateo de fecha a dd/mm/yyyy
   const formatearFecha = (fecha) => {
@@ -134,6 +137,24 @@ function SesionesCiclo({ semestreValue }) {
   useEffect(() => {
     cargarSesiones();
   }, [semestre, usuario]);
+
+
+  const verificarSesionCompleta = async (persona, semestre, sesion) => {
+  try {
+    const token = usuario?.codigotokenautenticadorunj;
+    const data = await verificarSesion(persona, semestre, sesion, token);
+
+    if (data.success) {
+      setEstadoSesiones((prev) => ({
+        ...prev,
+        [sesion]: data.completa,
+      }));
+    }
+  } catch (error) {
+    console.error("⚠️ Error verificando sesión:", error);
+  }
+};
+
 
   // 📊 Cálculo de porcentaje (solo recomputa cuando cambian las sesiones)
   const { total, concluidas, porcentaje, cumple75 } = useMemo(() => {

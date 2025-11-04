@@ -733,3 +733,22 @@ export const concluirSesion = async (persona, semestre, sesion, token) => {
   });
   return await res.json(); // Espera: { success: true, message: "..." }
 };
+
+
+export const verificarSesion = async (persona, semestre, sesion, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/verificar-sesion/${persona}/${semestre}/${sesion}`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("❌ Error en verificarSesion:", error);
+    return { success: false, completa: false, foto: false, asistencia: false };
+  }
+};
