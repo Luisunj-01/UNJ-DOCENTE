@@ -5,17 +5,17 @@ import format from "date-fns/format";
 import parse from "date-fns/parse";
 import startOfWeek from "date-fns/startOfWeek";
 import getDay from "date-fns/getDay";
-import { es } from "date-fns/locale";          // 👈 español
+import { es } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-
-import { Button, Badge } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 
 import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../../context/UserContext";
 import { obtenerSesionesCiclo, obtenerSesionesLibres } from "../logica/DatosTutoria";
 
-// --- Localizador en español (lunes como inicio de semana)
+// --- Localizador en español (lunes inicio de semana)
 const locales = { es };
 const localizer = dateFnsLocalizer({
   format,
@@ -25,7 +25,7 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Utilidades de fecha
+// --- Funciones de fecha
 const toYMD = (fecha) => {
   if (!fecha) return "";
   if (fecha.includes("T")) return fecha.split("T")[0];
@@ -41,7 +41,7 @@ const ymdToDate = (ymd) => {
   return new Date(y, m - 1, d);
 };
 
-// --- Textos (UI en español)
+// --- Textos en español
 const messagesES = {
   date: "Fecha",
   time: "Hora",
@@ -61,37 +61,32 @@ const messagesES = {
   showMore: (total) => `+${total} más`,
 };
 
-// --- Formatos (día/mes/24h)
+// --- Formatos de fecha en español (24h)
 const formatsES = {
-  // Cabecera de la vista mes: "marzo 2025"
-  monthHeaderFormat: (date, culture, l) => format(date, "MMMM yyyy", { locale: es }),
-  // Nombre de días: "lun", "mar", ...
-  weekdayFormat: (date, culture, l) => format(date, "EEE", { locale: es }),
-  // Número dentro del cuadro del día
-  dayFormat: (date, culture, l) => format(date, "d", { locale: es }),
-  // Encabezados en semana/día
+  monthHeaderFormat: (date) => format(date, "MMMM yyyy", { locale: es }),
+  weekdayFormat: (date) => format(date, "EEE", { locale: es }),
+  dayFormat: (date) => format(date, "d", { locale: es }),
   dayHeaderFormat: (date) => format(date, "EEEE d 'de' MMMM yyyy", { locale: es }),
   dayRangeHeaderFormat: ({ start, end }) =>
     `${format(start, "d MMM", { locale: es })} – ${format(end, "d MMM yyyy", { locale: es })}`,
   agendaHeaderFormat: ({ start, end }) =>
     `${format(start, "d 'de' MMM", { locale: es })} – ${format(end, "d 'de' MMM yyyy", { locale: es })}`,
-  // Celdas de agenda y eventos con hora 24h
   agendaDateFormat: (date) => format(date, "EEE, d MMM", { locale: es }),
   agendaTimeRangeFormat: ({ start, end }) =>
     `${format(start, "HH:mm", { locale: es })} – ${format(end, "HH:mm", { locale: es })}`,
   eventTimeRangeFormat: ({ start, end }) =>
     `${format(start, "HH:mm", { locale: es })} – ${format(end, "HH:mm", { locale: es })}`,
-  // Tooltip de evento
   timeGutterFormat: (date) => format(date, "HH:mm", { locale: es }),
 };
 
 function TutoriaCalendario({ semestreValue }) {
   const { usuario } = useUsuario();
   const [semestre, setSemestre] = useState(semestreValue || "202501");
-  const [eventos, setEventos] = useState([]); // {title, start, end, allDay, meta:{tipo, estado, sesion}}
+  const [eventos, setEventos] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
   const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(true);
+  const navigate = useNavigate();
 
   const cargar = async () => {
     if (!usuario?.docente) return;
@@ -148,14 +143,13 @@ function TutoriaCalendario({ semestreValue }) {
     [eventos, mostrarSoloPendientes]
   );
 
-  // Estilo por tipo/estado
+  // 🎨 Colores de eventos según tipo/estado
   const eventPropGetter = (event) => {
     const tipo = event.meta?.tipo;
     const estado = event.meta?.estado;
     let backgroundColor = "#0d6efd"; // ciclo = azul
     if (tipo === "libre") backgroundColor = "#198754"; // libre = verde
-    if (tipo === "individual") backgroundColor = "#6f42c1"; // si luego agregas individual
-
+    if (tipo === "individual") backgroundColor = "#6f42c1"; // individual = violeta
     return {
       style: {
         backgroundColor,
@@ -169,6 +163,7 @@ function TutoriaCalendario({ semestreValue }) {
     };
   };
 
+  // 📅 Click en evento
   const onSelectEvent = (event) => {
     const { tipo, estado, sesion } = event.meta || {};
     Swal.fire({
@@ -188,8 +183,8 @@ function TutoriaCalendario({ semestreValue }) {
       denyButtonText: "Ir a Sesión Libre",
       cancelButtonText: "Cerrar",
     }).then((r) => {
-      if (r.isConfirmed) window.location.hash = "#/tutoria/ciclo";
-      else if (r.isDenied) window.location.hash = "#/tutoria/libre";
+      if (r.isConfirmed) navigate("/tutoria/ciclo");
+      else if (r.isDenied) navigate("/tutoria/libre");
     });
   };
 
@@ -232,8 +227,8 @@ function TutoriaCalendario({ semestreValue }) {
           onNavigate={setDate}
           toolbar
           popup
-          messages={messagesES}    // 👈 UI en español
-          formats={formatsES}      // 👈 Formatos en español (24h, etc.)
+          messages={messagesES}
+          formats={formatsES}
           eventPropGetter={eventPropGetter}
           onSelectEvent={onSelectEvent}
         />

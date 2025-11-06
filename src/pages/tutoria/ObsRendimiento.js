@@ -189,29 +189,34 @@ function ObsRendimiento({ semestreValue }) {
   };
 
   // 🔹 Nueva función: mostrar ficha con datos del alumno
-  const handleVerFichaAlumno = (alumno) => {
-    Swal.fire({
-      title: `<strong>${alumno.nombrecompleto}</strong>`,
-      html: `
-        <div style="text-align:left; line-height:1.8; font-size:0.95em;">
-          <p><b>📘 Código:</b> ${alumno.alumno}</p>
-          <p><b>🏫 Escuela:</b> ${alumno.nombreescuela}</p>
-          <p><b>📘 Currícula:</b>${alumno.curricula || "No registrada"}</p>
-          <p><b>👨‍🏫 Tutor:</b> ${usuario?.docente?.nombrecompleto || "No asignado"}</p>
+const handleVerFichaAlumno = (alumno) => {
+  // 📦 Armamos el código con los 4 parámetros requeridos
+  const codigoBase = `${alumno.alumno}|${alumno.estructura}|${alumno.curricula || "01"}|${semestre}`;
+  const codigo = btoa(btoa(codigoBase)); // Doble codificación Base64
 
-          <hr>
-          <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
-          <a href="${config.apiUrl}api/Reportes/ficha-matricula/${alumno.alumno}" target="_blank">🧾 Ficha de Matrícula</a><br>
-          <a href="${config.apiUrl}api/Reportes/avance-academico/${alumno.alumno}" target="_blank">📊 Avance Académico</a><br>
-          <a href="${config.apiUrl}api/Reportes/horario/${alumno.alumno}" target="_blank">🕒 Horario</a><br>
-          <a href="${config.apiUrl}api/Reportes/record/${alumno.alumno}" target="_blank">📚 Record Académico</a>
-        </div>
-      `,
-      width: "420px",
-      showCloseButton: true,
-      showConfirmButton: false,
-    });
-  };
+  Swal.fire({
+    title: `<strong>${alumno.nombrecompleto}</strong>`,
+    html: `
+      <div style="text-align:left; line-height:1.8; font-size:0.95em;">
+        <p><b>📘 Código:</b> ${alumno.alumno}</p>
+        <p><b>🏫 Escuela:</b> ${alumno.nombreescuela}</p>
+        <p><b>📘 Currícula:</b> ${alumno.curricula || "No registrada"}</p>
+        <p><b>👨‍🏫 Tutor:</b> ${usuario?.docente?.nombrecompleto || "No asignado"}</p>
+
+        <hr>
+        <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
+        <a href="/tutoria/fichaMatricula?codigo=${codigo}" target="_blank">🧾 Ficha de Matrícula</a><br>
+        <a href="#/tutoria/avanceAcademico?codigo=${codigo}" target="_blank">📊 Avance Académico</a><br>
+        <a href="#/tutoria/horario?codigo=${codigo}" target="_blank">🕒 Horario</a><br>
+        <a href="#/tutoria/record?codigo=${codigo}" target="_blank">📚 Record Académico</a>
+      </div>
+    `,
+    width: "420px",
+    showCloseButton: true,
+    showConfirmButton: false,
+  });
+};
+
 
   return (
     <div className="container mt-3">

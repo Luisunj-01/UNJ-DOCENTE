@@ -12,16 +12,18 @@ import Ingresonotasdoc from './pages/notas/Ingresonotasdoc.js';
 import IngresoRezaAplaz from './pages/notas/IngresoRezaAplaz.js';
 import ReporteDoc from './pages/reportes/ReporteDoc.js';
 import Reportecurricular from './pages/reportes/Reportecurricular.js';
-
-
 import Sesionlibre from './pages/tutoria/Sesionlibre.js';
 import Sesionciclo from './pages/tutoria/Sesionciclo.js';
 import SesionIndiv from './pages/tutoria/Sesionindiv.js';
-
 import TutoriaCalendario from './pages/tutoria/componentes/TutoriaCalendario.jsx';
 
-
 import Reportes from './pages/tutoria/Reportes.js';
+
+import ImprimirFichaMatricula from "./pages/tutoria/componentes/ImprimirFichaMatricula";
+
+
+
+
 import Error404 from './pages/error404/Error404.js';
 import Apps from './pages/apps/apps.js';
 import Cursos from './pages/cursos/Cursos.js';
@@ -104,14 +106,15 @@ function AppRoutes() {
 
 
             <Route path="Reportes" element={<Reportes />} />
+
+           
+
             <Route path="Curso" element={<Cursos />} />
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
             <Route path="participantes/:id" element={<ParticipantesGuias />}/>
             <Route path="tutoria" element={<Tutoria />} />
             <Route path="Declaracion" element={<Declaracion />} />
             <Route path="Horarios" element={<Horarios />} />
-
-        
       
           </Route>
 
@@ -129,6 +132,7 @@ function AppRoutes() {
           <Route path="ImprimirAsistenciaGuia" element={<ImprimirAsistenciaGuia />} />
           <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
           <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
+          <Route path="/tutoria/fichaMatricula" element={<ImprimirFichaMatricula />} />
        
 
 
