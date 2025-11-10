@@ -44,7 +44,7 @@ function ObsRendimiento({ semestreValue }) {
     });
 
     const data = await resp.json();
-    console.log("📊 Datos del reporte:", data);
+  
 
     if (data.success && data.data.length > 0) {
       setDatosReporte(data.data);
@@ -93,7 +93,9 @@ function ObsRendimiento({ semestreValue }) {
           token
         );
 
-        console.log("📊 Datos recibidos de obtenerAlumnosTutor:", datos);
+    console.log("📦 Alumnos recibidos del SP:", datos);
+
+       
 
         if (datos && datos.length > 0) {
           // 🔹 Consultar detalles de observación para cada alumno
@@ -240,12 +242,38 @@ function ObsRendimiento({ semestreValue }) {
     }
   };
 
-  // 🔹 Nueva función: mostrar ficha con datos del alumno
-const handleVerFichaAlumno = (alumno) => {
-  // 📦 Armamos el código con los 4 parámetros requeridos
-  const codigoBase = `${alumno.alumno}|${alumno.estructura}|${alumno.curricula || "01"}|${semestre}`;
-  const codigo = btoa(btoa(codigoBase)); // Doble codificación Base64
+ // 🔹 Codificación 100 % idéntica a PHP
+function phpBase64Encode(str) {
+  const bytes = Array.from(unescape(encodeURIComponent(str)))
+    .map(c => c.charCodeAt(0));
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
+
+  // 🔹 Nueva función: mostrar ficha con datos del alumno
+
+
+  const handleVerFichaAlumno = (alumno) => {
+  // 🧠 Guardar datos del alumno seleccionado para el otro componente
+  sessionStorage.setItem("alumnoSeleccionado", JSON.stringify(alumno));
+
+  // 🧩 Generar código codificado para la URL
+  const codAlumno = alumno.alumno?.trim() || "";
+  const codEscuela = alumno.estructura?.trim() || "";
+  const codCurricula = alumno.curricula?.trim() || "03";
+  const codSemestre = alumno.semestre?.trim() || "";
+
+  const codigoBase = `${codAlumno}|${codEscuela}|${codCurricula}|${codSemestre}`;
+  const codigo = btoa(codigoBase);
+
+  console.log("✅ Código base generado:", codigoBase);
+  console.log("✅ Código final:", codigo);
+
+  // ⚙️ Mostrar SweetAlert con los enlaces (ya funcionando)
   Swal.fire({
     title: `<strong>${alumno.nombrecompleto}</strong>`,
     html: `
@@ -257,10 +285,10 @@ const handleVerFichaAlumno = (alumno) => {
 
         <hr>
         <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
-        <a href="/tutoria/fichaMatricula?codigo=${codigo}" target="_blank">🧾 Ficha de Matrícula</a><br>
-        <a href="#/tutoria/avanceAcademico?codigo=${codigo}" target="_blank">📊 Avance Académico</a><br>
-        <a href="#/tutoria/horario?codigo=${codigo}" target="_blank">🕒 Horario</a><br>
-        <a href="#/tutoria/record?codigo=${codigo}" target="_blank">📚 Record Académico</a>
+        <a href="#" onclick="window.open('/tutoria/fichaMatricula?codigo=${codigo}', '_blank')">🧾 Ficha de Matrícula</a><br>
+        <a href="#" onclick="window.open('/tutoria/avanceAcademico?codigo=${codigo}', '_blank')">📊 Avance Académico</a><br>
+        <a href="#" onclick="window.open('/tutoria/horario?codigo=${codigo}', '_blank')">🕒 Horario</a><br>
+        <a href="#" onclick="window.open('/tutoria/record?codigo=${codigo}', '_blank')">📚 Record Académico</a>
       </div>
     `,
     width: "420px",
@@ -268,6 +296,7 @@ const handleVerFichaAlumno = (alumno) => {
     showConfirmButton: false,
   });
 };
+
 
 
   return (

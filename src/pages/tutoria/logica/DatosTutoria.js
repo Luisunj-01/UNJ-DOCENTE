@@ -757,7 +757,9 @@ export const verificarSesion = async (persona, semestre, sesion, token) => {
 
 export const obtenerFichaMatricula = async (alumno, escuela, curricula, semestre, token) => {
   try {
-    const url = `${config.apiUrl}api/Reportes/FichaMatricula/${alumno}/${escuela}/${curricula}/${semestre}`;
+    const url = `${config.apiUrl}api/reportes/FichaMatricula/${alumno}/${escuela}/${curricula}/${semestre}`;
+    console.log("📡 URL API FichaMatricula:", url);
+
     const resp = await fetch(url, {
       method: "GET",
       headers: {
@@ -765,11 +767,15 @@ export const obtenerFichaMatricula = async (alumno, escuela, curricula, semestre
         Authorization: `Bearer ${token}`,
       },
     });
+
     const data = await resp.json();
+    console.log("📊 Respuesta API FichaMatricula:", data);
     return data;
   } catch (err) {
     console.error("❌ Error al obtener ficha de matrícula:", err);
     return { success: false, datos: [] };
   }
 };
+
+
 

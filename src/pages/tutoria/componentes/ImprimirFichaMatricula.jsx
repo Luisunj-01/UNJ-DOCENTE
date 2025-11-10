@@ -3,9 +3,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { useUsuario } from "../../../context/UserContext";
 import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 import { FaPrint } from "react-icons/fa";
-import { useLocation } from "react-router-dom"; 
+import { useLocation } from "react-router-dom";
 import { obtenerFichaMatricula } from "../logica/DatosTutoria";
-
 
 const fecha = new Date();
 const fechaTexto = fecha.toLocaleDateString("es-PE");
@@ -15,15 +14,16 @@ const ImprimirFichaMatricula = () => {
   const { usuario } = useUsuario();
   const { search } = useLocation();
 
-  // 🔹 Decodificamos el parámetro "codigo" de la URL
   const queryParams = new URLSearchParams(search);
   const codigoParam = queryParams.get("codigo");
 
   let alumno = "", escuela = "", curricula = "", semestre = "";
+
   try {
     if (codigoParam) {
-      const decoded = atob(atob(codigoParam)); // doble decodificación
+      const decoded = atob(codigoParam);
       [alumno, escuela, curricula, semestre] = decoded.split("|");
+      console.log("📦 Parámetros decodificados:", { alumno, escuela, curricula, semestre });
     }
   } catch (error) {
     console.error("❌ Error al decodificar parámetros:", error);
@@ -36,24 +36,42 @@ const ImprimirFichaMatricula = () => {
 
   useEffect(() => {
     const cargar = async () => {
-      const token = usuario.codigotokenautenticadorunj;
-      const resp = await obtenerFichaMatricula(alumno, escuela, curricula, semestre, token);
-      if (resp.success) {
-        setDatos(resp.datos || []);
-        if (resp.datos.length > 0) {
-          const d0 = resp.datos[0];
-          setInfoCabecera({
-            carrera: d0.nombrecurso || "",
-            semestre,
-            alumno: usuario?.nombrecompleto || "",
-            codigo: alumno,
-          });
-        }
+      const token = usuario?.codigotokenautenticadorunj;
+
+      const alumnoGuardado = JSON.parse(
+        sessionStorage.getItem("alumnoSeleccionado") ||
+        localStorage.getItem("alumnoSeleccionado") ||
+        "{}"
+      );
+
+      if (!alumno) {
+        console.warn("⚠️ Código de alumno no encontrado");
+        setLoading(false);
+        return;
       }
+
+      let cursos = [];
+      try {
+        const resp = await obtenerFichaMatricula(alumno, escuela, curricula, semestre, token);
+        cursos = resp.datos || resp.data || [];
+      } catch (error) {
+        console.error("❌ Error al obtener cursos:", error);
+      }
+
+      setInfoCabecera({
+        carrera: alumnoGuardado.nombreescuela || "No registrado",
+        semestre: semestre || alumnoGuardado.semestre,
+        alumno: alumnoGuardado.nombrecompleto || "Sin nombre",
+        codigo: alumno || alumnoGuardado.alumno,
+        numerodocumento: alumnoGuardado.numerodocumento || "", // 👈 agregado
+      });
+
+      setDatos(cursos);
       setLoading(false);
     };
+
     cargar();
-  }, [alumno, escuela, curricula, semestre]);
+  }, []);
 
   return (
     <>
@@ -72,78 +90,94 @@ const ImprimirFichaMatricula = () => {
               <div className="text-center">
                 <h5><strong>UNIVERSIDAD NACIONAL DE JAÉN</strong></h5>
                 <h6><strong>MATRÍCULA</strong></h6>
-                <p style={{ fontSize: "0.8rem" }}>Fecha: {fechaTexto} | Hora: {horaTexto}</p>
+                <p style={{ fontSize: "0.8rem" }}>
+                  Fecha: {fechaTexto} | Hora: {horaTexto}
+                </p>
               </div>
               <QRCodeSVG value={urlActual} size={80} level="L" />
             </div>
 
-            {/* 🔹 Datos generales */}
-            <table className="table table-bordered tabla-datos">
-              <tbody>
-                <tr>
-                  <td><strong>Carrera:</strong></td>
-                  <td>{infoCabecera.carrera}</td>
-                  <td><strong>Código:</strong></td>
-                  <td>{infoCabecera.codigo}</td>
-                </tr>
-                <tr>
-                  <td><strong>Alumno:</strong></td>
-                  <td>{infoCabecera.alumno}</td>
-                  <td><strong>Semestre:</strong></td>
-                  <td>{infoCabecera.semestre}</td>
-                </tr>
-              </tbody>
-            </table>
+            {/* 🔹 Info del alumno */}
+            <div
+              className="mb-3"
+              style={{
+                lineHeight: "1.6",
+                fontSize: "0.95rem",
+                border: "1px solid #ccc",
+                borderRadius: "6px",
+                padding: "10px 15px",
+              }}
+            >
+              <p><strong>Semestre:</strong> {infoCabecera.semestre}</p>
+              <p><strong>Carrera:</strong> {infoCabecera.carrera}</p>
+              <p><strong>Código:</strong> {infoCabecera.codigo}</p>
+              <p><strong>Alumno:</strong> {infoCabecera.alumno}</p>
+            </div>
 
             {/* 🔹 Tabla de cursos */}
-            <table className="table table-striped table-bordered text-center tabla-cursos">
-              <thead>
-                <tr>
-                  <th>Curso</th>
-                  <th>Sec</th>
-                  <th>Nombre del Curso</th>
-                  <th>Cic.</th>
-                  <th>Créd.</th>
-                  <th>Tip.</th>
-                  <th>Vez</th>
-                </tr>
-              </thead>
-              <tbody>
-                {datos.map((d, i) => (
-                  <tr key={i}>
-                    <td>{d.curso}</td>
-                    <td>{d.seccion}</td>
-                    <td style={{ textAlign: "left" }}>{d.nombrecurso}</td>
-                    <td>{d.ciclo}</td>
-                    <td>{d.creditos}</td>
-                    <td>{d.tipocurso}</td>
-                    <td>{d.vez}</td>
+            {datos.length === 0 ? (
+              <p className="text-center text-muted mt-3">
+                No se encontraron cursos matriculados.
+              </p>
+            ) : (
+              <table className="table table-bordered text-center tabla-cursos">
+                <thead style={{ background: "#f5f5f5" }}>
+                  <tr>
+                    <th>Curso</th>
+                    <th>Sec</th>
+                    <th>Nombre del Curso</th>
+                    <th>Cic.</th>
+                    <th>Créd.</th>
+                    <th>Tip.</th>
+                    <th>Vez</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {datos.map((d, i) => (
+                    <tr key={i}>
+                      <td>{d.curso}</td>
+                      <td>{d.seccion}</td>
+                      <td style={{ textAlign: "left" }}>{d.nombrecurso}</td>
+                      <td>{d.ciclo}</td>
+                      <td>{d.creditos}</td>
+                      <td>{d.tipocurso}</td>
+                      <td>{d.vez}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
 
-            {/* 🔹 Totales */}
-            <div className="mt-3 text-end">
+            {/* 🔹 Totales (izquierda) */}
+            <div className="mt-3 text-start">
               <strong>Total de Cursos Matriculados:</strong> {datos.length}<br />
               <strong>Total de Créditos Matriculados:</strong>{" "}
               {datos.reduce((acc, d) => acc + Number(d.creditos || 0), 0)}
             </div>
 
-            {/* 🔹 Firmas */}
-            <div className="mt-5 text-center">
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
-                <div>
-                  ..............................................<br />
-                  {infoCabecera.alumno}<br />
-                  <small>Código {infoCabecera.codigo}</small>
-                </div>
-                <div>
-                  ..............................................<br />
-                  <small>Responsable</small>
-                </div>
+            {/* 🔹 Firmas centradas */}
+            <div
+              className="mt-5"
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "180px",
+                marginTop: "50px",
+                textAlign: "center",
+              }}
+            >
+              <div>
+                ..............................................<br />
+                {infoCabecera.alumno}<br />
+                <small>DNI: {infoCabecera.numerodocumento || "------"}</small><br />
+                
+              </div>
+              <div>
+                ..............................................<br />
+                <small>Responsable</small>
               </div>
             </div>
+
           </>
         )}
       </div>
