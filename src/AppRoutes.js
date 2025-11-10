@@ -61,16 +61,14 @@ function AppRoutes() {
  const { usuario, logout } = useUsuario();
    const [showAlert, setShowAlert] = useState(false);
   initializeAxios();
-  useInactividad(() => {
-    if (usuario) {
-      setShowAlert(true); 
-      logout();// Mostrar alerta
-      /*setTimeout(() => {
-        setShowAlert(false); // Ocultar después de 3 segundos
-        logout();
-      }, 3000);*/
-    }
-  }, 1800000); 
+  
+  // useInactividad(() => {
+//   if (usuario) {
+//     setShowAlert(true); 
+//     logout();// Mostrar alerta
+//   }
+// }, 1800000);
+
  
   return (
     <>

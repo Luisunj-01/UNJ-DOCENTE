@@ -5,6 +5,9 @@ import { useUsuario } from "../../context/UserContext";
 import { obtenerAlumnosTutor, guardarObservacion } from "./logica/DatosTutoria";
 import Swal from "sweetalert2";
 import config from "../../config"; // Ajusta la ruta según tu proyecto
+import ReporteRendimientoModal from "./componentes/ReporteRendimientoModal";
+
+
 
 function ObsRendimiento({ semestreValue }) {
   const { usuario } = useUsuario();
@@ -12,10 +15,57 @@ function ObsRendimiento({ semestreValue }) {
   const [alumnos, setAlumnos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [mostrarReporte, setMostrarReporte] = useState(false);
+  const [datosReporte, setDatosReporte] = useState([]);
+  const [cargandoReporte, setCargandoReporte] = useState(false);
+
+ // ======================================================
+  // 🔹 Tu función handleVerReporte va aquí (debajo de useState)
+  // ======================================================
+ const handleVerReporte = async () => {
+  try {
+    setCargandoReporte(true); // ⏳ inicia carga
+
+    const token = usuario?.codigotokenautenticadorunj;
+    if (!token) {
+      Swal.fire("Error", "Token no disponible. Inicie sesión nuevamente.", "error");
+      setCargandoReporte(false);
+      return;
+    }
+
+    const persona = usuario.docente.persona;
+    const docente = usuario.docente.usuario;
+    const vperfil = usuario.docente.vperfil || "G";
+
+    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}/${docente}/${vperfil}`;
+
+    const resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await resp.json();
+    console.log("📊 Datos del reporte:", data);
+
+    if (data.success && data.data.length > 0) {
+      setDatosReporte(data.data);
+      setMostrarReporte(true);
+    } else {
+      Swal.fire("Sin datos", "No se encontraron registros del reporte.", "info");
+    }
+  } catch (error) {
+    console.error("❌ Error en reporte:", error);
+    Swal.fire("Error", "No se pudo obtener el reporte.", "error");
+  } finally {
+    setCargandoReporte(false); // ✅ termina carga
+  }
+};
+
+
+
 
   useEffect(() => {
     if (!usuario || !usuario.docente) return;
-    console.log("Usuario contexto:", usuario);
+    //console.log("Usuario contexto:", usuario);
 
     const cargar = async () => {
       setLoading(true);
@@ -42,6 +92,8 @@ function ObsRendimiento({ semestreValue }) {
           vperfil,
           token
         );
+
+        console.log("📊 Datos recibidos de obtenerAlumnosTutor:", datos);
 
         if (datos && datos.length > 0) {
           // 🔹 Consultar detalles de observación para cada alumno
@@ -242,6 +294,25 @@ const handleVerFichaAlumno = (alumno) => {
             <span className="text-dark">{usuario?.docente?.nombrecompleto || "Sin nombre"}</span>
           </div>
 
+          <div className="text-end mb-3">
+  <Button 
+    variant="outline-success"
+    size="sm"
+    disabled={cargandoReporte} // 🚫 desactiva durante carga
+    onClick={handleVerReporte}
+  >
+    {cargandoReporte ? (
+      <>
+        <Spinner animation="border" size="sm" className="me-2" /> Cargando...
+      </>
+    ) : (
+      "🔍 Ver Reporte"
+    )}
+  </Button>
+</div>
+
+
+
           {/* Tabla de alumnos */}
           <Table bordered hover size="sm" responsive>
             <thead>
@@ -306,6 +377,18 @@ const handleVerFichaAlumno = (alumno) => {
               ))}
             </tbody>
           </Table>
+
+          <ReporteRendimientoModal
+          show={mostrarReporte}
+          onHide={() => setMostrarReporte(false)}
+          semestre={semestre}
+          tutor={usuario?.docente?.nombrecompleto}
+       
+          alumnos={datosReporte}  // ✅ Usa los que traen ponderado_semestre
+        />
+
+
+
         </>
       )}
     </div>
