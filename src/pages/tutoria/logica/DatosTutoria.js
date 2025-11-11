@@ -777,5 +777,55 @@ export const obtenerFichaMatricula = async (alumno, escuela, curricula, semestre
   }
 };
 
+export const obtenerAvanceAcademico = async (alumno, escuela, curricula, semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/Avanceacademico/${alumno}/${escuela}/${curricula}/${semestre}`;
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error("❌ Error en obtenerAvanceAcademico:", error);
+    return { success: false };
+  }
+};
+
+export const obtenerConstanciaNotas = async (alumno, escuela, curricula, semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/ConstanciaNotas/${alumno}/${escuela}/${curricula}/${semestre}`;
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return await respuesta.json();
+  } catch (error) {
+    console.error("❌ Error al obtener constancia de notas:", error);
+    return { success: false, data: [] };
+  }
+};
+
+export const obtenerHorarioAlumno = async (alumno, semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/HorarioAlumno/${alumno}/${semestre}`;
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return await respuesta.json(); // 👈 devuelve { success, cabecera, detalle }
+  } catch (error) {
+    console.error("❌ Error en obtenerHorarioAlumno:", error);
+    return { success: false, cabecera: [], detalle: [] };
+  }
+};
 
 

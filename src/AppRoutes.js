@@ -19,7 +19,11 @@ import TutoriaCalendario from './pages/tutoria/componentes/TutoriaCalendario.jsx
 
 import Reportes from './pages/tutoria/Reportes.js';
 
+// 🧾 Reportes imprimibles
 import ImprimirFichaMatricula from "./pages/tutoria/componentes/ImprimirFichaMatricula";
+import ImprimirAvanceAcademico from "./pages/tutoria/componentes/ImprimirAvanceAcademico";
+import ImprimirConstanciaNotas from "./pages/tutoria/componentes/ImprimirConstanciaNotas";
+import ImprimirHorarioAlumno from "./pages/tutoria/componentes/ImprimirHorarioAlumno";
 
 
 
@@ -131,6 +135,10 @@ function AppRoutes() {
           <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
           <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
           <Route path="/tutoria/fichaMatricula" element={<ImprimirFichaMatricula />} />
+          <Route path="/tutoria/imprimir-avance" element={<ImprimirAvanceAcademico />}/>
+          <Route path="/tutoria/imprimir-constancia" element={<ImprimirConstanciaNotas />}/>
+          <Route path="/tutoria/horario" element={<ImprimirHorarioAlumno />}/>
+     
        
 
 

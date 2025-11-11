@@ -286,7 +286,8 @@ function phpBase64Encode(str) {
         <hr>
         <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
         <a href="#" onclick="window.open('/tutoria/fichaMatricula?codigo=${codigo}', '_blank')">🧾 Ficha de Matrícula</a><br>
-        <a href="#" onclick="window.open('/tutoria/avanceAcademico?codigo=${codigo}', '_blank')">📊 Avance Académico</a><br>
+        <a href="#" onclick="window.open('/tutoria/imprimir-avance?codigo=${codigo}', '_blank')">📊 Avance Académico</a><br>
+        <a href="#" onclick="window.open('/tutoria/imprimir-constancia?codigo=${codigo}', '_blank')">📜 Constancia de Notas</a><br>
         <a href="#" onclick="window.open('/tutoria/horario?codigo=${codigo}', '_blank')">🕒 Horario</a><br>
         <a href="#" onclick="window.open('/tutoria/record?codigo=${codigo}', '_blank')">📚 Record Académico</a>
       </div>
