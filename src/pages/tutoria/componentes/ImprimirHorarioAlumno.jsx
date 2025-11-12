@@ -21,6 +21,7 @@ const ImprimirHorarioAlumno = () => {
   const token = usuario?.codigotokenautenticadorunj;
 
   const [cabecera, setCabecera] = useState({});
+  const [cursos, setCursos] = useState([]);   // 👈 agrega esta línea
   const [detalle, setDetalle] = useState([]);
   const [horario, setHorario] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +30,7 @@ const ImprimirHorarioAlumno = () => {
   let alumno = "", semestre = "";
   try {
     if (codigoParam) {
-      const decoded = atob(codigoParam);
+      const decoded = atob(atob(codigoParam)); // ✅ doble decode corregido
       [alumno, semestre] = decoded.split("|");
       console.log("📦 Parámetros decodificados:", { alumno, semestre });
     }
@@ -40,27 +41,29 @@ const ImprimirHorarioAlumno = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        // 🔹 Alumno guardado en el navegador (por ejemplo, al seleccionarlo)
         const alumnoGuardado = JSON.parse(
           sessionStorage.getItem("alumnoSeleccionado") ||
             localStorage.getItem("alumnoSeleccionado") ||
             "{}"
         );
 
+        // 🔹 Llamamos al endpoint
         const data = await obtenerHorarioAlumno(alumno, semestre, token);
         console.log("📥 Datos recibidos:", data);
 
         if (data?.success) {
+          // Guardamos datos del alumno para mostrar en cabecera
           setCabecera({
             nombrecompleto:
-              alumnoGuardado.nombrecompleto ||
-              data.cabecera?.nombrecompleto ||
-              "Alumno no identificado",
-            codigo: alumnoGuardado.codigo || data.cabecera?.codigo || alumno,
-            semestre: data.cabecera?.semestre || semestre,
+              alumnoGuardado.nombrecompleto || "Alumno no identificado",
+            codigo: alumnoGuardado.codigo || alumno,
+            semestre: semestre,
           });
 
-          setDetalle(data.detalle || []);
-          setHorario(data.horario || []); // si la API separa el horario por horas
+          // 🔹 Asignamos los nuevos arreglos que viene del backend
+          setCursos(data.cursos || []); // ← lista de cursos (tabla superior)
+          setHorario(data.horario || []); // ← horario semanal (tabla inferior)
         }
       } catch (error) {
         console.error("❌ Error cargando horario:", error);
@@ -154,7 +157,7 @@ const ImprimirHorarioAlumno = () => {
             </tr>
           </thead>
           <tbody>
-            {detalle.map((fila, i) => (
+            {cursos.map((fila, i) => (
               <tr key={i}>
                 <td>{i + 1}</td>
                 <td>{fila.curso}</td>
@@ -187,9 +190,10 @@ const ImprimirHorarioAlumno = () => {
             </tr>
           </thead>
           <tbody>
-            {detalle.map((fila, i) => (
+            {horario.map((fila, i) => ( // ✅ usa horario en lugar de detalle
               <tr key={i}>
-                <td>{fila.hora}</td>
+                <td>{fila.horario}</td>
+
                 {[
                   fila.lunes,
                   fila.martes,

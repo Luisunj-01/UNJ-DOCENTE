@@ -256,24 +256,21 @@ function phpBase64Encode(str) {
 
   // 🔹 Nueva función: mostrar ficha con datos del alumno
 
-
-  const handleVerFichaAlumno = (alumno) => {
-  // 🧠 Guardar datos del alumno seleccionado para el otro componente
+const handleVerFichaAlumno = (alumno) => {
   sessionStorage.setItem("alumnoSeleccionado", JSON.stringify(alumno));
 
-  // 🧩 Generar código codificado para la URL
   const codAlumno = alumno.alumno?.trim() || "";
-  const codEscuela = alumno.estructura?.trim() || "";
-  const codCurricula = alumno.curricula?.trim() || "03";
   const codSemestre = alumno.semestre?.trim() || "";
 
-  const codigoBase = `${codAlumno}|${codEscuela}|${codCurricula}|${codSemestre}`;
-  const codigo = btoa(codigoBase);
+  // ⚙️ Código completo para los reportes anteriores (4 params)
+  const codigoBaseFull = `${codAlumno}|${alumno.estructura?.trim() || ""}|${alumno.curricula?.trim() || "03"}|${codSemestre}`;
+  const codigoFull = btoa(codigoBaseFull);
 
-  console.log("✅ Código base generado:", codigoBase);
-  console.log("✅ Código final:", codigo);
+  // ⚙️ Código reducido SOLO para el horario (2 params)
+  const codigoHorario = btoa(btoa(`${codAlumno}|${codSemestre}`)); // 👈 doble encode
 
-  // ⚙️ Mostrar SweetAlert con los enlaces (ya funcionando)
+  console.log("✅ Código horario generado:", `${codAlumno}|${codSemestre}`);
+
   Swal.fire({
     title: `<strong>${alumno.nombrecompleto}</strong>`,
     html: `
@@ -285,11 +282,11 @@ function phpBase64Encode(str) {
 
         <hr>
         <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
-        <a href="#" onclick="window.open('/tutoria/fichaMatricula?codigo=${codigo}', '_blank')">🧾 Ficha de Matrícula</a><br>
-        <a href="#" onclick="window.open('/tutoria/imprimir-avance?codigo=${codigo}', '_blank')">📊 Avance Académico</a><br>
-        <a href="#" onclick="window.open('/tutoria/imprimir-constancia?codigo=${codigo}', '_blank')">📜 Constancia de Notas</a><br>
-        <a href="#" onclick="window.open('/tutoria/horario?codigo=${codigo}', '_blank')">🕒 Horario</a><br>
-        <a href="#" onclick="window.open('/tutoria/record?codigo=${codigo}', '_blank')">📚 Record Académico</a>
+        <a href="#" onclick="window.open('/tutoria/fichaMatricula?codigo=${codigoFull}', '_blank')">🧾 Ficha de Matrícula</a><br>
+        <a href="#" onclick="window.open('/tutoria/imprimir-avance?codigo=${codigoFull}', '_blank')">📊 Avance Académico</a><br>
+        <a href="#" onclick="window.open('/tutoria/imprimir-constancia?codigo=${codigoFull}', '_blank')">📜 Constancia de Notas</a><br>
+        <a href="#" onclick="window.open('/tutoria/horario?codigo=${codigoHorario}', '_blank')">🕒 Horario</a><br>
+        <a href="#" onclick="window.open('/tutoria/record?codigo=${codigoFull}', '_blank')">📚 Record Académico</a>
       </div>
     `,
     width: "420px",
@@ -297,6 +294,7 @@ function phpBase64Encode(str) {
     showConfirmButton: false,
   });
 };
+
 
 
 
