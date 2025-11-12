@@ -24,6 +24,8 @@ import ImprimirFichaMatricula from "./pages/tutoria/componentes/ImprimirFichaMat
 import ImprimirAvanceAcademico from "./pages/tutoria/componentes/ImprimirAvanceAcademico";
 import ImprimirConstanciaNotas from "./pages/tutoria/componentes/ImprimirConstanciaNotas";
 import ImprimirHorarioAlumno from "./pages/tutoria/componentes/ImprimirHorarioAlumno";
+import ImprimirAsistenciaAlumno from "./pages/tutoria/componentes/ImprimirAsistenciaAlumno";
+
 
 
 
@@ -138,6 +140,7 @@ function AppRoutes() {
           <Route path="/tutoria/imprimir-avance" element={<ImprimirAvanceAcademico />}/>
           <Route path="/tutoria/imprimir-constancia" element={<ImprimirConstanciaNotas />}/>
           <Route path="/tutoria/horario" element={<ImprimirHorarioAlumno />}/>
+          <Route path="/tutoria/asistenciaestudiante" element={<ImprimirAsistenciaAlumno />}/>
      
        
 

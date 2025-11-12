@@ -828,4 +828,20 @@ export const obtenerHorarioAlumno = async (alumno, semestre, token) => {
   }
 };
 
+export const obtenerAsistenciaAlumno = async (alumno, escuela, semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/AsistenciaAlumno/${alumno}/${escuela}/${semestre}`;
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return await respuesta.json();
+  } catch (error) {
+    console.error("❌ Error en obtenerAsistenciaAlumno:", error);
+    return { success: false, data: [] };
+  }
+};
 
