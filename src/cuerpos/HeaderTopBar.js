@@ -1,4 +1,4 @@
-// src/componentes/HeaderTopBar.js
+//src/cuerpos/cuerpos.js
 import React from 'react';
 import { useState } from 'react';
 import { Navbar, Container, Button, Image, Dropdown, Nav } from 'react-bootstrap';

@@ -5,6 +5,9 @@ import { useUsuario } from "../../context/UserContext";
 import { obtenerAlumnosTutor, guardarObservacion } from "./logica/DatosTutoria";
 import Swal from "sweetalert2";
 import config from "../../config"; // Ajusta la ruta según tu proyecto
+import ReporteRendimientoModal from "./componentes/ReporteRendimientoModal";
+
+
 
 function ObsRendimiento({ semestreValue }) {
   const { usuario } = useUsuario();
@@ -12,10 +15,57 @@ function ObsRendimiento({ semestreValue }) {
   const [alumnos, setAlumnos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [mostrarReporte, setMostrarReporte] = useState(false);
+  const [datosReporte, setDatosReporte] = useState([]);
+  const [cargandoReporte, setCargandoReporte] = useState(false);
+
+ // ======================================================
+  // 🔹 Tu función handleVerReporte va aquí (debajo de useState)
+  // ======================================================
+ const handleVerReporte = async () => {
+  try {
+    setCargandoReporte(true); // ⏳ inicia carga
+
+    const token = usuario?.codigotokenautenticadorunj;
+    if (!token) {
+      Swal.fire("Error", "Token no disponible. Inicie sesión nuevamente.", "error");
+      setCargandoReporte(false);
+      return;
+    }
+
+    const persona = usuario.docente.persona;
+    const docente = usuario.docente.usuario;
+    const vperfil = usuario.docente.vperfil || "G";
+
+    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}/${docente}/${vperfil}`;
+
+    const resp = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await resp.json();
+  
+
+    if (data.success && data.data.length > 0) {
+      setDatosReporte(data.data);
+      setMostrarReporte(true);
+    } else {
+      Swal.fire("Sin datos", "No se encontraron registros del reporte.", "info");
+    }
+  } catch (error) {
+    console.error("❌ Error en reporte:", error);
+    Swal.fire("Error", "No se pudo obtener el reporte.", "error");
+  } finally {
+    setCargandoReporte(false); // ✅ termina carga
+  }
+};
+
+
+
 
   useEffect(() => {
     if (!usuario || !usuario.docente) return;
-    console.log("Usuario contexto:", usuario);
+    //console.log("Usuario contexto:", usuario);
 
     const cargar = async () => {
       setLoading(true);
@@ -42,6 +92,10 @@ function ObsRendimiento({ semestreValue }) {
           vperfil,
           token
         );
+
+    console.log("📦 Alumnos recibidos del SP:", datos);
+
+       
 
         if (datos && datos.length > 0) {
           // 🔹 Consultar detalles de observación para cada alumno
@@ -188,30 +242,71 @@ function ObsRendimiento({ semestreValue }) {
     }
   };
 
-  // 🔹 Nueva función: mostrar ficha con datos del alumno
-  const handleVerFichaAlumno = (alumno) => {
-    Swal.fire({
-      title: `<strong>${alumno.nombrecompleto}</strong>`,
-      html: `
-        <div style="text-align:left; line-height:1.8; font-size:0.95em;">
-          <p><b>📘 Código:</b> ${alumno.alumno}</p>
-          <p><b>🏫 Escuela:</b> ${alumno.nombreescuela}</p>
-          <p><b>📘 Currícula:</b>${alumno.curricula || "No registrada"}</p>
-          <p><b>👨‍🏫 Tutor:</b> ${usuario?.docente?.nombrecompleto || "No asignado"}</p>
+ // 🔹 Codificación 100 % idéntica a PHP
+function phpBase64Encode(str) {
+  const bytes = Array.from(unescape(encodeURIComponent(str)))
+    .map(c => c.charCodeAt(0));
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
-          <hr>
-          <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
-          <a href="${config.apiUrl}api/Reportes/ficha-matricula/${alumno.alumno}" target="_blank">🧾 Ficha de Matrícula</a><br>
-          <a href="${config.apiUrl}api/Reportes/avance-academico/${alumno.alumno}" target="_blank">📊 Avance Académico</a><br>
-          <a href="${config.apiUrl}api/Reportes/horario/${alumno.alumno}" target="_blank">🕒 Horario</a><br>
-          <a href="${config.apiUrl}api/Reportes/record/${alumno.alumno}" target="_blank">📚 Record Académico</a>
-        </div>
-      `,
-      width: "420px",
-      showCloseButton: true,
-      showConfirmButton: false,
-    });
-  };
+
+  // 🔹 Nueva función: mostrar ficha con datos del alumno
+
+const handleVerFichaAlumno = (alumno) => {
+  sessionStorage.setItem("alumnoSeleccionado", JSON.stringify(alumno));
+
+  const codAlumno = alumno.alumno?.trim() || "";
+  const codEscuela = alumno.estructura?.trim() || "";
+  const codCurricula = alumno.curricula?.trim() || "03";
+  const codSemestre = alumno.semestre?.trim() || "";
+
+ 
+// 1. Reportes ANTIGUOS (4 parámetros)
+  const codigoBaseFull = `${codAlumno}|${codEscuela}|${codCurricula}|${codSemestre}`;
+  const codigoFull = btoa(codigoBaseFull);
+
+  // 2. Horario (2 parámetros)
+  const codigoHorario = btoa(btoa(`${codAlumno}|${codSemestre}`));
+
+  // 3. Asistencia (3 parámetros)
+  const codigoAsistencia = btoa(btoa(`${codAlumno}|${codEscuela}|${codSemestre}`));
+
+  // 4. Record de NOTAS (3 parámetros)
+
+  const codigoRecord = btoa(btoa(`${codAlumno}|${codEscuela}|${codCurricula}`));
+
+
+  console.log("✅ Código asistencia generado:", `${codAlumno}|${codEscuela}|${codSemestre}`);
+
+  Swal.fire({
+    title: `<strong>${alumno.nombrecompleto}</strong>`,
+    html: `
+      <div style="text-align:left; line-height:1.8; font-size:0.95em;">
+        <p><b>📘 Código:</b> ${alumno.alumno}</p>
+        <p><b>🏫 Escuela:</b> ${alumno.nombreescuela}</p>
+        <p><b>📘 Currícula:</b> ${alumno.curricula || "No registrada"}</p>
+        <p><b>👨‍🏫 Tutor:</b> ${usuario?.docente?.nombrecompleto || "No asignado"}</p>
+
+        <hr>
+        <p style="color:#0d6efd; font-weight:bold;">🔎 Reportes disponibles</p>
+        <a href="#" onclick="window.open('/tutoria/fichaMatricula?codigo=${codigoFull}', '_blank')">🧾 Ficha de Matrícula</a><br>
+        <a href="#" onclick="window.open('/tutoria/imprimir-avance?codigo=${codigoFull}', '_blank')">📊 Avance Académico</a><br>
+        <a href="#" onclick="window.open('/tutoria/imprimir-constancia?codigo=${codigoFull}', '_blank')">📜 Constancia de Notas</a><br>
+        <a href="#" onclick="window.open('/tutoria/horario?codigo=${codigoHorario}', '_blank')">🕒 Horario</a><br>
+        <a href="#" onclick="window.open('/tutoria/asistenciaestudiante?codigo=${codigoAsistencia}', '_blank')">📋 Asistencia Estudiante</a><br>
+        <a href="#" onclick="window.open('/tutoria/record?codigo=${codigoRecord}', '_blank')">📚 Record de Notas</a>
+      </div>
+    `,
+    width: "420px",
+    showCloseButton: true,
+    showConfirmButton: false,
+  });
+};
+
 
   return (
     <div className="container mt-3">
@@ -236,6 +331,25 @@ function ObsRendimiento({ semestreValue }) {
             <span className="fw-bold text-primary">Docente Tutor:</span>{" "}
             <span className="text-dark">{usuario?.docente?.nombrecompleto || "Sin nombre"}</span>
           </div>
+
+          <div className="text-end mb-3">
+  <Button 
+    variant="outline-success"
+    size="sm"
+    disabled={cargandoReporte} // 🚫 desactiva durante carga
+    onClick={handleVerReporte}
+  >
+    {cargandoReporte ? (
+      <>
+        <Spinner animation="border" size="sm" className="me-2" /> Cargando...
+      </>
+    ) : (
+      "🔍 Ver Reporte"
+    )}
+  </Button>
+</div>
+
+
 
           {/* Tabla de alumnos */}
           <Table bordered hover size="sm" responsive>
@@ -301,6 +415,18 @@ function ObsRendimiento({ semestreValue }) {
               ))}
             </tbody>
           </Table>
+
+          <ReporteRendimientoModal
+          show={mostrarReporte}
+          onHide={() => setMostrarReporte(false)}
+          semestre={semestre}
+          tutor={usuario?.docente?.nombrecompleto}
+       
+          alumnos={datosReporte}  // ✅ Usa los que traen ponderado_semestre
+        />
+
+
+
         </>
       )}
     </div>

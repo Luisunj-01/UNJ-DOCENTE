@@ -1,7 +1,6 @@
-// src/componentes/modales/CerrarSesionModal.js
-import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
- 
+import React from "react";
+import { Modal, Button } from "react-bootstrap";
+
 function CerrarSesionModal({ show, onConfirm, onCancel }) {
   return (
     <Modal show={show} onHide={onCancel} centered>

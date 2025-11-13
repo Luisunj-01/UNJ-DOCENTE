@@ -1,21 +1,20 @@
-import { BrowserRouter as Router } from 'react-router-dom';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import { UserProvider } from './context/UserContext';
-import { ThemeProvider } from './context/ThemeContext';
+//src/App.js
+import React from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
+import { UserProvider } from "./context/UserContext";
+import AppRoutes from "./AppRoutes";
 
-import AppRoutes from './AppRoutes'; // importa el archivo que acabas de crear
-
-function App() {
-  //basename="/docente"
+const App = () => {
   return (
-    <UserProvider>
-      <ThemeProvider>
+    <ThemeProvider>
+      <UserProvider>
         <Router>
           <AppRoutes />
         </Router>
-      </ThemeProvider>
-    </UserProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;

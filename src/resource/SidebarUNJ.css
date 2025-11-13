@@ -38,7 +38,24 @@
   }*/
   
 
-  
+  .dominio-titulo {
+  color: #007bff;            /* Azul principal tipo Bootstrap */
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-left: 4px solid #007bff; /* Línea lateral azul */
+  padding-left: 8px;
+}
+
+/* Si quieres fondo azul suave */
+.dominio-titulo.bg {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
 
   .sidebar {
     width: 260px;

@@ -1,3 +1,4 @@
+// src/pages/administracion/componentes/Datosacademicos.js
 import { useState, useEffect } from 'react';
 import { obtenerConfiguracion } from '../../reutilizables/logica/docente';
 import { Col, Table } from 'react-bootstrap';

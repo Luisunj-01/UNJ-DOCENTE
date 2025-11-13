@@ -1,3 +1,4 @@
+//src/cuerpos/Sidebar.js
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import '../resource/Sidebar.css';
@@ -13,6 +14,7 @@ function Sidebar() {
   const cerrarSesion = () => {
     // Elimina el usuario del almacenamiento local
     localStorage.removeItem('usuario');
+    localStorage.removeItem('sanctum_token');
     //window.location.reload();
     // Opcional: cerrar sesión de Google (si usas gapi en el futuro)
     // window.open('https://accounts.google.com/Logout', '_blank');
@@ -22,9 +24,9 @@ function Sidebar() {
     window.location.reload();
   };
 
-  
+
   return (
-    
+
     <div className="bg-light border-end p-3" style={{ width: '250px', height: '100%', background: 'white !important' }}>
       <h4 className="mb-4">
         <img src="https://pruebas.unj.edu.pe/zetunajaen/images/logounjaen.png" alt="logo" />
@@ -34,7 +36,7 @@ function Sidebar() {
         <i className="fas fa-home"></i> Principal
       </Link>
 
-    
+
 
       <div className="mb-2">
         <button className="btn btn-outline-primary w-100 text-start" onClick={() => toggleMenu('datos')}>

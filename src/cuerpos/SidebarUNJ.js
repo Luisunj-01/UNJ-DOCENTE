@@ -1,309 +1,183 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation,NavLink,useNavigate } from 'react-router-dom';
+// src/cuerpos/SidebarUNJ.js
+import { useMemo, useState, useEffect } from 'react';
+import { FaChevronDown, FaChevronRight, FaSignOutAlt } from 'react-icons/fa';
+import { Link, useLocation } from 'react-router-dom';
+import { routeMap } from '../config/routeMap';
 import '../resource/SidebarUNJ.css';
-import {
-  FaChevronDown,
-  FaChevronRight,
-  FaUpload,
-  FaSignOutAlt,
-  FaHome,
-  FaBookOpen,
-  FaClipboardList,
-  FaChartBar,
-  FaChalkboardTeacher,
-  FaCogs
-} from 'react-icons/fa';
-import { useTheme } from '../context/ThemeContext';
 
-const SidebarUNJ = ({ abrirModal, toggleSidebar }) => {
-  const [openMenu, setOpenMenu] = useState(null);
-  const [modo, setModo] = useState('gestion'); // gestion o actividades
+/**
+ * Props:
+ * - sidebar: Array de opciones (del /api/me)
+ * - loadingOpciones: boolean (true mientras /api/me está cargando)
+ * - abrirModal: () => void (Salir)
+ * - toggleSidebar?: () => void (si tienes botón para colapsar)
+ *
+ * Estructura esperada de cada opción:
+ * {
+ *   dominio, nombre_dominio,
+ *   modulo, nombre_modulo,
+ *   menu, nombre_menu,
+ *   opcion, nombre_opcion,
+ *   url?, target?
+ * }
+ */
+export default function SidebarUNJ({
+  sidebar = [],
+  loadingOpciones = false,
+  abrirModal,
+  toggleSidebar,
+}) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const [openMenu, setOpenMenu] = useState({});
+  const [selectedKey, setSelectedKey] = useState(null);
 
-  const { darkMode } = useTheme();
-  const logo = darkMode
-    ? '/image/logo/logo-unj-blanco.svg'
-    : '/image/logo/logo-unj-v1.svg';
-
-  const toggleMenu = (menu) => {
-    setOpenMenu(openMenu === menu ? null : menu);
+  // Normaliza una URL de opción a ruta interna conocida
+  const getUrl = (op) => {
+    const key = `${op.menu}-${op.opcion}`;
+    return op.url || routeMap[key] || '#';
   };
 
-  // Cargar modo desde localStorage
+  // Agrupa SOLO dominio '01' por nombre_menu (estable y memorizado)
+  const groupedMenus = useMemo(() => {
+    const opciones = Array.isArray(sidebar) ? sidebar : [];
+    const dominios = new Map();
+
+    opciones.forEach(op => {
+      if (!op?.menu || !op?.opcion) return;
+
+      const dominio = op?.nombre_dominio || `Dominio ${op?.dominio ?? ''}`;
+      const menuName = op?.nombre_menu || `Menú ${op?.menu ?? ''}`;
+
+      if (!dominios.has(dominio)) dominios.set(dominio, new Map());
+      const menus = dominios.get(dominio);
+
+      if (!menus.has(menuName)) menus.set(menuName, []);
+
+      menus.get(menuName).push({
+        key: `${op.menu}-${op.opcion}`,
+        nombre: op?.nombre_opcion || `Opción ${op?.opcion}`,
+        url: getUrl(op),
+        target: op?.target || '',
+      });
+    });
+
+    // Convertimos a arreglo estructurado
+    return Array.from(dominios.entries()).map(([nombre_dominio, menus]) => ({
+      nombre_dominio,
+      menus: Array.from(menus.entries()).map(([nombre_menu, opciones]) => ({
+        nombre_menu,
+        opciones: opciones.sort((a, b) => a.nombre.localeCompare(b.nombre)),
+      })),
+    }));
+  }, [sidebar]);
+
+
+  // Sincroniza la opción activa según la ruta actual
   useEffect(() => {
-    const modoGuardado = localStorage.getItem('modo');
-    if (modoGuardado) {
-      setModo(modoGuardado);
+    if (!Array.isArray(sidebar) || sidebar.length === 0) return;
+    const current = sidebar.find(op => getUrl(op) === location.pathname);
+    if (current) {
+      setSelectedKey(`${current.menu}-${current.opcion}`);
     }
-  }, []);
+  }, [location.pathname, sidebar]);
 
-  // Cambiar modo y guardarlo
-  const cambiarModo = (nuevoModo) => {
-    localStorage.setItem('modo', nuevoModo);
-    setModo(nuevoModo);
-  };
+  const toggleMenuOpen = (idx) =>
+    setOpenMenu(prev => ({ ...prev, [idx]: !prev[idx] }));
 
+  // Render
   return (
     <div className="sidebar">
       <div className="sidebar-content">
         <img
           alt="Logo UNJ"
           className="logounj mb-3"
-          src={logo}
+          src="/image/logo/logo-unj-v1.svg"
         />
 
-        {/* Principal */}
-        <Link
-          to="/"
-          className={`menu-btn ${location.pathname === '/' ? 'active' : ''}`}
-          onClick={() => cambiarModo('gestion')}
-        >
-          <FaHome className="me-2" /> Principal
-        </Link>
+        {/* Estado de carga de opciones */}
+        {loadingOpciones ? (
+          <p>Cargando menú…</p>
+        ) : groupedMenus.length === 0 ? (
+          <p>Sin opciones asignadas</p>
+        ) : (
+          groupedMenus.map((dom, dIdx) => (
+            <div key={`dom-${dIdx}`} className="dominio-group">
+          <h6 className="dominio-titulo bg">{dom.nombre_dominio}</h6>
 
-        {/* Si el modo es "gestion", mostramos todos los menús de gestión académica */}
-        {modo === 'gestion' && (
-          <>
-            {/* Administración */}
-            <div className="menu-group">
-              <button
-                className="menu-btn"
-                onClick={() => toggleMenu('administracion')}
-              >
-                <FaCogs className="me-2" /> Administración
-                {openMenu === 'administracion' ? (
-                  <FaChevronDown className="ms-auto" />
-                ) : (
-                  <FaChevronRight className="ms-auto" />
-                )}
-              </button>
-              {openMenu === 'administracion' && (
-                <ul className="submenu">
-                  <li
-                    className={`submenu-link ${
-                      location.pathname.startsWith('/datos') ? 'active' : ''
-                    }`}
-                  >
-                    <Link to="/datos" onClick={toggleSidebar}>
-                      Datos Docente
-                    </Link>
-                  </li>
-                </ul>
-              )}
-            </div>
-
-            <Link
-              to="/curso"
-              className={`menu-btn ${
-                location.pathname === '/curso' ? 'active' : ''
-              }`}
-              onClick={toggleSidebar}
-            >
-              <FaBookOpen className="me-2" /> Mis Cursos
-            </Link>
-
-            {/* Reportes */}
-            <div className="menu-group">
-              <button
-                className="menu-btn"
-                onClick={() => toggleMenu('reportes')}
-              >
-                <FaChartBar className="me-2" /> Reportes
-                {openMenu === 'reportes' ? (
-                  <FaChevronDown className="ms-auto" />
-                ) : (
-                  <FaChevronRight className="ms-auto" />
-                )}
-              </button>
-              {openMenu === 'reportes' && (
-                <ul className="submenu">
-                  <li
-                    className={`submenu-link ${
-                      location.pathname.startsWith('/ReporteDoc') ? 'active' : ''
-                    }`}
-                  >
-                    <Link to="/ReporteDoc" onClick={toggleSidebar}>
-                      Reportes Docente
-                    </Link>
-                  </li>
-                  <li
-                    className={`submenu-link ${
-                      location.pathname.startsWith('/Reportecurricular')
-                        ? 'active'
-                        : ''
-                    }`}
-                  >
-                    <Link to="/Reportecurricular" onClick={toggleSidebar}>
-                      Reportes Curricular
-                    </Link>
-                  </li>
-                </ul>
-              )}
-            </div>
-
-          
-  <div className={`menu-group ${openMenu === 'tutoria' ? 'open' : ''}`}>
-    <button
-      className="menu-btn"
-      onClick={() => {
-        // abre/cierra acordeón
-        setOpenMenu(openMenu === 'tutoria' ? null : 'tutoria');
-        // navega a la vista calendario de tutoría
-        navigate('/tutoria');
-      }}
-    >
-      <FaChalkboardTeacher className="me-2" /> Tutoria
-      {openMenu === 'tutoria' ? (
-        <FaChevronDown className="ms-auto" />
-      ) : (
-        <FaChevronRight className="ms-auto" />
-      )}
-    </button>
-
-    {openMenu === 'tutoria' && (
-      <ul className="submenu">
-        <li className="submenu-link">
-          <NavLink to="/tutoria/obs" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
-            Obs. Rendimiento
-          </NavLink>
-        </li>
-        <li className="submenu-link">
-          <NavLink to="/tutoria/ciclo" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
-            Sesión Ciclo
-          </NavLink>
-        </li>
-        <li className="submenu-link">
-          <NavLink to="/tutoria/libre" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
-            Sesión Libre
-          </NavLink>
-        </li>
-        <li className="submenu-link">
-          <NavLink to="/tutoria/individual" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
-            Sesión Individual
-          </NavLink>
-        </li>
-        <li className="submenu-link">
-          <NavLink to="/tutoria/reportes" className={({isActive}) => (isActive ? 'active' : '')} onClick={toggleSidebar}>
-            Reportes
-          </NavLink>
-        </li>
-      </ul>
-    )}
-  </div>
-
-            {/* Actividades No Lectivas con submenús */}
-            <div className="menu-group">
-              <button
-                className="menu-btn"
-                onClick={() => {
-                  toggleMenu('actividades');
-                  cambiarModo('actividades');
-                }}
-              >
-                <FaClipboardList className="me-2" /> Actividades No Lectivas
-                {openMenu === 'actividades' ? (
-                  <FaChevronDown className="ms-auto" />
-                ) : (
-                  <FaChevronRight className="ms-auto" />
-                )}
-              </button>
-
-              {openMenu === 'actividades' && (
-                <ul className="submenu">
-                  <li
-                    className={`submenu-link ${
-                      location.pathname === '/Declaracion'
-                        ? 'active'
-                        : ''
-                    }`}
-                  > 
-                    <Link
-                      to="/Declaracion"
-                      onClick={toggleSidebar}
+              {dom.menus.map((grupo, gIdx) => {
+                const isOpen = !!openMenu[`${dIdx}-${gIdx}`];
+                return (
+                  <div key={`grupo-${dIdx}-${gIdx}`} className="menu-group">
+                    <button
+                      className="menu-btn"
+                      type="button"
+                      onClick={() =>
+                        setOpenMenu(prev => ({
+                          ...prev,
+                          [`${dIdx}-${gIdx}`]: !prev[`${dIdx}-${gIdx}`],
+                        }))
+                      }
                     >
-                      Declaracion
-                    </Link>
-                  </li>
-                  <li
-                    className={`submenu-link ${
-                      location.pathname === '/Horarios'
-                        ? 'active'
-                        : ''
-                    }`}
-                  >
-                    <Link
-                      to="/Horarios"
-                      onClick={toggleSidebar}
-                    >
-                      Horario
-                    </Link>
-                  </li>
-                </ul>
-              )}
+                      {grupo.nombre_menu}
+                      {isOpen ? <FaChevronDown className="ms-auto" /> : <FaChevronRight className="ms-auto" />}
+                    </button>
+
+                    {isOpen && (
+                      <ul className="submenu">
+                        {grupo.opciones.map((op, oIdx) => {
+                          const active = selectedKey === op.key;
+                          const isExternal = op.url?.startsWith("http");
+                          const disabled = loadingOpciones || !op.url || op.url === "#";
+
+                          const Item = (
+                            <>
+                              <span className="dot" aria-hidden />
+                              {op.nombre}
+                            </>
+                          );
+
+                          return (
+                            <li key={`${dIdx}-${gIdx}-${oIdx}`}>
+                              {isExternal ? (
+                                <a
+                                  href={op.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`submenu-item ${active ? 'active' : ''}`}
+                                  onClick={() => setSelectedKey(op.key)}
+                                  title={op.nombre}
+                                >
+                                  {Item}
+                                </a>
+                              ) : (
+                                <Link
+                                  to={op.url}
+                                  className={`submenu-item ${active ? 'active' : ''}`}
+                                  onClick={() => setSelectedKey(op.key)}
+                                  title={op.nombre}
+                                >
+                                  {Item}
+                                </Link>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          </>
+          ))
         )}
 
-        {/* Si el modo es "actividades", mostramos solo ese menú con submenús */}
-        {modo === 'actividades' && (
-          <div className="menu-group">
-            <button
-              className="menu-btn"
-              onClick={() => toggleMenu('actividades')}
-            >
-              <FaClipboardList className="me-2" /> Actividades No Lectivas
-              {openMenu === 'actividades' ? (
-                <FaChevronDown className="ms-auto" />
-              ) : (
-                <FaChevronRight className="ms-auto" />
-              )}
-            </button>
-
-            {openMenu === 'actividades' && (
-              <ul className="submenu">
-                <li
-                  className={`submenu-link ${
-                    location.pathname === '/Declaracion'
-                      ? 'active'
-                      : ''
-                  }`}
-                >
-                  <Link
-                    to="/Declaracion"
-                    onClick={toggleSidebar}
-                  >
-                    Declaracion
-                  </Link>
-                </li>
-                <li
-                  className={`submenu-link ${
-                    location.pathname === '/Horarios'
-                      ? 'active'
-                      : ''
-                  }`}
-                >
-                  <Link
-                    to="/Horarios"
-                    onClick={toggleSidebar}
-                  >
-                    Horario
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </div>
-        )}
 
         <hr className="my-3" />
 
-        {/* Botón cerrar sesión que abre modal */}
         <button className="salir-btn mt-auto w-100" onClick={abrirModal}>
-          Salir <FaSignOutAlt className="me-2" />
+          <FaSignOutAlt className="me-2" /> Salir
         </button>
       </div>
     </div>
   );
-};
-
-export default SidebarUNJ;
+}

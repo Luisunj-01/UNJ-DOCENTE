@@ -1,3 +1,4 @@
+//src/context/ThemeContext.js
 import { createContext, useContext, useState, useEffect } from 'react';
 
 // 1. Crear el contexto

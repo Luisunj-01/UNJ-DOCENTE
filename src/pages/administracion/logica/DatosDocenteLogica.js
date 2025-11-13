@@ -1,4 +1,4 @@
-// src/api/alumno.js
+// src/pages/administracion/logica/DatosDocenteLogica.js
 import axios from 'axios';
 import config from '../../../config';
 

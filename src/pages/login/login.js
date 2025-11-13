@@ -1,204 +1,77 @@
-// src/pages/Login/Login.jsx
-import { useEffect, useState } from "react";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import Logo from "./componentes/LoginLogo";
-import Formulario from "./componentes/LoginForm";
-import BotonGoogle from "./componentes/LoginBotonGoogle";
-import ImagenFondo from "./componentes/LoginImagenFondo";
-import "../../resource/login.css";
-import LoaderFullScreen from "../reutilizables/componentes/LoaderFullScreen";
+import { useEffect } from 'react';
+import { useUsuario } from '../../context/UserContext';
+import { iniciarSesion } from './logica/LoginLogica';
+import Logo from './componentes/LoginLogo';
+import Formulario from './componentes/LoginForm';
+import BotonGoogle from './componentes/BotonGoogle';
+import ImagenFondo from './componentes/LoginImagenFondo';
+import '../../resource/login.css';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2'; // 👈 importa SweetAlert2
 
-const ROLES = {
-  estudiante: "Estudiantil",
-  docente: "Docente",
-  admin: "Administración",
-};
+// 👉 importa helpers de permisos/rutas
+import { firstAllowedRoute } from '../../context/permiso';
+import { routeMap } from '../../config/routeMap';
 
-function normalizaRol(url) {
-  url = url.toLowerCase();
-  if (url.includes("sigad.unj.edu.pe")) return "docente";
-  if (url.includes("siga.unj.edu.pe/estudiante")) return "estudiante";
-  if (url.includes("/administrador")) return "admin";
-  return "estudiante";
-}
-
-export default function Login() {
-  const [rol, setRol] = useState(normalizaRol(window.location.href));
-  const [usuario, setUsuario] = useState(null);
-  const [loading, setLoading] = useState(false); // ⬅️ estado global de carga
-
-  useEffect(() => {
-    document.body.style.backgroundImage = "url('image/back-03_0002.svg')";
-    const data = localStorage.getItem("usuario");
-    if (data) setUsuario(JSON.parse(data));
-  }, []);
-
-  const handleCambiarRol = (nuevoRol) => {
-    if (nuevoRol === "estudiante") {
-      window.location.href = "https://siga.unj.edu.pe/estudiante/";
-    } else if (nuevoRol === "docente") {
-      window.location.href = "https://sigad.unj.edu.pe/";
-    } else if (nuevoRol === "admin") {
-      window.location.href = "/administrador/";
-    }
-  };
-
-  return (
-    <>
-      {/* Loader que cubre TODO el módulo */}
-      <LoaderFullScreen visible={loading} />
-
-      <GoogleOAuthProvider clientId="468491556072-e78isnva21jh9q83ub1fnd4ikeagrj3i.apps.googleusercontent.com">
-        <div className="contenedor">
-          <div className="cont-login">
-            <Logo />
-
-            {/* Tabs de roles */}
-            <div className="tabs-rol-group centered">
-              <button
-                type="button"
-                className={`tab-rol left-pill ${rol === "estudiante" ? "active" : ""}`}
-                onClick={() => handleCambiarRol("estudiante")}
-              >
-                Estudiante
-              </button>
-              <button
-                type="button"
-                className={`tab-rol middle-pill ${rol === "docente" ? "active" : ""}`}
-                onClick={() => handleCambiarRol("docente")}
-              >
-                Docente
-              </button>
-              <button
-                type="button"
-                className={`tab-rol right-pill ${rol === "admin" ? "active" : ""}`}
-                onClick={() => handleCambiarRol("admin")}
-              >
-                Administrador
-              </button>
-            </div>
-
-            <p className="bienvenidos">Bienvenido al Módulo {ROLES[rol]}</p>
-
-            {/* Pasamos setLoading para controlar el loader */}
-            <Formulario rol={rol} setLoading={setLoading} />
-
-            <div className="acciones-login compact">
-              <div className="google-wrapper">
-                <BotonGoogle setUsuario={setUsuario} />
-              </div>
-            </div>
-          </div>
-          <ImagenFondo />
-        </div>
-      </GoogleOAuthProvider>
-    </>
-  );
-}
-
-
-/*import { useEffect, useState } from "react";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { useNavigate, useParams } from "react-router-dom";
-import Logo from "./componentes/LoginLogo";
-import Formulario from "./componentes/LoginForm";
-import BotonGoogle from "./componentes/LoginBotonGoogle";
-import ImagenFondo from "./componentes/LoginImagenFondo";
-import "../../resource/login.css";
-
-const ROLES = {
-  estudiante: "Estudiantil",
-  docente: "Docente",
-  admin: "Administración",
-};
-
-function normalizaRol(valor) {
-  const v = (valor || "").toLowerCase();
-  if (v === "docente") return "docente";
-  if (v === "admin" || v === "administracion" || v === "administración")
-    return "admin";
-  return "estudiante";
-}
-
-export default function Login() {
-  const { rol: rolParam } = useParams();
+function Login() {
+  const { setUsuario } = useUsuario();
   const navigate = useNavigate();
 
-  const [rol, setRol] = useState(normalizaRol(rolParam));
-  const [usuario, setUsuario] = useState(null);
-
-  // Sincroniza el rol cuando cambia el parámetro de la URL
-  useEffect(() => {
-    setRol(normalizaRol(rolParam));
-  }, [rolParam]);
-
-  // Fondo y carga de usuario
   useEffect(() => {
     document.body.style.backgroundImage = "url('/image/back-03_0002.svg')";
-    const data = localStorage.getItem("usuario");
-    if (data) setUsuario(JSON.parse(data));
+
+    // 👇 Captura y muestra los errores enviados por la URL
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error) {
+      let mensaje = 'Ocurrió un error durante el inicio de sesión.';
+      switch (error) {
+        case 'no_autorizado':
+          mensaje = 'No se encontró un usuario autorizado con este correo.';
+          break;
+        case 'exchange_failed':
+          mensaje = 'Error al validar la sesión con Google. Intenta nuevamente.';
+          break;
+        case 'falta_code':
+          mensaje = 'No se recibió el código de autenticación.';
+          break;
+        default:
+          mensaje = 'Error desconocido en la autenticación.';
+      }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Acceso denegado',
+        text: mensaje,
+        confirmButtonText: 'Entendido',
+      });
+
+      // limpia la URL para evitar que se repita el alert
+      window.history.replaceState({}, '', '/login');
+    }
   }, []);
 
-  // Cambiar rol y reflejarlo en la URL
-  const handleCambiarRol = (nuevoRol) => {
-    const r = normalizaRol(nuevoRol);
-    setRol(r);
-    navigate(`/#/${r}`, { replace: false });
+  const handleLogin = async (email, clave) => {
+    const userData = await iniciarSesion({ email, clave });
+    if (userData) {
+      setUsuario(userData);
+      const next = firstAllowedRoute(userData.opciones, routeMap) || '/';
+      navigate(next, { replace: true }); // 👈 corregido /inicio → /
+    }
+    // en error no hagas nada: ya alertó iniciarSesion
   };
 
   return (
-    <GoogleOAuthProvider clientId="468491556072-e78isnva21jh9q83ub1fnd4ikeagrj3i.apps.googleusercontent.com">
-      <div className="contenedor">
-        <div className="cont-login">
-          <Logo />
-
-        
-          <div className="tabs-rol-group centered">
-            <button
-              type="button"
-              className={`tab-rol left-pill ${
-                rol === "estudiante" ? "active" : ""
-              }`}
-              onClick={() => handleCambiarRol("estudiante")}
-            >
-              Estudiante
-            </button>
-            <button
-              type="button"
-              className={`tab-rol middle-pill ${
-                rol === "docente" ? "active" : ""
-              }`}
-              onClick={() => handleCambiarRol("docente")}
-            >
-              Docente
-            </button>
-            <button
-              type="button"
-              className={`tab-rol right-pill ${
-                rol === "admin" ? "active" : ""
-              }`}
-              onClick={() => handleCambiarRol("admin")}
-            >
-              Administrador
-            </button>
-          </div>
-
-          
-          <p className="bienvenidos">Bienvenido al Módulo {ROLES[rol]}</p>
-
-          <Formulario rol={rol} />
-
-          
-          <div className="acciones-login compact">
-            
-            <div className="google-wrapper">
-              <BotonGoogle setUsuario={setUsuario} />
-            </div>
-          </div>
-        </div>
-
-        <ImagenFondo />
+    <div className="contenedor">
+      <div className="cont-login">
+        <Logo />
+        <p className="bienvenidos">Módulo Docente</p>
+        <Formulario onLogin={handleLogin} />
+        <BotonGoogle />
       </div>
-    </GoogleOAuthProvider>
+      <ImagenFondo />
+    </div>
   );
-}*/
+}
+
+export default Login;

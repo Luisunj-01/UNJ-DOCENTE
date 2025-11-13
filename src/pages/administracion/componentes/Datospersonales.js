@@ -1,3 +1,4 @@
+// src/pages/administracion/componentes/Datospersonales.js
 import { useEffect, useState } from "react";
 import { obtenerConfiguracion } from "../../reutilizables/logica/docente";
 import { Col, Table } from "react-bootstrap";
