@@ -264,6 +264,7 @@ const handleVerFichaAlumno = (alumno) => {
   const codCurricula = alumno.curricula?.trim() || "03";
   const codSemestre = alumno.semestre?.trim() || "";
 
+<<<<<<< HEAD
  
 // 1. Reportes ANTIGUOS (4 parámetros)
   const codigoBaseFull = `${codAlumno}|${codEscuela}|${codCurricula}|${codSemestre}`;
@@ -280,6 +281,18 @@ const handleVerFichaAlumno = (alumno) => {
   const codigoRecord = btoa(btoa(`${codAlumno}|${codEscuela}|${codCurricula}`));
 
 
+=======
+  // ⚙️ Código completo para reportes antiguos (4 parámetros)
+  const codigoBaseFull = `${codAlumno}|${codEscuela}|${codCurricula}|${codSemestre}`;
+  const codigoFull = btoa(codigoBaseFull);
+
+  // ⚙️ Código reducido para horario (2 parámetros)
+  const codigoHorario = btoa(btoa(`${codAlumno}|${codSemestre}`));
+
+  // ⚙️ Código especial para asistencia (3 parámetros: alumno|escuela|semestre)
+  const codigoAsistencia = btoa(btoa(`${codAlumno}|${codEscuela}|${codSemestre}`));
+
+>>>>>>> 54987b93b52815b839e156011a59b8ba0e41f929
   console.log("✅ Código asistencia generado:", `${codAlumno}|${codEscuela}|${codSemestre}`);
 
   Swal.fire({
@@ -298,7 +311,11 @@ const handleVerFichaAlumno = (alumno) => {
         <a href="#" onclick="window.open('/tutoria/imprimir-constancia?codigo=${codigoFull}', '_blank')">📜 Constancia de Notas</a><br>
         <a href="#" onclick="window.open('/tutoria/horario?codigo=${codigoHorario}', '_blank')">🕒 Horario</a><br>
         <a href="#" onclick="window.open('/tutoria/asistenciaestudiante?codigo=${codigoAsistencia}', '_blank')">📋 Asistencia Estudiante</a><br>
+<<<<<<< HEAD
         <a href="#" onclick="window.open('/tutoria/record?codigo=${codigoRecord}', '_blank')">📚 Record de Notas</a>
+=======
+        <a href="#" onclick="window.open('/tutoria/record?codigo=${codigoFull}', '_blank')">📚 Record Académico</a>
+>>>>>>> 54987b93b52815b839e156011a59b8ba0e41f929
       </div>
     `,
     width: "420px",

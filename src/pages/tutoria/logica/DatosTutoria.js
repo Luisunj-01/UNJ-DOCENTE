@@ -845,6 +845,7 @@ export const obtenerAsistenciaAlumno = async (alumno, escuela, semestre, token) 
   }
 };
 
+
 export const obtenerRecordNotas = async (alumno, escuela, curricula, token) => {
   try {
     const url = `${config.apiUrl}api/reportes/record/${alumno}/${escuela}/${curricula}`;

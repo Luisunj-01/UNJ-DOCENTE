@@ -22,6 +22,10 @@ import Sesionlibre from './pages/tutoria/Sesionlibre.js';
 import Sesionciclo from './pages/tutoria/Sesionciclo.js';
 import SesionIndiv from './pages/tutoria/Sesionindiv.js';
 import TutoriaCalendario from './pages/tutoria/componentes/TutoriaCalendario.jsx';
+
+
+
+
 import Reportes from './pages/tutoria/Reportes.js';
 
 // 🧾 Reportes imprimibles
@@ -30,7 +34,12 @@ import ImprimirAvanceAcademico from "./pages/tutoria/componentes/ImprimirAvanceA
 import ImprimirConstanciaNotas from "./pages/tutoria/componentes/ImprimirConstanciaNotas";
 import ImprimirHorarioAlumno from "./pages/tutoria/componentes/ImprimirHorarioAlumno";
 import ImprimirAsistenciaAlumno from "./pages/tutoria/componentes/ImprimirAsistenciaAlumno";
+
 import ImprimirRecordNotas from "./pages/tutoria/componentes/ImprimirRecordNotas";
+
+
+
+
 
 
 
@@ -61,7 +70,22 @@ import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsi
 import GoogleCallback from './pages/login/AuthCallback.js'; // agrega este archivo
 
 function AppRoutes() {
+
   const { usuario } = useUsuario();
+
+
+ 
+   const [showAlert, setShowAlert] = useState(false);
+  initializeAxios();
+  
+  // useInactividad(() => {
+//   if (usuario) {
+//     setShowAlert(true); 
+//     logout();// Mostrar alerta
+//   }
+// }, 1800000);
+
+ 
 
   return (
     <Routes>
@@ -105,6 +129,7 @@ function AppRoutes() {
             <Route path="tutoria/individual" element={<RutaPrivada permisoRequerido="009-003"><SesionIndiv /></RutaPrivada>} />
 
             <Route path="Reportes" element={<Reportes />} />
+
             <Route path="Reportes" element={<RutaPrivada permisoRequerido="009-004"><Reportes /></RutaPrivada>} />
 
             {/* <Route path="Curso" element={<Cursos />} /> */}
@@ -117,10 +142,23 @@ function AppRoutes() {
            <Route path="Declaracion" element={<RutaPrivada permisoRequerido="001-004"><Declaracion /></RutaPrivada>} />
             <Route path="Horarios" element={<RutaPrivada permisoRequerido="001-005"><Horarios /></RutaPrivada>} />
        
+
+
+           
+
+            <Route path="Curso" element={<Cursos />} />
+            <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
+            <Route path="participantes/:id" element={<ParticipantesGuias />}/>
+            <Route path="tutoria" element={<Tutoria />} />
+            <Route path="Declaracion" element={<Declaracion />} />
+            <Route path="Horarios" element={<Horarios />} />
+      
+
           </Route>
 
           {/* Privadas fuera de Layout */}
           <Route path="/apps" element={<Apps />} />
+
           <Route path="/Imprimirdocentesemestrecarga" element={<Imprimirdocentesemestrecarga />} />
           <Route path="/Imprimirhorariodocente" element={<Imprimirhorariodocente />} />
           <Route path="/Imprimirguiasemana" element={<Imprimirguiasemana />} />
@@ -133,13 +171,32 @@ function AppRoutes() {
           <Route path="/ImprimirAsistenciaGuia" element={<ImprimirAsistenciaGuia />} />
           <Route path="/ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
           <Route path="/ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
+
+          <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
+          <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
+          <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}   />
+          <Route path='ImprimirAsistenciaSemana' element={<ImprimirAsistenciaSemana />}   />
+          <Route path="ImprimirActaDetalle" element={<ImprimirActaDetalle />} />
+          <Route path="ImprimirReporteNota" element={<ImprimirReporteNota />} />
+          <Route path="ImprimirListaMatriculados" element={<ImprimirListaMatriculados />} />
+          <Route path="ImprimirFichaGuia" element={<ImprimirFichaGuia />} />
+          <Route path="ImprimirReporteSesiones" element={<ImprimirReporteSesiones />} />
+          <Route path="ImprimirAsistenciaGuia" element={<ImprimirAsistenciaGuia />} />
+          <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
+          <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
+
           <Route path="/tutoria/fichaMatricula" element={<ImprimirFichaMatricula />} />
           <Route path="/tutoria/imprimir-avance" element={<ImprimirAvanceAcademico />}/>
           <Route path="/tutoria/imprimir-constancia" element={<ImprimirConstanciaNotas />}/>
           <Route path="/tutoria/horario" element={<ImprimirHorarioAlumno />}/>
           <Route path="/tutoria/asistenciaestudiante" element={<ImprimirAsistenciaAlumno />}/>
+
           <Route path="/tutoria/record" element={<ImprimirRecordNotas />}/>
      
+
+     
+       
+
 
           {/* Fallback autenticado */}
           <Route path="*" element={<Error404 />} />

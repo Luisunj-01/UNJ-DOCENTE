@@ -250,3 +250,4 @@ export const obtenerReportenotas = async (sede, semestre, escuela, curricula, cu
 };
 
 
+
