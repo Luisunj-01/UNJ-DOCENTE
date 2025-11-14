@@ -865,3 +865,19 @@ export const obtenerRecordNotas = async (alumno, escuela, curricula, token) => {
   }
 };
 
+export const obtenerPlanCurricular = async (estructura, curricula, tipo, token) => {
+  try {
+    const res = await axios.get(
+      `/reportes/curricular/${estructura}/${curricula}/${tipo}`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    );
+
+    return res.data.data;
+
+  } catch (error) {
+    console.error("Error cargando plan curricular", error);
+    return [];
+  }
+};

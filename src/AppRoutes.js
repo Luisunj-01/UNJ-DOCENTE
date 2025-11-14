@@ -1,7 +1,9 @@
-// src/AppRoutes.js
+// src/AppRoutes.js IMPORTANTE
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useUsuario } from './context/UserContext';
 import RutaPrivada from './componentes/RutaPrivada';
+import { useState } from "react";
+import initializeAxios from "./interceptor.js";
 
 
 // Páginas
@@ -34,8 +36,8 @@ import ImprimirAvanceAcademico from "./pages/tutoria/componentes/ImprimirAvanceA
 import ImprimirConstanciaNotas from "./pages/tutoria/componentes/ImprimirConstanciaNotas";
 import ImprimirHorarioAlumno from "./pages/tutoria/componentes/ImprimirHorarioAlumno";
 import ImprimirAsistenciaAlumno from "./pages/tutoria/componentes/ImprimirAsistenciaAlumno";
-
 import ImprimirRecordNotas from "./pages/tutoria/componentes/ImprimirRecordNotas";
+import ImprimirPlanCurricular from "./pages/tutoria/componentes/ImprimirPlanCurricular";
 
 
 
@@ -192,6 +194,7 @@ function AppRoutes() {
           <Route path="/tutoria/asistenciaestudiante" element={<ImprimirAsistenciaAlumno />}/>
 
           <Route path="/tutoria/record" element={<ImprimirRecordNotas />}/>
+          <Route path="/tutoria/plancurricular" element={<ImprimirPlanCurricular />}/>
      
 
      
