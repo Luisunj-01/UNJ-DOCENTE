@@ -867,17 +867,39 @@ export const obtenerRecordNotas = async (alumno, escuela, curricula, token) => {
 
 export const obtenerPlanCurricular = async (estructura, curricula, tipo, token) => {
   try {
-    const res = await axios.get(
-      `/reportes/curricular/${estructura}/${curricula}/${tipo}`,
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
+    const url = `${config.apiUrl}api/reportes/curricular/${estructura}/${curricula}/${tipo}`;
 
-    return res.data.data;
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return await respuesta.json();
+  } catch (error) {
+    console.error("❌ Error en obtenercurricula:", error);
+    return { success: false, filas: [] };
+  }
+};
+
+export const obtenerRecordCurricular = async (alumno, sede, estructura, curricula, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/recordcurricular/${alumno}/${sede}/${estructura}/${curricula}`;
+
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return await respuesta.json();
 
   } catch (error) {
-    console.error("Error cargando plan curricular", error);
-    return [];
+    console.error("❌ Error en obtenerRecordCurricular:", error);
+    return { success: false, data: [] };
   }
 };

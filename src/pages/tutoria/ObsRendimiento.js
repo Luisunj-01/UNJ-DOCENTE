@@ -263,6 +263,7 @@ const handleVerFichaAlumno = (alumno) => {
   const codEscuela = alumno.estructura?.trim() || "";
   const codCurricula = alumno.curricula?.trim() || "03";
   const codSemestre = alumno.semestre?.trim() || "";
+  const codSede = alumno.sede?.trim() || "";
 
 
  
@@ -277,11 +278,17 @@ const handleVerFichaAlumno = (alumno) => {
   const codigoAsistencia = btoa(btoa(`${codAlumno}|${codEscuela}|${codSemestre}`));
 
   // 4. Record de NOTAS (3 parámetros)
-
   const codigoRecord = btoa(btoa(`${codAlumno}|${codEscuela}|${codCurricula}`));
 
-
+  // 5. plan curricular (2 parámetros)
   const codigoPlan = btoa(`${codEscuela}|${codCurricula}`);
+
+  // 5. plan recordcurricular (5 parámetros)
+
+  const codigoRecordIntegral = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|${codCurricula}`));
+
+
+
 
 
   console.log("✅ Código asistencia generado:", `${codAlumno}|${codEscuela}|${codSemestre}`);
@@ -304,6 +311,8 @@ const handleVerFichaAlumno = (alumno) => {
         <a href="#" onclick="window.open('/tutoria/asistenciaestudiante?codigo=${codigoAsistencia}', '_blank')">📋 Asistencia Estudiante</a>
         <a href="#" onclick="window.open('/tutoria/record?codigo=${codigoRecord}', '_blank')">📚 Record de Notas</a><br>
         <a href="#" onclick="window.open('/tutoria/plancurricular?codigo=${codigoPlan}', '_blank')">📘 Plan Curricular</a>
+        <a href="#" onclick="window.open('/tutoria/recordcurricular?codigo=${codigoRecordIntegral}', '_blank')">🗂️ Record Curricular Integral</a>
+
 
 
 

@@ -20,23 +20,31 @@ const ImprimirPlanCurricular = () => {
   const [creditosMin, setCreditosMin] = useState({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useEffect(() => { 
     cargarDatos();
   }, []);
 
   const cargarDatos = async () => {
-    try {
-      const lista = await obtenerPlanCurricular(estructura, curricula, "A", token);
-      const minimos = await obtenerPlanCurricular(estructura, curricula, "F", token);
+  try {
+    const lista = await obtenerPlanCurricular(estructura, curricula, "A", token);
+    const minimos = await obtenerPlanCurricular(estructura, curricula, "F", token);
 
-      setCursos(lista || []);
-      setCreditosMin(minimos[0] || {});
-    } catch (error) {
-      console.error("❌ Error cargando plan curricular", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ✔ lista.data es el array real
+    setCursos(Array.isArray(lista.data) ? lista.data : []);
+
+    // ✔ minimos.data[0] son los créditos mínimos
+    setCreditosMin(
+      Array.isArray(minimos.data) && minimos.data.length > 0
+        ? minimos.data[0]
+        : {}
+    );
+
+  } catch (error) {
+    console.error("❌ Error cargando plan curricular", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) return <TablaSkeleton />;
 

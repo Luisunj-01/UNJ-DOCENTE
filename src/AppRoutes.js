@@ -38,6 +38,7 @@ import ImprimirHorarioAlumno from "./pages/tutoria/componentes/ImprimirHorarioAl
 import ImprimirAsistenciaAlumno from "./pages/tutoria/componentes/ImprimirAsistenciaAlumno";
 import ImprimirRecordNotas from "./pages/tutoria/componentes/ImprimirRecordNotas";
 import ImprimirPlanCurricular from "./pages/tutoria/componentes/ImprimirPlanCurricular";
+import ImprimirRecordCurricular from "./pages/tutoria/componentes/ImprimirRecordCurricular";
 
 
 
@@ -195,6 +196,7 @@ function AppRoutes() {
 
           <Route path="/tutoria/record" element={<ImprimirRecordNotas />}/>
           <Route path="/tutoria/plancurricular" element={<ImprimirPlanCurricular />}/>
+           <Route path="/tutoria/recordcurricular" element={<ImprimirRecordCurricular />}/>
      
 
      
