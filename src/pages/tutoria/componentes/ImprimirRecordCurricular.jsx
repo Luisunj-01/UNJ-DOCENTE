@@ -5,7 +5,7 @@ import { obtenerRecordCurricular } from "../logica/DatosTutoria";
 import { TablaSkeleton } from "../../reutilizables/componentes/TablaSkeleton";
 import { FaPrint } from "react-icons/fa";
 import "./RecordCurricular.css";
-
+ 
 const fecha = new Date();
 const fechaTexto = fecha.toLocaleDateString("es-PE");
 const horaTexto = fecha.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
@@ -122,77 +122,87 @@ const ImprimirRecordCurricular = () => {
         <table className="table table-bordered mt-3" style={{ fontSize: "12px" }}>
           <thead>
             <tr>
-              <th>Curso</th>
-              <th>Nombre del Curso</th>
-              <th>Ti</th>
-              <th>Cr</th>
-              <th>Vz</th>
-              <th>Cd</th>
-              <th>Sem.</th>
-              <th>Pr</th>
-              <th>TA</th>
+                <th>Curso</th>
+                <th>Nombre del Curso</th>
+                <th className="text-center">Ti</th>
+                <th className="text-center">Cr</th>
+                <th className="text-center">Vz</th>
+                <th className="text-center">Cd</th>
+                <th className="text-center">Sem.</th>
+                <th className="text-center">Pr</th>
+                <th className="text-center">TA</th>
             </tr>
-          </thead>
+            </thead>
+
 
           <tbody>
-  {Object.keys(grupos).map((ciclo) => (
-    <React.Fragment key={ciclo}>
+            {Object.keys(grupos).map((ciclo) => (
+                <React.Fragment key={ciclo}>
 
-      {/* ENCABEZADO DE CICLO – SIN BOOTSTRAP */}
-      <tr className="ciclo-header">
+                {/* ENCABEZADO DE CICLO – SIN BOOTSTRAP */}
+                <tr className="ciclo-header">
 
-        <td colSpan="9"><strong>CICLO {ciclo}</strong></td>
-      </tr>
+                    <td colSpan="9"><strong>CICLO {ciclo}</strong></td>
+                </tr>
 
-      {/* CURSOS */}
-      {grupos[ciclo].map((c, i) => {
-        const cond = (c.condicion || "").trim();
+                {/* CURSOS */}
+                {grupos[ciclo].map((c, i) => {
+                const cond = (c.condicion || "").trim();
 
-        return (
-          <tr
-            key={i}
-            data-color={
-              cond === "D"
-                ? "amarillo"
-                : cond === "[X]"
-                ? "rosado"
-                : "blanco"
-            }
-          >
-            <td>{c.curso}</td>
-            <td>{c.nombre}</td>
-            <td className="text-center">{c.tipocurso}</td>
-            <td className="text-center">{c.creditos}</td>
-            <td className="text-center">{c.vez}</td>
-            <td className="text-center">{c.condicion}</td>
-            <td className="text-center">{c.semestre}</td>
-            <td className="text-center">{c.promedio}</td>
-            <td className="text-center">{c.tipoaprobado}</td>
-          </tr>
-        );
-      })}
-
-    </React.Fragment>
-  ))}
-</tbody>
-
-
-
+                return (
+                    <tr
+                    key={i}
+                    data-color={
+                        cond === "D"
+                        ? "amarillo"
+                        : cond === "[X]"
+                        ? "rosado"
+                        : "blanco"
+                    }
+                    >
+                    <td>{c.curso}</td>
+                    <td>{c.nombre}</td>
+                    <td className="text-center">{c.tipocurso}</td>
+                    <td className="text-center">{c.creditos}</td>
+                    <td className="text-center">{c.vez}</td>
+                    <td className="text-center">{c.condicion}</td>
+                    <td className="text-center">{c.semestre}</td>
+                    <td className="text-center">{c.promedio}</td>
+                    <td className="text-center">{c.tipoaprobado}</td>
+                    </tr>
+                );
+                })}
+                </React.Fragment>
+            ))}
+            </tbody>
 
         </table>
+{/* TOTALES FINALES */}
+<div style={{ width: "350px", marginTop: "20px", fontSize: "13px" }}>
+  <p>
+    <strong>Créditos obligatorios aprobados:</strong>
+    <strong style={{ marginLeft: "20px" }}>
+      {totales.coa} de {totales.coc}
+    </strong>
+  </p>
 
-        {/* TOTALES FINALES */}
-        <div style={{ width: "350px", marginTop: "20px", fontSize: "13px" }}>
-          <p><strong>Créditos obligatorios aprobados:</strong> {totales.coa} de {totales.coc}</p>
-          <p><strong>Créditos electivos aprobados:</strong> {totales.cea} de {totales.cec}</p>
-          <p><strong>Promedio ponderado acumulado:</strong> {totales.promedioponderado}</p>
-        </div>
+  <p>
+    <strong>Créditos electivos aprobados:</strong>
+    <strong style={{ marginLeft: "37px" }}>
+      {totales.cea} de {totales.cec}
+    </strong>
+  </p>
 
-        {/* PIE */}
-        <div className="text-center mt-5" style={{ fontSize: "11px", color: "#555" }}>
-          <p className="mb-1"><strong>Impreso por:</strong> {usuario?.nombre}</p>
-          <p className="mb-1"><strong>DNI:</strong> {usuario?.dni}</p>
-        </div>
+  <p>
+    <strong>Promedio ponderado acumulado:</strong>
+    <strong style={{ marginLeft: "20px" }}>
+      {totales.promedioponderado}
+    </strong>
+  </p>
+</div>
+
+
+
       </div>
     </>
   );

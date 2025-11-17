@@ -19,7 +19,7 @@ import AsistenciaSesion from "./componentes/AsistenciaSesion";
 
 function SesionesLibres({ semestreValue }) {
   const { usuario } = useUsuario();
-  const [semestre, setSemestre] = useState(semestreValue || "202501");
+  const [semestre, setSemestre] = useState(semestreValue || "202502");
   const [sesiones, setSesiones] = useState([]);
   const [loading, setLoading] = useState(false);
   const [accion, setAccion] = useState(null);
@@ -84,6 +84,7 @@ function SesionesLibres({ semestreValue }) {
     return { total, concluidas, porcentaje, cumple75 };
   }, [sesiones]);
 
+  
   // ✅ Acción: asistencia, editar o eliminar
   const handleAccion = async (tipo, sesion) => {
     const persona = usuario.docente.persona;
@@ -272,11 +273,15 @@ function SesionesLibres({ semestreValue }) {
         <i className="fa fa-trash"></i> Eliminar
       </div>
 
+
+
       <div className="d-flex justify-content-between mb-2">
         <div>
           <strong>Docente Tutor:</strong> {usuario?.docente?.nombrecompleto || "Sin nombre"}
         </div>
         <div>
+
+
           <Button
             variant="outline-primary"
             size="sm"
@@ -287,130 +292,121 @@ function SesionesLibres({ semestreValue }) {
         </div>
       </div>
 
-      {loading ? (
-        <Spinner animation="border" variant="primary" />
-      ) : (
+
+      {/* Botón: Nueva Sesión */}
+      <div className="d-flex justify-content-end mb-3">
+        <Button
+          variant="success"
+          size="sm"
+          style={{ fontWeight: "bold" }}
+          onClick={async () => {
+            const persona = usuario.docente.persona;
+            const token = usuario?.codigotokenautenticadorunj;
+
+            Swal.fire({ title: "Cargando...", didOpen: () => Swal.showLoading() });
+
+            const disponibles = await obtenerSesionesLibresDisponibles(persona, semestre, token);
+            Swal.close();
+
+            if (!Array.isArray(disponibles) || disponibles.length === 0) {
+              Swal.fire("⚠️", "No hay sesiones libres disponibles.", "warning");
+              return;
+            }
+
+            Swal.fire({
+              title: "Nueva Sesión Libre",
+              width: "650px",
+              html: `
+                <table style="width:100%; text-align:left;">
+                  <tr>
+                    <td><b>Semana:</b></td>
+                    <td>
+                      <select id="sesion" class="swal2-input">
+                        <option value="">-- Seleccione --</option>
+                        ${disponibles.map((d) => `<option value="${d.semana}">${d.semana}</option>`).join("")}
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><b>Descripción:</b></td>
+                    <td><input id="descripcion" class="swal2-input"></td>
+                  </tr>
+                  <tr>
+                    <td><b>Link:</b></td>
+                    <td><input id="link" class="swal2-input"></td>
+                  </tr>
+                  <tr>
+                    <td><b>Fecha:</b></td>
+                    <td><input id="fecha" type="date" class="swal2-input"></td>
+                  </tr>
+                </table>
+              `,
+              showCancelButton: true,
+              confirmButtonText: "Guardar",
+              preConfirm: () => {
+                const sesion = document.getElementById("sesion").value;
+                const descripcion = document.getElementById("descripcion").value.trim();
+                const link = document.getElementById("link").value.trim();
+                const fecha = document.getElementById("fecha").value.trim();
+
+                if (!sesion || !descripcion || !fecha) {
+                  Swal.showValidationMessage("Complete los campos obligatorios.");
+                  return false;
+                }
+
+                return { sesion, descripcion, link, fecha };
+              },
+            }).then(async (result) => {
+              if (!result.isConfirmed) return;
+
+              const { sesion, descripcion, link, fecha } = result.value;
+
+              const res = await guardarSesionLibre(
+                persona,
+                semestre,
+                sesion,
+                descripcion,
+                fecha,
+                0,
+                link,
+                token
+              );
+
+              if (res.success) {
+                Swal.fire("✅ Guardado", res.message, "success");
+                cargarSesiones();
+              } else {
+                Swal.fire("⚠️", res.message || "Error al guardar.", "warning");
+              }
+            });
+          }}
+        >
+          <i className="fa fa-plus"></i> Nueva Sesión
+        </Button>
+      </div>
+
+      {/* ========= MENSAJE SI NO HAY SESIONES ========= */}
+      {!loading && sesiones.length === 0 && (
+        <div className="alert alert-secondary text-center my-3">
+          <strong>Sin sesiones libres registradas.</strong>
+          <br />
+          <small>Usa el botón “Nueva Sesión” para comenzar.</small>
+        </div>
+      )}
+
+      {/* ========= TABLA ========= */}
+      {!loading && sesiones.length > 0 && (
         <Table bordered hover size="sm" responsive className="table-tutoria">
           <thead className="table-light">
             <tr>
               <th style={{ textAlign: "center", width: "5%" }}>Nro.</th>
               <th>Descripción</th>
               <th style={{ textAlign: "center", width: "10%" }}>Fecha</th>
-              <th style={{ textAlign: "center", width: "10%" }}>
-                Estado <small className="text-muted">({porcentaje}%)</small>
-              </th>
-              <th style={{ textAlign: "center", width: "20%" }}>
-                <Button
-                  variant="success"
-                  size="sm"
-                  style={{ fontWeight: "bold", border: "none", boxShadow: "none" }}
-                  onClick={async () => {
-                    const persona = usuario.docente.persona;
-                    const token = usuario?.codigotokenautenticadorunj;
-
-                    Swal.fire({
-                      title: "⏳ Cargando sesiones disponibles...",
-                      didOpen: () => Swal.showLoading(),
-                      allowOutsideClick: false,
-                    });
-
-                    const disponibles = await obtenerSesionesLibresDisponibles(persona, semestre, token);
-                    Swal.close();
-
-                    if (!Array.isArray(disponibles) || disponibles.length === 0) {
-                      Swal.fire("⚠️", "Ya no hay sesiones disponibles para registrar.", "warning");
-                      return;
-                    }
-
-                    // Modal para crear nueva sesión libre
-                    Swal.fire({
-                      title: "🟢 Registrar nueva sesión libre",
-                      width: "650px",
-                      html: `
-                        <table style="width:100%; text-align:left; border-collapse:collapse;">
-                          <tr>
-                            <td style="width:30%; padding:6px;"><label>Semana:</label></td>
-                            <td style="padding:6px;">
-                              <select id="sesion" class="swal2-input" style="width:90%;">
-                                <option value="">-- Seleccione --</option>
-                                ${disponibles
-                                  .map((d) => `<option value="${d.semana}">${d.semana}</option>`)
-                                  .join("")}
-                              </select>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Descripción:</label></td>
-                            <td style="padding:6px;">
-                              <input id="descripcion" class="swal2-input" placeholder="Ingrese descripción" style="width:90%;">
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Link:</label></td>
-                            <td style="padding:6px;">
-                              <input id="link" class="swal2-input" placeholder="Ingrese link" style="width:90%;">
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Fecha:</label></td>
-                            <td style="padding:6px;">
-                              <input id="fecha" type="date" class="swal2-input" style="width:60%;">
-                            </td>
-                          </tr>
-                          <tr>
-                            <td style="padding:6px;"><label>Concluida:</label></td>
-                            <td style="padding:6px;"><input type="checkbox" id="concluida"></td>
-                          </tr>
-                        </table>
-                      `,
-                      showCancelButton: true,
-                      confirmButtonText: "Grabar",
-                      cancelButtonText: "Cancelar",
-                      focusConfirm: false,
-                      preConfirm: () => {
-                        const sesion = document.getElementById("sesion")?.value?.trim() || "";
-                        const descripcion =
-                          document.getElementById("descripcion")?.value?.trim() || "";
-                        const link = document.getElementById("link")?.value?.trim() || "";
-                        const fecha = document.getElementById("fecha")?.value?.trim() || "";
-                        const concluida = document.getElementById("concluida")?.checked ? 1 : 0;
-
-                        if (!sesion || !descripcion || !fecha) {
-                          Swal.showValidationMessage("Complete todos los campos obligatorios.");
-                          return false;
-                        }
-                        return { sesion, descripcion, link, fecha, concluida };
-                      },
-                    }).then(async (result) => {
-                      if (!result.isConfirmed) return;
-
-                      const { sesion, descripcion, link, fecha, concluida } = result.value;
-
-                      const res = await guardarSesionLibre(
-                        persona,
-                        semestre,
-                        sesion,
-                        descripcion,
-                        fecha,
-                        concluida,
-                        link,
-                        token
-                      );
-
-                      if (res.success) {
-                        Swal.fire("✅ Guardado", res.message, "success");
-                        cargarSesiones();
-                      } else {
-                        Swal.fire("⚠️", res.message || "Error al guardar la sesión", "warning");
-                      }
-                    });
-                  }}
-                >
-                  <i className="fa fa-plus"></i> Nueva Sesión
-                </Button>
-              </th>
+              <th style={{ textAlign: "center", width: "10%" }}>Estado</th>
+              <th style={{ textAlign: "center", width: "15%" }}>Opciones</th>
             </tr>
           </thead>
+
           <tbody>
             {sesiones.map((s, index) => (
               <tr key={index}>
@@ -457,6 +453,8 @@ function SesionesLibres({ semestreValue }) {
           </tbody>
         </Table>
       )}
+
+      {loading && <Spinner animation="border" variant="primary" />}
     </div>
   );
 }

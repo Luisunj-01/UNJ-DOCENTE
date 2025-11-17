@@ -1,24 +1,14 @@
-/* COLORES PARA LAS FILAS */
-tr[data-color="amarillo"] {
-  background-color: #fff2cc !important; /* amarillo claro */
+tr[data-color="amarillo"] td {
+  background-color: #fff2cc !important;
 }
 
-tr[data-color="rosado"] {
-  background-color: #f8d7da !important; /* rosado claro */
+tr[data-color="rosado"] td {
+  background-color: #f8d7da !important;
 }
 
-tr[data-color="blanco"] {
-  background-color: white !important; /* blanco */
+tr[data-color="blanco"] td {
+  background-color: white !important;
 }
-
-/* Encabezado del ciclo */
-tr.ciclo-header {
-  background-color: #e6e6e6 !important; /* gris suave */
-  font-weight: bold;
-}
-
-/* Bordes similares al PDF original */
-.table-bordered td, 
-.table-bordered th {
-  border: 1px solid #bfbfbf !important;
+table th.text-center {
+  text-align: center !important;
 }

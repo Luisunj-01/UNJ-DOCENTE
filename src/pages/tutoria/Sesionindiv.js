@@ -23,7 +23,7 @@ function SesionesIndividuales({ semestreValue }) {
   const [vista, setVista] = useState("lista");
 
   // semestre activo
-  const [semestre, setSemestre] = useState(semestreValue || "202501");
+  const [semestre, setSemestre] = useState(semestreValue || "202502");
 
   // ---------------------------
   // estado de la vista LISTA

@@ -11,7 +11,7 @@ import ReporteRendimientoModal from "./componentes/ReporteRendimientoModal";
 
 function ObsRendimiento({ semestreValue }) {
   const { usuario } = useUsuario();
-  const [semestre, setSemestre] = useState(semestreValue || "202501");
+  const [semestre, setSemestre] = useState(semestreValue || "202502");
   const [alumnos, setAlumnos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
