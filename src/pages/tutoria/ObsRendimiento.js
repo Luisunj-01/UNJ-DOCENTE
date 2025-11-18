@@ -34,7 +34,7 @@ function ObsRendimiento({ semestreValue }) {
     }
 
     const persona = usuario.docente.persona;
-    const docente = usuario.docente.usuario;
+    const docente = usuario.docente.docente;
     const vperfil = usuario.docente.vperfil || "G";
 
     const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}/${docente}/${vperfil}`;
@@ -283,12 +283,15 @@ const handleVerFichaAlumno = (alumno) => {
   // 5. plan curricular (2 parámetros)
   const codigoPlan = btoa(`${codEscuela}|${codCurricula}`);
 
-  // 5. plan recordcurricular (5 parámetros)
+  // 6. plan recordcurricular (5 parámetros)
 
   const codigoRecordIntegral = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|${codCurricula}`));
 
+    // 7. Record detallado (3 parámetros)
+  const codigoRecordDetallado = btoa(btoa(`${codAlumno}|${codEscuela}|${codCurricula}`));
 
-
+ // 8. cursos faltantes (5 parámetros)
+const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|${codCurricula}|${codSemestre}`));
 
 
   console.log("✅ Código asistencia generado:", `${codAlumno}|${codEscuela}|${codSemestre}`);
@@ -311,7 +314,10 @@ const handleVerFichaAlumno = (alumno) => {
         <a href="#" onclick="window.open('/tutoria/asistenciaestudiante?codigo=${codigoAsistencia}', '_blank')">📋 Asistencia Estudiante</a>
         <a href="#" onclick="window.open('/tutoria/record?codigo=${codigoRecord}', '_blank')">📚 Record de Notas</a><br>
         <a href="#" onclick="window.open('/tutoria/plancurricular?codigo=${codigoPlan}', '_blank')">📘 Plan Curricular</a>
-        <a href="#" onclick="window.open('/tutoria/recordcurricular?codigo=${codigoRecordIntegral}', '_blank')">🗂️ Record Curricular Integral</a>
+        <a href="#" onclick="window.open('/tutoria/recordcurricular?codigo=${codigoRecordIntegral}', '_blank')">🗂️ Record Curricular Integral</a><br>
+        <a href="#" onclick="window.open('/tutoria/recordetallado?codigo=${codigoRecordDetallado}', '_blank')">📚 Record Detallado </a>
+        <a href="#" onclick="window.open('/tutoria/cursosfaltantes?codigo=${codigoCursosFaltantes}', '_blank')">📚 Cursos Faltantes </a><br>
+        <a href="#" onclick="window.open('/tutoria/cursosdisponible?codigo=${codigoCursosFaltantes}', '_blank')">📚 Cursos Disponible </a><br>
 
 
 

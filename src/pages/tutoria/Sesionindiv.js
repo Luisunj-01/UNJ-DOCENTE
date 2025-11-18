@@ -180,6 +180,8 @@ function SesionesIndividuales({ semestreValue }) {
 
     console.log("📝 Respuesta atenciones-individuales:", resp);
 
+    console.log("📌 Item atenciones:", resp.data);
+
     if (resp.success) {
       // resp.data = [{ codigo, descripcion, fecha }, ...]
       setAtenciones(resp.data || []);
@@ -294,7 +296,6 @@ function SesionesIndividuales({ semestreValue }) {
       estructura,
       token
     );
-
     console.log("📥 Datos para nueva atención:", combosData);
 
     if (!combosData.success) {
@@ -321,7 +322,29 @@ function SesionesIndividuales({ semestreValue }) {
       )
       .join("");
 
+
     const fechaHoy = combosData.fechaHoy || "";
+
+// ==========================
+// 🔍 VALIDACIÓN: impedir duplicados por área en misma fecha
+// ==========================
+const fechaHoyDeriv = fechaHoy;
+
+const yaExiste = atenciones.some((x) =>
+  (x.areaDerivada || "") !== "00" &&
+  (x.fecha || "").substring(0, 10) === fechaHoyDeriv &&
+  x.estado_atencion !== "A"
+);
+
+if (yaExiste) {
+  Swal.fire(
+    "⚠️ No permitido",
+    "Ya existe una derivación registrada para esta área hoy. Solo puedes registrar otra si la atención ya fue ATENDIDA.",
+    "warning"
+  );
+  return;
+}
+
 
     // 2. Mostrar Swal con el formulario completo (Descripción, Motivo, Fecha, Derivado, Observación)
     const { value: formValues } = await Swal.fire({
@@ -389,24 +412,59 @@ function SesionesIndividuales({ semestreValue }) {
   showCancelButton: true,
   confirmButtonText: "Grabar",
   cancelButtonText: "Cancelar",
-  preConfirm: () => {
-    const descripcion = document.getElementById("swal-descripcion").value.trim();
-    const motivo = document.getElementById("swal-motivo").value;
-    const fechaSel = document.getElementById("swal-fecha").value; // YYYY-MM-DD (hidden)
-    const areaDerivada = document.getElementById("swal-derivado").value;
-    const observacion = document.getElementById("swal-observacion").value.trim();
 
-    if (!descripcion) {
-      Swal.showValidationMessage("La descripción es obligatoria");
-      return;
-    }
-    if (!fechaSel) {
-      Swal.showValidationMessage("La fecha es obligatoria");
-      return;
-    }
+preConfirm: () => {
 
-    return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
-  },
+  // Leer valores primero (ANTES de validar)
+  const descripcion = document.getElementById("swal-descripcion").value.trim();
+  const motivo = document.getElementById("swal-motivo").value;
+  const fechaSel = document.getElementById("swal-fecha").value; // YYYY-MM-DD
+  const areaDerivada = document.getElementById("swal-derivado").value;
+  const observacion = document.getElementById("swal-observacion").value.trim();
+
+  // Validaciones de los campos del formulario
+  if (!descripcion) {
+    Swal.showValidationMessage("La descripción es obligatoria");
+    return;
+  }
+  if (!fechaSel) {
+    Swal.showValidationMessage("La fecha es obligatoria");
+    return;
+  }
+
+  // ==========================
+  // 🔍 Validación: No duplicar derivaciones por área en la misma fecha
+  // ==========================
+const duplicado = atenciones.some((x) => {
+  const codigoAreaExistente = String(x.tutarea || "").trim();
+  const codigoAreaNueva = String(areaDerivada || "").trim();
+
+  const fechaExistente = (x.fecha || "").substring(0, 10).replace(/\//g, "-");
+  const fechaNueva = fechaSel;
+
+  const estaAtendido = ["A", "ATENDIDO", "Atendido", "atendido", "AT"]
+    .includes(String(x.estado_atencion).trim());
+
+  return (
+    codigoAreaExistente === codigoAreaNueva &&
+    fechaExistente === fechaNueva.split("-").reverse().join("-") &&
+    !estaAtendido   // solo bloquear si NO está atendido
+  );
+});
+
+
+
+  if (duplicado) {
+    Swal.showValidationMessage(
+      "Ya existe una derivación para esta área en esta fecha. Solo puede registrar otra si la anterior está ATENDIDA."
+    );
+    return;
+  }
+
+  // Si todo ok, retornamos valores
+  return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
+},
+
 });
 
 
@@ -462,6 +520,14 @@ function SesionesIndividuales({ semestreValue }) {
       alu,
     });
   };
+
+// Helper para validar si una atención está ATENDIDA
+// =====================================================
+const estaAtendido = (estado) => {
+  return ["A", "ATENDIDO", "Atendido", "atendido", "AT"]
+    .includes(String(estado).trim());
+};
+
 
 
   // ✅ Helper: si trabajamos con código en TEXTO PLANO
@@ -835,6 +901,8 @@ const handleEditarAtencion = async (item) => {
               <th>Descripción</th>
               <th style={{ width: "12%" }}>Fecha_derivación</th>
               <th style={{ width: "12%" }}>Fecha_Atencion</th>
+              <th style={{ width: "12%" }}>Área Atencion</th>
+
               <th style={{ width: "12%" }}>Estado</th>
               <th style={{ width: "15%" }}>Acción</th>
             </tr>
@@ -846,6 +914,8 @@ const handleEditarAtencion = async (item) => {
                 <td>{item.descripcion || ""}</td>
                 <td className="text-center">{item.fecha || ""}</td>
                 <td className="text-center">{item.fecha_atencion || ""}</td>
+                <td className="text-center">{item.descripcionarea|| ""}</td>
+
 
                 <td className="text-center">
         <EstadoBadge estado={item.estado_atencion} />
@@ -865,18 +935,28 @@ const handleEditarAtencion = async (item) => {
                     ></i>
                   </button>
 
-                  {/* Eliminar */}
-                  <button
-                    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
-                    style={{ width: "28px", height: "28px" }}
-                    onClick={() => handleEliminarAtencion(item)}
-                    title="Eliminar"
-                  >
-                    <i
-                      className="fa fa-ban"
-                      style={{ color: "#970000ff", fontSize: "13px" }}
-                    ></i>
-                  </button>
+                  {/* Eliminar SOLO si no está atendido */}
+                    {!estaAtendido(item.estado_atencion) ? (
+  <button
+    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+    style={{ width: "28px", height: "28px" }}
+    onClick={() => handleEliminarAtencion(item)}
+    title="Eliminar"
+  >
+    <i
+      className="fa fa-ban"
+      style={{ color: "#970000ff", fontSize: "13px" }}
+    ></i>
+  </button>
+) : (
+  <i
+    className="fa fa-lock"
+    style={{ color: "gray", fontSize: "14px" }}
+    title="No se puede eliminar porque ya fue ATENDIDO"
+  ></i>
+)}
+
+                  
                 </td>
               </tr>
             ))}

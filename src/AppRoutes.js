@@ -39,6 +39,9 @@ import ImprimirAsistenciaAlumno from "./pages/tutoria/componentes/ImprimirAsiste
 import ImprimirRecordNotas from "./pages/tutoria/componentes/ImprimirRecordNotas";
 import ImprimirPlanCurricular from "./pages/tutoria/componentes/ImprimirPlanCurricular";
 import ImprimirRecordCurricular from "./pages/tutoria/componentes/ImprimirRecordCurricular";
+import ImprimirRecordDetallado from "./pages/tutoria/componentes/ImprimirRecordDetallado";
+import ImprimirCursosFaltantes from './pages/tutoria/componentes/ImprimirCursosFaltantes';
+import ImprimirCursosDisponibles from './pages/tutoria/componentes/ImprimirCursosDisponibles';
 
 
 
@@ -71,6 +74,7 @@ import ImprimirAsistenciaPorcentaje from './pages/reportes/componentes/ImprimirA
 import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsistenciaSesiones.jsx';
 
 import GoogleCallback from './pages/login/AuthCallback.js'; // agrega este archivo
+
 
 function AppRoutes() {
 
@@ -197,6 +201,9 @@ function AppRoutes() {
           <Route path="/tutoria/record" element={<ImprimirRecordNotas />}/>
           <Route path="/tutoria/plancurricular" element={<ImprimirPlanCurricular />}/>
            <Route path="/tutoria/recordcurricular" element={<ImprimirRecordCurricular />}/>
+           <Route path="/tutoria/recordetallado" element={<ImprimirRecordDetallado />}/>
+           <Route path="/tutoria/cursosfaltantes" element={<ImprimirCursosFaltantes />}/>
+            <Route path="/tutoria/cursosdisponible" element={<ImprimirCursosDisponibles />}/>
      
 
      

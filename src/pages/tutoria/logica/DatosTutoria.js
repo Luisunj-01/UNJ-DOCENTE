@@ -903,3 +903,65 @@ export const obtenerRecordCurricular = async (alumno, sede, estructura, curricul
     return { success: false, data: [] };
   }
 };
+
+export const obtenerRecordDetallado = async (alumno, escuela, curricula, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/recordetallado/${alumno}/${escuela}/${curricula}`;
+
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return await respuesta.json();
+
+  } catch (error) {
+    console.error("❌ Error en obtenerRecordDetallado:", error);
+    return { success: false, cursos: [], cabecera: {} };
+  }
+};
+
+
+export const obtenerCursosFaltantes = async (alumno, sede, escuela, curricula, semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/Cursosfaltantes/${alumno}/${sede}/${escuela}/${curricula}/${semestre}`;
+
+    const respuesta = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return await respuesta.json();
+  } catch (error) {
+    console.error("❌ Error en obtenerCursosFaltantes:", error);
+    return { success: false, cursos: [], cabecera: {} };
+  }
+};
+
+export const obtenerCursosDisponibles = async (alumno, sede, escuela, curricula, token) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/cursosdisponibles/${alumno}/${sede}/${escuela}/${curricula}`;
+
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return await resp.json();
+  } catch (error) {
+    console.error("❌ Error en obtenerCursosDisponibles:", error);
+    return { success: false, cursos: [], cabecera: {} };
+  }
+};
+
+
+
