@@ -964,4 +964,32 @@ export const obtenerCursosDisponibles = async (alumno, sede, escuela, curricula,
 };
 
 
+export const obtenerEscuelasTutor = async (semestre, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/ReporteTutor/${semestre}`;
+
+    const resp = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await resp.json();
+    return data; // contiene success, data, message
+
+  } catch (error) {
+    console.error("❌ Error en obtenerEscuelasTutor:", error);
+
+    return {
+      success: false,
+      data: [],
+      message: "Error al conectar con la API",
+    };
+  }
+};
+
+
+
 
