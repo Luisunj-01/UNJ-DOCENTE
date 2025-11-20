@@ -4,6 +4,8 @@ import { Card, Button } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import config from "../../config";
 import axios from "axios";
+import ModalLogros from "./componentes/ModalLogros";
+
 import {
   FaFileAlt,
   FaListOl,
@@ -13,7 +15,8 @@ import {
   FaTable
 } from "react-icons/fa";
 
-import { obtenerEscuelasTutor } from "./logica/DatosTutoria";   // <-- FALTA ESTO
+import { obtenerEscuelasTutor } from "./logica/DatosTutoria";
+import ReporteRendimientoModal from "./componentes/ReporteRendimientoModal";
 
 function Reportes() {
   const { usuario } = useUsuario();
@@ -21,129 +24,146 @@ function Reportes() {
   const [semestre, setSemestre] = useState("202502");
   const handleChange = (value) => setSemestre(value);
 
-  const [escuelas, setEscuelas] = useState([]);  // <-- FALTA ESTO
+  const [escuelas, setEscuelas] = useState([]);
+  const [cargandoRend, setCargandoRend] = useState(false);
+  const [showLogros, setShowLogros] = useState(false);
 
   const token = usuario?.codigotokenautenticadorunj;
 
-  // ✔ Código doble base64
-  const generarCodigo = () => {
-    const persona = usuario.docente.persona;
-    const codigo = `${persona}${semestre}`;
-    return btoa(btoa(codigo));
-  };
+  // ===============================
+  // ESTADOS PARA MODAL RENDIMIENTO
+  // ===============================
+  const [showRendimiento, setShowRendimiento] = useState(false);
+  const [alumnosRend, setAlumnosRend] = useState([]);
+  const [tutorNombre, setTutorNombre] = useState("");
 
-const abrirDatosGenerales = async () => {
-  try {
-    const persona = usuario?.docente?.persona;
+  // ---------------------------------------------
+  // Cargar escuelas asignadas al tutor
+  // ---------------------------------------------
+  useEffect(() => {
+    if (!usuario || !usuario.docente) return;
 
-    const url = `${config.apiUrl}api/Tutoria/DatosTutor/${semestre}/${persona}`;
+    const cargar = async () => {
+      const resp = await obtenerEscuelasTutor(semestre, token);
 
-    const resp = await axios.get(url, {
-      responseType: "blob"
-    });
+      console.log("ESCUELAS DESDE API:", resp);
 
-    const file = new Blob([resp.data], { type: "application/pdf" });
-    const fileURL = URL.createObjectURL(file);
+      if (resp.success) setEscuelas(resp.data);
+    };
 
-    window.open(
-      fileURL,
-      "_blank",
-      "width=900,height=1100,scrollbars=yes,resizable=yes"
-    );
+    cargar();
+  }, [semestre, usuario, token]);
 
-  } catch (error) {
-    console.error("Error al abrir Datos Generales:", error);
-    alert("No se pudo generar el reporte. Intente nuevamente.");
-  }
-};
+  // --------------------------------------------------
+  // FUNCIONES PARA LOS REPORTES PDF DIRECTOS DEL BACKEND
+  // --------------------------------------------------
 
-const abrirActividades = async () => {
-  try {
-    const persona = usuario?.docente?.persona;
+  const abrirDatosGenerales = async () => {
+    try {
+      const persona = usuario?.docente?.persona;
 
-    const url = `${config.apiUrl}api/Tutoria/Actividades/${semestre}/${persona}`;
+      const url = `${config.apiUrl}api/Tutoria/DatosTutor/${semestre}/${persona}`;
 
-    const resp = await axios.get(url, {
-      responseType: "blob"
-    });
+      const resp = await axios.get(url, {
+        responseType: "blob"
+      });
 
-    const file = new Blob([resp.data], { type: "application/pdf" });
-    const fileURL = URL.createObjectURL(file);
-
-    window.open(
-      fileURL,
-      "_blank",
-      "width=900,height=1100,scrollbars=yes,resizable=yes"
-    );
-
-  } catch (error) {
-    console.error("Error al abrir Datos Generales:", error);
-    alert("No se pudo generar el reporte. Intente nuevamente.");
-  }
-};
-
-const abrirTutoriaGrupales = async () => {
-  try {
-    const persona = usuario?.docente?.persona;
-
-    const url = `${config.apiUrl}api/Tutoria/TutoriasGrupales/${semestre}/${persona}`;
-
-    const resp = await axios.get(url, {
-      responseType: "blob"
-    });
-
-    const file = new Blob([resp.data], { type: "application/pdf" });
-    const fileURL = URL.createObjectURL(file);
-
-    window.open(
-      fileURL,
-      "_blank",
-      "width=900,height=1100,scrollbars=yes,resizable=yes"
-    );
-
-  } catch (error) {
-    console.error("Error al abrir Datos Generales:", error);
-    alert("No se pudo generar el reporte. Intente nuevamente.");
-  }
-};
-
-
-
-  // ==========================================
-  //  CARGAR ESCUELAS DEL TUTOR (CONSOLIDADO)
-  // ==========================================
- useEffect(() => {
-  if (!usuario || !usuario.docente) return; // evitar ejecutarse antes
-
-  const cargar = async () => {
-    const resp = await obtenerEscuelasTutor(semestre, token);
-
-    console.log("ESCUELAS DESDE API:", resp);
-
-    if (resp.success) {
-      setEscuelas(resp.data);
+      const file = new Blob([resp.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error al abrir Datos Generales:", error);
+      alert("No se pudo generar el reporte. Intente nuevamente.");
     }
   };
 
-  cargar();
-}, [semestre, usuario, token]);
+  const abrirActividades = async () => {
+    try {
+      const persona = usuario?.docente?.persona;
+
+      const url = `${config.apiUrl}api/Tutoria/Actividades/${semestre}/${persona}`;
+
+      const resp = await axios.get(url, {
+        responseType: "blob"
+      });
+
+      const file = new Blob([resp.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error al abrir Actividades:", error);
+      alert("No se pudo generar el reporte.");
+    }
+  };
+
+  const abrirTutoriaGrupales = async () => {
+    try {
+      const persona = usuario?.docente?.persona;
+
+      const url = `${config.apiUrl}api/Tutoria/TutoriasGrupales/${semestre}/${persona}`;
+
+      const resp = await axios.get(url, {
+        responseType: "blob"
+      });
+
+      const file = new Blob([resp.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+    } catch (error) {
+      console.error("Error:", error);
+      alert("No se pudo generar el reporte.");
+    }
+  };
+
+  // --------------------------------------------------
+  // RENDIMIENTO ESTUDIANTES (ABRE MODAL, NO PDF DIRECTO)
+  // --------------------------------------------------
+  const abrirRendimiento = async () => {
+  try {
+    setCargandoRend(true);
+
+    const persona = usuario?.docente?.persona;
+    const docente = usuario?.docente?.persona;
+    const vperfil = usuario?.perfil || "T";
+
+    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}/${docente}/${vperfil}`;
+
+    const resp = await axios.get(url);
+
+    if (resp.data.success) {
+      setAlumnosRend(resp.data.data);
+      setTutorNombre(usuario.docente.nombrecompleto);
+      setShowRendimiento(true);
+    } else {
+      alert("No se pudo obtener los datos de rendimiento.");
+    }
+
+  } catch (error) {
+    console.error("Error al obtener rendimiento:", error);
+    alert("Error al cargar los datos de rendimiento.");
+  } finally {
+    setCargandoRend(false);
+  }
+};
+console.log("Estructura del docente:", usuario.docente);
 
 
+  // ----------------------------------------------
+  // Reportes fijos
+  // ----------------------------------------------
+  const items = [
+    { icon: <FaFileAlt size={20} />, titulo: "Datos generales", accion: abrirDatosGenerales },
+    { icon: <FaListOl size={20} />, titulo: "Actividades realizadas", accion: abrirActividades },
+    { icon: <FaUsers size={20} />, titulo: "Ejecución tutorías grupales", accion: abrirTutoriaGrupales },
+     { icon: <FaChartLine size={20} />, titulo: "Seguimiento 2da, 3ra y 4ta", ruta: "/tutoria/rpt-seguimiento" },
+    { icon: <FaChartLine size={20} />, titulo: "Rendimiento estudiante", accion: abrirRendimiento },
+    { icon: <FaStar size={20} />, titulo: "Logros, dificultades y recomendaciones", accion: () => setShowLogros(true) },
 
-  // ==========================================
-  //  REPORTES FIJOS (7)
-  // ==========================================
-const items = [
-  { icon: <FaFileAlt size={20} />, titulo: "Datos generales", accion: abrirDatosGenerales },
-  { icon: <FaListOl size={20} />, titulo: "Actividades realizadas", accion: abrirActividades },
-  { icon: <FaUsers size={20} />, titulo: "Ejecución tutorías grupales", accion: abrirTutoriaGrupales },
-  { icon: <FaChartLine size={20} />, titulo: "Seguimiento 2da, 3ra y 4ta", ruta: "/tutoria/rpt-seguimiento" },
-  { icon: <FaChartLine size={20} />, titulo: "Rendimiento estudiante", ruta: "/tutoria/rpt-rendimiento" },
-  { icon: <FaStar size={20} />, titulo: "Logros y recomendaciones", ruta: "/tutoria/rpt-logros" },
-];
+  ];
 
   const abrirReporte = (ruta, extra = "") => {
-    const codigo = generarCodigo();
+    const persona = usuario.docente.persona;
+    const codigo = btoa(btoa(`${persona}${semestre}`));
     window.open(`${ruta}?codigo=${codigo}&semestre=${semestre}${extra}`, "_blank");
   };
 
@@ -152,13 +172,11 @@ const items = [
 
       <h4 className="mb-3 titulozet">Reportes de Tutoría</h4>
 
-      {/* Selector de semestre */}
       <div className="mb-4" style={{ width: "260px" }}>
         <label className="form-label"><strong>Semestre:</strong></label>
         <SemestreSelect value={semestre} onChange={handleChange} name="cboSemestre" />
       </div>
 
-      {/* 4 REPORTES ARRIBA + 3 ABAJO */}
       <div
         className="grid-reportes"
         style={{
@@ -191,13 +209,23 @@ const items = [
                   <h6 style={{ margin: 0, fontSize: "15px" }}>
                     {item.titulo}
                   </h6>
-<Button
+
+                  <Button
   size="sm"
   variant="primary"
   className="mt-2"
-  onClick={() => item.accion ? item.accion() : abrirReporte(item.ruta)}
+  disabled={item.titulo === "Rendimiento estudiante" && cargandoRend}
+  onClick={() =>
+    item.titulo === "Rendimiento estudiante"
+      ? abrirRendimiento()
+      : item.accion
+      ? item.accion()
+      : abrirReporte(item.ruta)
+  }
 >
-  Ver reporte
+  {item.titulo === "Rendimiento estudiante" && cargandoRend
+    ? "Cargando..."
+    : "Ver reporte"}
 </Button>
 
                 </div>
@@ -206,9 +234,7 @@ const items = [
           </Card>
         ))}
 
-        {/* ========================================== */}
-        {/*  CONSOLIDADO DINÁMICO (AL, TM, P02, etc.)   */}
-        {/* ========================================== */}
+        {/* CONSOLIDADOS DINÁMICOS */}
         {escuelas.map((e, i) => (
           <Card key={`cons-${i}`} className="shadow-sm" style={{ borderRadius: "14px" }}>
             <Card.Body>
@@ -248,7 +274,32 @@ const items = [
             </Card.Body>
           </Card>
         ))}
+
       </div>
+
+      {/* ======================= */}
+      {/*    MODAL RENDIMIENTO    */}
+      {/* ======================= */}
+      <ReporteRendimientoModal
+        show={showRendimiento}
+        onHide={() => setShowRendimiento(false)}
+        semestre={semestre}
+        tutor={tutorNombre}
+        alumnos={alumnosRend}
+      />
+
+  <ModalLogros
+  show={showLogros}
+  onHide={() => setShowLogros(false)}
+  semestre={semestre}
+  persona={usuario.docente.persona}
+  vperfil={usuario.perfil || "P02"}
+/>
+
+
+
+
+
     </div>
   );
 }
