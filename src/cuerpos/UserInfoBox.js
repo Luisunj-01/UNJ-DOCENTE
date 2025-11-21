@@ -20,7 +20,7 @@ function UserInfoBox({ abrirModal }) {
 
   // Muestra el nombre y escuela correctamente
   const nombre = `${usuario?.docente?.primernombre ?? ''} ${usuario?.docente?.apellidopaterno ?? ''}`.trim();
-const escuela = usuario?.escuela ?? 'Escuela no definida';
+const escuela = usuario?.datosdocente.escuela ?? 'Escuela no definida';
 
   useEffect(() => {
     if (!persona || !docente || !token) return;

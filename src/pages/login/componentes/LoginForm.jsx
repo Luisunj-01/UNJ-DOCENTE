@@ -1,9 +1,15 @@
 // src/pages/login/componentes/LoginForm.js
 import { useFormik } from "formik";
 import * as Yup from 'yup';
+import { useState } from "react";
+import "./LoginForm.css";
 
 function Formulario({ onLogin }) {
+  
+  const [mostrarClave, setMostrarClave] = useState(false);
+
   const formik = useFormik({
+    
     initialValues: {
       email: 'desarrollador2.oti@unj.edu.pe',
       clave: '18104355A',
@@ -40,24 +46,53 @@ function Formulario({ onLogin }) {
           )}
         </div>
 
-        <div className="cont-password">
-          <img src="/image/iconos/lock_16dp_b.svg" alt="" draggable="false" />
-          <p>Contraseña</p>
-        </div>
-        <div className="input-password">
-          <input
-            className="password"
-            type="password"
-            name="clave"
-            placeholder="••••••••••••"
-            value={formik.values.clave}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-          {formik.touched.clave && formik.errors.clave && (
-            <div className="invalid-feedback">{formik.errors.clave}</div>
-          )}
-        </div>
+ {/* === TÍTULO DEL CAMPO CONTRASEÑA === */}
+<div className="cont-password">
+  <img src="/image/iconos/lock_16dp_b.svg" alt="" draggable="false" />
+  <p>Contraseña</p>
+</div>
+
+{/* === INPUT CON EL OJITO DENTRO === */}
+<div className="input-password" style={{ position: "relative" }}>
+  <input
+    className="password"
+    type={mostrarClave ? "text" : "password"}
+    name="clave"
+    placeholder="••••••••••••"
+    value={formik.values.clave}
+    onChange={formik.handleChange}
+    onBlur={formik.handleBlur}
+    style={{
+      paddingRight: "42px",
+      height: "40px",      // 👈 MISMO ALTO QUE EL INPUT DE EMAIL
+      width: "100%",
+      lineHeight: "50px"   // 👈 centramos el texto
+    }}
+  />
+
+  {/* 👁 OJO DENTRO DEL INPUT */}
+  <i
+    className={`bi ${mostrarClave ? "bi-eye" : "bi-eye-slash"}`}
+    onClick={() => setMostrarClave(!mostrarClave)}
+    style={{
+      position: "absolute",
+      right: "12px",
+      top: "50%",                    // base
+      transform: "translateY(-50%)", // centra PERFECTO
+      cursor: "pointer",
+      fontSize: "18px",
+      color: "#777",
+    }}
+  ></i>
+
+  {formik.touched.clave && formik.errors.clave && (
+    <div className="invalid-feedback">{formik.errors.clave}</div>
+  )}
+</div>
+
+
+
+
 
         <div className="recordar-recuperar">
           <div className="recordar">

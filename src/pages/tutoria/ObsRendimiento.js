@@ -18,6 +18,20 @@ function ObsRendimiento({ semestreValue }) {
   const [mostrarReporte, setMostrarReporte] = useState(false);
   const [datosReporte, setDatosReporte] = useState([]);
   const [cargandoReporte, setCargandoReporte] = useState(false);
+  const [busquedaInput, setBusquedaInput] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+
+
+// ⏳ Debounce: solo filtra cuando dejas de escribir 400ms
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setBusqueda(busquedaInput.toLowerCase());
+  }, 400);
+
+  return () => clearTimeout(timer);
+}, [busquedaInput]);
+
+
 
  // ======================================================
   // 🔹 Tu función handleVerReporte va aquí (debajo de useState)
@@ -61,9 +75,17 @@ function ObsRendimiento({ semestreValue }) {
 };
 
 
+const alumnosFiltrados = alumnos.filter((a) =>
+  a.nombrecompleto.toLowerCase().includes(busqueda) ||
+  a.alumno.toLowerCase().includes(busqueda)
+);
+
+
 
 
   useEffect(() => {
+
+    
     if (!usuario || !usuario.docente) return;
     //console.log("Usuario contexto:", usuario);
 
@@ -93,9 +115,8 @@ function ObsRendimiento({ semestreValue }) {
           token
         );
 
-    console.log("📦 Alumnos recibidos del SP:", datos);
 
-       
+    
 
         if (datos && datos.length > 0) {
           // 🔹 Consultar detalles de observación para cada alumno
@@ -340,9 +361,17 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
             <strong>Semestre:</strong>
           </label>
         </div>
-        <div className="col-md-3">
-          <SemestreSelect value={semestre} onChange={handleChange} name="cboSemestre" />
+
+        <div className="col-md-1">
+          <SemestreSelect
+            value={semestre}
+            onChange={handleChange}
+            name="cboSemestre"
+            style={{ maxWidth: "130px" }}   // 👈 más pequeño
+          />
         </div>
+
+
       </div>
 
       {loading && <Spinner animation="border" variant="primary" />}
@@ -350,27 +379,39 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
       {!loading && alumnos.length > 0 && (
         <>
           {/* 👉 Aquí agregas el nombre del docente tutor */}
-          <div className="p-2 mb-3 bg-light rounded border">
+          <div className="p-2 mb-3">
             <span className="fw-bold text-primary">Docente Tutor:</span>{" "}
             <span className="text-dark">{usuario?.docente?.nombrecompleto || "Sin nombre"}</span>
           </div>
-
           <div className="text-end mb-3">
-  <Button 
-    variant="outline-success"
-    size="sm"
-    disabled={cargandoReporte} // 🚫 desactiva durante carga
-    onClick={handleVerReporte}
-  >
-    {cargandoReporte ? (
-      <>
-        <Spinner animation="border" size="sm" className="me-2" /> Cargando...
-      </>
-    ) : (
-      "🔍 Ver Reporte"
-    )}
-  </Button>
-</div>
+
+            {/* BUSCADOR MEDIANO */}
+          <div className="mb-3">
+          <input
+            type="text"
+            className="form-control form-control-md"
+            placeholder="🔍 Buscar alumno..."
+            style={{ maxWidth: "320px" }}
+            value={busquedaInput}
+            onChange={(e) => setBusquedaInput(e.target.value)}
+          />
+        </div>
+
+            <Button 
+              variant="outline-success"
+              size="sm"
+              disabled={cargandoReporte} // 🚫 desactiva durante carga
+              onClick={handleVerReporte}
+            >
+              {cargandoReporte ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" /> Cargando...
+                </>
+              ) : (
+                "🔍 Ver Reporte"
+              )}
+            </Button>
+          </div>
 
 
 
@@ -389,7 +430,7 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
               </tr>
             </thead>
             <tbody>
-              {alumnos.map((alumno, index) => (
+              {alumnosFiltrados.map((alumno, index) => (
                 <tr key={index}>
                   <td>{alumno.alumno}</td>
                   <td>

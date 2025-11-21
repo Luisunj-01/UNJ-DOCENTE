@@ -59,6 +59,7 @@ function Reportes() {
   // --------------------------------------------------
 
   const abrirDatosGenerales = async () => {
+  
     try {
       const persona = usuario?.docente?.persona;
 
@@ -70,7 +71,13 @@ function Reportes() {
 
       const file = new Blob([resp.data], { type: "application/pdf" });
       const fileURL = URL.createObjectURL(file);
-      window.open(fileURL, "_blank");
+
+      window.open(
+      fileURL,
+      "reportePDF",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+
     } catch (error) {
       console.error("Error al abrir Datos Generales:", error);
       alert("No se pudo generar el reporte. Intente nuevamente.");
@@ -89,7 +96,13 @@ function Reportes() {
 
       const file = new Blob([resp.data], { type: "application/pdf" });
       const fileURL = URL.createObjectURL(file);
-      window.open(fileURL, "_blank");
+       window.open(
+      fileURL,
+      "reportePDF",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+
+
     } catch (error) {
       console.error("Error al abrir Actividades:", error);
       alert("No se pudo generar el reporte.");
@@ -108,12 +121,43 @@ function Reportes() {
 
       const file = new Blob([resp.data], { type: "application/pdf" });
       const fileURL = URL.createObjectURL(file);
-      window.open(fileURL, "_blank");
+       window.open(
+      fileURL,
+      "reportePDF",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
     } catch (error) {
       console.error("Error:", error);
       alert("No se pudo generar el reporte.");
     }
   };
+
+
+  const abrirSeguimiento = async () => {
+    try {
+      const persona = usuario?.docente?.persona;
+
+      const url = `${config.apiUrl}api/Tutoria/seguimiento234/${semestre}/${persona}`;
+
+      const resp = await axios.get(url, {
+        responseType: "blob"
+      });
+
+      const file = new Blob([resp.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+       window.open(
+      fileURL,
+      "reportePDF",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+    } catch (error) {
+      console.error("Error:", error);
+      alert("No se pudo generar el reporte.");
+    }
+  };
+
+
+
 
   // --------------------------------------------------
   // RENDIMIENTO ESTUDIANTES (ABRE MODAL, NO PDF DIRECTO)
@@ -155,7 +199,7 @@ console.log("Estructura del docente:", usuario.docente);
     { icon: <FaFileAlt size={20} />, titulo: "Datos generales", accion: abrirDatosGenerales },
     { icon: <FaListOl size={20} />, titulo: "Actividades realizadas", accion: abrirActividades },
     { icon: <FaUsers size={20} />, titulo: "Ejecución tutorías grupales", accion: abrirTutoriaGrupales },
-     { icon: <FaChartLine size={20} />, titulo: "Seguimiento 2da, 3ra y 4ta", ruta: "/tutoria/rpt-seguimiento" },
+     { icon: <FaChartLine size={20} />, titulo: "Seguimiento 2da, 3ra y 4ta", accion: abrirSeguimiento  },
     { icon: <FaChartLine size={20} />, titulo: "Rendimiento estudiante", accion: abrirRendimiento },
     { icon: <FaStar size={20} />, titulo: "Logros, dificultades y recomendaciones", accion: () => setShowLogros(true) },
 
@@ -211,22 +255,22 @@ console.log("Estructura del docente:", usuario.docente);
                   </h6>
 
                   <Button
-  size="sm"
-  variant="primary"
-  className="mt-2"
-  disabled={item.titulo === "Rendimiento estudiante" && cargandoRend}
-  onClick={() =>
-    item.titulo === "Rendimiento estudiante"
-      ? abrirRendimiento()
-      : item.accion
-      ? item.accion()
-      : abrirReporte(item.ruta)
-  }
->
-  {item.titulo === "Rendimiento estudiante" && cargandoRend
-    ? "Cargando..."
-    : "Ver reporte"}
-</Button>
+                  size="sm"
+                  variant="primary"
+                  className="mt-2"
+                  disabled={item.titulo === "Rendimiento estudiante" && cargandoRend}
+                  onClick={() =>
+                    item.titulo === "Rendimiento estudiante"
+                      ? abrirRendimiento()
+                      : item.accion
+                      ? item.accion()
+                      : abrirReporte(item.ruta)
+                  }
+                >
+                  {item.titulo === "Rendimiento estudiante" && cargandoRend
+                    ? "Cargando..."
+                    : "Ver reporte"}
+                </Button>
 
                 </div>
               </div>
