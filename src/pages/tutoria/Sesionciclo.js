@@ -493,6 +493,26 @@ function SesionesCiclo({ semestreValue }) {
                 </td>
 
                 <td style={{ textAlign: "center" }}>
+              {/* 🔒 Si la sesión está concluida → mostrar mensaje y ocultar botones */}
+              {Number(sesion.activo) === 1 ? (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "8px 14px",
+                    background: "#e9ecef",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    color: "#555",
+                    fontSize: "14px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <i className="fa fa-lock"></i> Sesión cerrada
+                </span>
+              ) : (
+                <>
                   {/* Libro */}
                   <Button
                     variant="outline-light"
@@ -521,22 +541,25 @@ function SesionesCiclo({ semestreValue }) {
 
                         const logroActual = escapeHtml(datosReco.logrozet);
                         const dificultadActual = escapeHtml(datosReco.dificultadzet);
-                        const recomendacionActual = escapeHtml(datosReco.recomendacionzet);
+                        const recomendacionActual =
+                          escapeHtml(datosReco.recomendacionzet);
 
                         Swal.fire({
                           title: "📘 Logros, dificultades y recomendaciones",
                           width: "650px",
                           html: `
-                            <div style="text-align:left; font-size:15px; padding:5px;">
-                              <p><b>Sesión:</b> ${escapeHtml(datosReco.descripcion)}</p>
-                              <label><b>Logro:</b></label>
-                              <textarea id="logro" style="width:100%; min-height:70px;">${logroActual}</textarea>
-                              <label><b>Dificultad:</b></label>
-                              <textarea id="dificultad" style="width:100%; min-height:70px;">${dificultadActual}</textarea>
-                              <label><b>Recomendación:</b></label>
-                              <textarea id="recomendacion" style="width:100%; min-height:70px;">${recomendacionActual}</textarea>
-                            </div>
-                          `,
+                              <div style="text-align:left; font-size:15px; padding:5px;">
+                                <p><b>Sesión:</b> ${escapeHtml(
+                                  datosReco.descripcion
+                                )}</p>
+                                <label><b>Logro:</b></label>
+                                <textarea id="logro" style="width:100%; min-height:70px;">${logroActual}</textarea>
+                                <label><b>Dificultad:</b></label>
+                                <textarea id="dificultad" style="width:100%; min-height:70px;">${dificultadActual}</textarea>
+                                <label><b>Recomendación:</b></label>
+                                <textarea id="recomendacion" style="width:100%; min-height:70px;">${recomendacionActual}</textarea>
+                              </div>
+                            `,
                           showCancelButton: true,
                           confirmButtonText: "Guardar",
                           cancelButtonText: "Cancelar",
@@ -600,22 +623,21 @@ function SesionesCiclo({ semestreValue }) {
                       Swal.fire({
                         title: "📸 Subir foto de la sesión",
                         html: `
-                          <div style="text-align:left; font-size:15px;">
-                            <p><b>Sesión:</b> ${sesion.descripcion}</p>
-                            <input type="file" id="foto" accept="image/*"
-                              style="margin-top:10px; display:block; width:100%; border:1px solid #ccc; border-radius:6px; padding:8px;" />
-                            <div id="preview" style="margin-top:10px; text-align:center;"></div>
-                            <small style="color:#666;">Formatos permitidos: JPG, PNG, HEIC. Tamaño máx: 2 MB.</small>
-                          </div>
-                        `,
+                              <div style="text-align:left; font-size:15px;">
+                                <p><b>Sesión:</b> ${sesion.descripcion}</p>
+                                <input type="file" id="foto" accept="image/*"
+                                  style="margin-top:10px; display:block; width:100%; border:1px solid #ccc; border-radius:6px; padding:8px;" />
+                                <div id="preview" style="margin-top:10px; text-align:center;"></div>
+                                <small style="color:#666;">Formatos permitidos: JPG, PNG, HEIC. Tamaño máx: 2 MB.</small>
+                              </div>
+                            `,
                         showCancelButton: true,
                         confirmButtonText: "Subir",
                         cancelButtonText: "Cancelar",
                         focusConfirm: false,
                         didOpen: () => {
                           const fileInput = document.getElementById("foto");
-                          const preview =
-                            document.getElementById("preview");
+                          const preview = document.getElementById("preview");
 
                           fileInput.addEventListener("change", (event) => {
                             const file = event.target.files[0];
@@ -623,10 +645,10 @@ function SesionesCiclo({ semestreValue }) {
                               const reader = new FileReader();
                               reader.onload = (e) => {
                                 vistaPrevia = `
-                                  <img src="${e.target.result}"
-                                      alt="Vista previa"
-                                      style="max-width:100%; max-height:200px; border-radius:10px; margin-top:10px; box-shadow:0 0 6px rgba(0,0,0,0.2);" />
-                                `;
+                                        <img src="${e.target.result}"
+                                            alt="Vista previa"
+                                            style="max-width:100%; max-height:200px; border-radius:10px; margin-top:10px; box-shadow:0 0 6px rgba(0,0,0,0.2);" />
+                                      `;
                                 preview.innerHTML = vistaPrevia;
                               };
                               reader.readAsDataURL(file);
@@ -645,11 +667,9 @@ function SesionesCiclo({ semestreValue }) {
                             return false;
                           }
                           if (
-                            ![
-                              "image/jpeg",
-                              "image/png",
-                              "image/heic",
-                            ].includes(file.type)
+                            !["image/jpeg", "image/png", "image/heic"].includes(
+                              file.type
+                            )
                           ) {
                             Swal.showValidationMessage(
                               "Formato no válido. Solo JPG, PNG o HEIC."
@@ -667,14 +687,10 @@ function SesionesCiclo({ semestreValue }) {
                       }).then((result) => {
                         if (result.isConfirmed) {
                           const foto = result.value;
-                          const token =
-                            usuario?.codigotokenautenticadorunj;
+                          const token = usuario?.codigotokenautenticadorunj;
                           const formData = new FormData();
                           formData.append("foto", foto);
-                          formData.append(
-                            "persona",
-                            usuario.docente.persona
-                          );
+                          formData.append("persona", usuario.docente.persona);
                           formData.append("semestre", semestre);
                           formData.append("sesion", sesion.sesion);
 
@@ -692,12 +708,6 @@ function SesionesCiclo({ semestreValue }) {
                                   particleCount: 150,
                                   spread: 80,
                                   origin: { y: 0.6 },
-                                  colors: [
-                                    "#bb0000",
-                                    "#ffffff",
-                                    "#00bb00",
-                                    "#FFD700",
-                                  ],
                                 });
 
                                 Swal.fire({
@@ -751,12 +761,12 @@ function SesionesCiclo({ semestreValue }) {
                     <i className="fa fa-edit icono-negro"></i>
                   </Button>
 
-                  {/* DEPURADOR TEMPORAL */}
-                  <span className="badge bg-light text-dark me-1">
+                  {/* Depurador */}
+                  {/* <span className="badge bg-light text-dark me-1">
                     A:{String(!!sesion.tieneAsistencia)} F:
                     {String(!!sesion.tieneFoto)} act:
                     {Number(sesion.activo)}
-                  </span>
+                  </span> */}
 
                   {/* Concluir sesión */}
                   {Number(sesion.activo) === 0 &&
@@ -768,8 +778,7 @@ function SesionesCiclo({ semestreValue }) {
                         className="me-1 btn-icon"
                         onClick={async () => {
                           const persona = usuario.docente.persona;
-                          const token =
-                            usuario?.codigotokenautenticadorunj;
+                          const token = usuario?.codigotokenautenticadorunj;
 
                           const ok = await Swal.fire({
                             title: "¿Marcar como concluida?",
@@ -825,8 +834,7 @@ function SesionesCiclo({ semestreValue }) {
                     className="me-1 btn-icon"
                     onClick={async () => {
                       const persona = usuario.docente.persona;
-                      const token =
-                        usuario?.codigotokenautenticadorunj;
+                      const token = usuario?.codigotokenautenticadorunj;
                       const semana = sesion.sesion;
 
                       const confirm = await Swal.fire({
@@ -846,11 +854,7 @@ function SesionesCiclo({ semestreValue }) {
                           token
                         );
                         if (res.error === 0) {
-                          Swal.fire(
-                            "✅ Eliminado",
-                            res.mensaje,
-                            "success"
-                          );
+                          Swal.fire("✅ Eliminado", res.mensaje, "success");
                           await cargarSesiones();
                         } else {
                           Swal.fire(
@@ -864,7 +868,12 @@ function SesionesCiclo({ semestreValue }) {
                   >
                     <i className="fa fa-trash icono-rojo"></i>
                   </Button>
-                </td>
+                </>
+              )}
+            </td>
+
+
+
               </tr>
             ))}
           </tbody>
