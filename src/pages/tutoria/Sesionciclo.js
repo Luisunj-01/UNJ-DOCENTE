@@ -3,6 +3,7 @@ import { Table, Button, Spinner, ProgressBar, Badge } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import config from "../../config";
+import axios from "axios";
 import confetti from "canvas-confetti";
 import "./SesionesCiclo.css";
 
@@ -150,6 +151,33 @@ function SesionesCiclo({ semestreValue }) {
       console.error("⚠️ Error verificando sesión:", error);
     }
   };
+
+
+  const abrirReporteReuniones = async () => {
+  try {
+    const persona = usuario?.docente?.persona;
+
+    const url = `${config.apiUrl}api/Tutoria/reporte-reuniones/${semestre}/${persona}`;
+
+    const resp = await axios.get(url, {
+      responseType: "blob"
+    });
+
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    window.open(
+      fileURL,
+      "reporteReuniones",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+
+  } catch (error) {
+    console.error("Error al abrir reporte de reuniones:", error);
+    Swal.fire("❌ Error", "No se pudo generar el reporte.", "error");
+  }
+};
+
 
   const { total, concluidas, porcentaje, cumple75 } = useMemo(() => {
     const total = sesiones?.length || 0;
@@ -315,13 +343,16 @@ function SesionesCiclo({ semestreValue }) {
           <strong>Ciclo:</strong> {ciclo}
         </div>
         <div>
+
           <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={() => Swal.fire("🖨 Registro de reuniones", "Función en desarrollo.")}
-          >
-            <i className="fa fa-print"></i> Registro de reuniones
-          </Button>
+  variant="outline-primary"
+  size="sm"
+  onClick={abrirReporteReuniones}
+>
+  <i className="fa fa-print"></i> Registro de reuniones
+</Button>
+
+
         </div>
       </div>
 

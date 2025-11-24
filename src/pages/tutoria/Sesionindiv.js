@@ -4,6 +4,9 @@ import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import Swal from "sweetalert2";
 
+import config from "../../config";
+import axios from "axios";
+
 import EstadoBadge from "./componentes/EstadoBadge";
 import {
   obtenerSesionesIndividuales,
@@ -30,6 +33,19 @@ function SesionesIndividuales({ semestreValue }) {
   // ---------------------------
   const [alumnos, setAlumnos] = useState([]);
   const [loadingAlumnos, setLoadingAlumnos] = useState(false);
+
+  const [busqueda, setBusqueda] = useState("");
+
+  const alumnosFiltrados = alumnos.filter((a) => {
+  const texto = busqueda.toLowerCase();
+  return (
+    (a.alumno || "").toLowerCase().includes(texto) ||
+    (a.nombrecompletos || "").toLowerCase().includes(texto) ||
+    (a.estructura || "").toLowerCase().includes(texto) ||
+    (a.celular || "").toLowerCase().includes(texto) ||
+    (a.email_institucional || "").toLowerCase().includes(texto)
+  );
+});
 
   // ---------------------------
   // estado de la vista DETALLE
@@ -91,7 +107,7 @@ function SesionesIndividuales({ semestreValue }) {
       token
     );
 
-    console.log("📦 Respuesta sesiones-individuales:", resp);
+ 
 
     if (resp.success) {
       // resp.data[i] debe incluir:
@@ -119,47 +135,45 @@ function SesionesIndividuales({ semestreValue }) {
   // =====================================================
   // Lupa 🔍 -> comentario / recomendación rápida del alumno
   // =====================================================
-  const handleVerDetalleRapido = async (rowAlumno) => {
-    // rowAlumno tiene:
-    // semestre, tutorPersona, tutorUsuario, alumno, estructura
-    const token = usuario.codigotokenautenticadorunj;
-    const vperfil = "P02";
+const handleVerDetalleRapido = async (rowAlumno) => {
+  try {
+    const token = usuario?.codigotokenautenticadorunj;
 
-    const detalle = await obtenerSesionIndividual(
-      rowAlumno.semestre,
-      rowAlumno.tutorPersona,
-      rowAlumno.tutorUsuario,
-      rowAlumno.alumno,
-      rowAlumno.estructura,
-      vperfil,
-      token
+    // Construir la URL del backend con los 5 parámetros
+    const url = `${config.apiUrl}api/Tutoria/reporte-historial/${
+      rowAlumno.semestre
+    }/${rowAlumno.tutorPersona}/${rowAlumno.personaalumno}/${rowAlumno.alumno}/${
+      rowAlumno.estructura
+    }`;
+
+    console.log("📄 URL historial:", url);
+
+    // Llamar API y obtener blob (PDF)
+    const resp = await axios.get(url, {
+      responseType: "blob",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Crear PDF desde blob
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abrir PDF en nueva ventana
+    window.open(
+      fileURL,
+      "historialTutoria",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
     );
 
-    console.log("📄 Detalle rápido (lupa):", detalle);
+  } catch (error) {
+    console.error("❌ Error cargando historial:", error);
+    Swal.fire("Error", "No se pudo generar el reporte historial.", "error");
+  }
+};
 
-    if (!detalle.success || !detalle.data) {
-      Swal.fire(
-        "⚠️",
-        "No se pudo obtener la información del tutorando.",
-        "warning"
-      );
-      return;
-    }
 
-    const d = detalle.data;
-
-    Swal.fire({
-      title: "👨‍🎓 Detalle del Tutorando",
-      html: `
-        <p><b>Alumno:</b> ${rowAlumno.alumno}</p>
-        <p><b>Nombre:</b> ${rowAlumno.nombrecompletos}</p>
-        <p><b>Estructura:</b> ${rowAlumno.estructura || "-"}</p>
-        <p><b>Comentario:</b> ${d.comentario || "Sin comentario"}</p>
-        <p><b>Recomendación:</b> ${d.recomendacion || "Sin recomendación"}</p>
-      `,
-      confirmButtonText: "Cerrar",
-    });
-  };
 
   // =====================================================
   // Utilidad: cargar historial de atenciones del alumno
@@ -178,9 +192,8 @@ function SesionesIndividuales({ semestreValue }) {
       token
     );
 
-    console.log("📝 Respuesta atenciones-individuales:", resp);
+  
 
-    console.log("📌 Item atenciones:", resp.data);
 
     if (resp.success) {
       // resp.data = [{ codigo, descripcion, fecha }, ...]
@@ -218,7 +231,7 @@ function SesionesIndividuales({ semestreValue }) {
       tutorNombre: usuario.docente?.nombrecompleto || "",
     };
 
-    console.log("🟠 Contexto para detalle alumno:", contexto);
+
 
     // validación defensiva antes de llamar API
     if (
@@ -254,6 +267,31 @@ function SesionesIndividuales({ semestreValue }) {
 
     setVista("detalle");
   };
+
+const abrirTutorandos = async () => {
+  try {
+    const persona = usuario?.docente?.persona;
+
+    const url = `${config.apiUrl}api/Tutoria/tutorandos/${semestre}/${persona}`;
+
+    const resp = await axios.get(url, { responseType: "blob" });
+
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    window.open(
+      fileURL,
+      "reporteTutorandos",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+
+  } catch (err) {
+    Swal.fire("❌ Error", "No se pudo generar el reporte.", "error");
+  }
+};
+
+
+
 
   // =====================================================
   // ACCIONES EN LA VISTA DETALLE
@@ -733,23 +771,31 @@ const handleEditarAtencion = async (item) => {
         </div>
       </div>
 
-      {/* Docente Tutor + botón imprimir */}
-      <div className="d-flex justify-content-between mb-2">
-        <div>
-          <strong>Docente Tutor:</strong>{" "}
-          {usuario?.docente?.nombrecompleto || "Sin nombre"}
-        </div>
+   {/* Docente Tutor + botón imprimir */}
+<div className="d-flex justify-content-between mb-2">
+  <div>
+    <strong>Docente Tutor:</strong>{" "}
+    {usuario?.docente?.nombrecompleto || "Sin nombre"}
+  </div>
 
-        <div>
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={() => Swal.fire("🖨", "Impresión en desarrollo")}
-          >
-            <i className="fa fa-print"></i> Registro de reuniones
-          </Button>
-        </div>
-      </div>
+  <div>
+    <Button onClick={abrirTutorandos} size="sm" variant="outline-primary">
+      <i className="fa fa-print"></i> Tutorandos
+    </Button>
+  </div>
+</div>
+
+{/* 🔎 Buscador DEBAJO del docente */}
+<div className="mb-3" style={{ maxWidth: "300px" }}>
+  <input
+    type="text"
+    className="form-control"
+    placeholder="🔍 Buscar alumno..."
+    value={busqueda}
+    onChange={(e) => setBusqueda(e.target.value)}
+  />
+</div>
+
 
       {/* Tabla alumnos */}
       {loadingAlumnos ? (
@@ -775,7 +821,7 @@ const handleEditarAtencion = async (item) => {
           </thead>
 
           <tbody>
-            {alumnos.map((a, i) => (
+            {alumnosFiltrados.map((a, i) => (
               <tr key={i}>
                 <td className="text-center">{a.alumno || "-"}</td>
                 <td>{a.nombrecompletos || "-"}</td>
@@ -816,6 +862,8 @@ const handleEditarAtencion = async (item) => {
               </tr>
             )}
           </tbody>
+
+          
         </Table>
       )}
     </div>

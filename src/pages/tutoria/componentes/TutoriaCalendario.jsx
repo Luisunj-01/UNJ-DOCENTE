@@ -81,7 +81,7 @@ const formatsES = {
 
 function TutoriaCalendario({ semestreValue }) {
   const { usuario } = useUsuario();
-  const [semestre, setSemestre] = useState(semestreValue || "202501");
+  const [semestre, setSemestre] = useState(semestreValue || "202502");
   const [eventos, setEventos] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
@@ -165,28 +165,48 @@ function TutoriaCalendario({ semestreValue }) {
 
   // 📅 Click en evento
   const onSelectEvent = (event) => {
-    const { tipo, estado, sesion } = event.meta || {};
-    Swal.fire({
-      title: event.title,
-      html: `
-        <div style="text-align:left">
-          <div><b>Tipo:</b> ${tipo}</div>
-          <div><b>Estado:</b> ${estado}</div>
-          <div><b>Sesión:</b> ${sesion || "-"}</div>
-          <div><b>Fecha:</b> ${format(event.start, "dd/MM/yyyy", { locale: es })}</div>
-        </div>
-      `,
-      icon: "info",
-      showDenyButton: true,
-      showCancelButton: true,
+  const { tipo, estado, sesion } = event.meta || {};
+
+  let botones = {};
+
+  if (tipo === "ciclo") {
+    botones = {
+      showConfirmButton: true,
+      showDenyButton: false,
       confirmButtonText: "Ir a Sesión Ciclo",
+    };
+  } else if (tipo === "libre") {
+    botones = {
+      showConfirmButton: false,
+      showDenyButton: true,
       denyButtonText: "Ir a Sesión Libre",
-      cancelButtonText: "Cerrar",
-    }).then((r) => {
-      if (r.isConfirmed) navigate("/tutoria/ciclo");
-      else if (r.isDenied) navigate("/tutoria/libre");
-    });
-  };
+    };
+  }
+
+  Swal.fire({
+    title: event.title,
+    html: `
+      <div style="text-align:left">
+        <div><b>Tipo:</b> ${tipo}</div>
+        <div><b>Estado:</b> ${estado}</div>
+        <div><b>Sesión:</b> ${sesion || "-"}</div>
+        <div><b>Fecha:</b> ${format(event.start, "dd/MM/yyyy", { locale: es })}</div>
+      </div>
+    `,
+    icon: "info",
+    ...botones,
+    showCancelButton: true,
+    cancelButtonText: "Cerrar",
+  }).then((r) => {
+    if (r.isConfirmed && tipo === "ciclo") {
+      navigate("/tutoria/ciclo");
+    }
+    if (r.isDenied && tipo === "libre") {
+      navigate("/tutoria/libre");
+    }
+  });
+};
+
 
   return (
     <div className="container mt-3">
