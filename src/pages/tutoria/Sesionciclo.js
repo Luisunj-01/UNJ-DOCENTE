@@ -330,9 +330,16 @@ function SesionesCiclo({ semestreValue }) {
             <strong>Semestre:</strong>
           </label>
         </div>
-        <div className="col-md-3">
-          <SemestreSelect value={semestre} onChange={handleChange} name="cboSemestre" />
+
+       <div className="col-md-1">
+          <SemestreSelect
+            value={semestre}
+            onChange={handleChange}
+            name="cboSemestre"
+            style={{ maxWidth: "130px"}}   // 👈 más pequeño
+          />
         </div>
+
       </div>
 
       {/* Docente */}

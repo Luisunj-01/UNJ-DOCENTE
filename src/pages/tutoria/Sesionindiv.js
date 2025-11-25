@@ -174,7 +174,7 @@ const handleVerDetalleRapido = async (rowAlumno) => {
 };
 
 
-
+const handleChange = (value) => setSemestre(value);
   // =====================================================
   // Utilidad: cargar historial de atenciones del alumno
   // =====================================================
@@ -762,13 +762,16 @@ const handleEditarAtencion = async (item) => {
             <strong>Semestre:</strong>
           </label>
         </div>
-        <div className="col-md-3">
+
+        <div className="col-md-1">
           <SemestreSelect
             value={semestre}
-            onChange={(v) => setSemestre(v)}
+            onChange={handleChange}
             name="cboSemestre"
+            style={{ maxWidth: "130px"}}   // 👈 más pequeño
           />
         </div>
+
       </div>
 
    {/* Docente Tutor + botón imprimir */}
@@ -848,7 +851,8 @@ const handleEditarAtencion = async (item) => {
                     onClick={() => handleAbrirDetalleAlumno(a)}
                     title="Atenciones individuales"
                   >
-                    <i className="fa fa-edit icono-negro"></i>
+                    <i className="fa fa-user-graduate icono-negro"></i>
+
                   </Button>
                 </td>
               </tr>
@@ -896,10 +900,11 @@ const handleEditarAtencion = async (item) => {
           fontSize: "0.9rem",
           lineHeight: "1.3rem",
         }}
-      >
+       >
         <div>
           <strong>Semestre:</strong> {ctxAtencion.semestre || "-"}
         </div>
+
         <div>
           <strong>Docente Tutor:</strong>{" "}
           {ctxAtencion.tutorNombre ||
@@ -985,24 +990,24 @@ const handleEditarAtencion = async (item) => {
 
                   {/* Eliminar SOLO si no está atendido */}
                     {!estaAtendido(item.estado_atencion) ? (
-  <button
-    className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
-    style={{ width: "28px", height: "28px" }}
-    onClick={() => handleEliminarAtencion(item)}
-    title="Eliminar"
-  >
-    <i
-      className="fa fa-ban"
-      style={{ color: "#970000ff", fontSize: "13px" }}
-    ></i>
-  </button>
-) : (
-  <i
-    className="fa fa-lock"
-    style={{ color: "gray", fontSize: "14px" }}
-    title="No se puede eliminar porque ya fue ATENDIDO"
-  ></i>
-)}
+              <button
+                className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                style={{ width: "28px", height: "28px" }}
+                onClick={() => handleEliminarAtencion(item)}
+                title="Eliminar"
+              >
+                <i
+                  className="fa fa-ban"
+                  style={{ color: "#970000ff", fontSize: "13px" }}
+                ></i>
+              </button>
+            ) : (
+              <i
+                className="fa fa-lock"
+                style={{ color: "gray", fontSize: "14px" }}
+                title="No se puede eliminar porque ya fue ATENDIDO"
+              ></i>
+            )}
 
                   
                 </td>

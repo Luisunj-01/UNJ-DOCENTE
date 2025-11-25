@@ -425,7 +425,7 @@ export const actualizarSesionLibre = async (
   sesion,
   descripcion,
   fecha,
-  concluida,
+  
   link,
   token
 ) => {
@@ -438,7 +438,7 @@ export const actualizarSesionLibre = async (
       sesion,
       descripcion,
       fecha,
-      activo: concluida,
+      
       aula: link,
     };
 
@@ -989,6 +989,19 @@ export const obtenerEscuelasTutor = async (semestre, token) => {
     };
   }
 };
+
+
+export async function obtenerEvidenciasSesionLibre(per, sem, ses, token) {
+  const url = `${config.apiUrl}api/Tutoria/evidencias-libre/${per}/${sem}/${ses}`;
+  
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+  return data?.data || { asistencias: 0, fotos: 0 };
+}
+
 
 
 

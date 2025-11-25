@@ -419,6 +419,8 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
           <Table bordered hover size="sm" responsive>
             <thead>
               <tr>
+                <th style={{ width: "3%" }}>N°</th>
+
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Teléfono</th>
@@ -432,6 +434,7 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
             <tbody>
               {alumnosFiltrados.map((alumno, index) => (
                 <tr key={index}>
+                  <td className="text-center">{index + 1}</td>
                   <td>{alumno.alumno}</td>
                   <td>
                     <button

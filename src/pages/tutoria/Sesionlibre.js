@@ -13,6 +13,7 @@ import {
   obtenerSesionLibre,
   actualizarSesionLibre,
   eliminarSesionLibre,
+  obtenerEvidenciasSesionLibre,
 } from "./logica/DatosTutoria";
 
 import AsistenciaSesion from "./componentes/AsistenciaSesion";
@@ -25,6 +26,11 @@ function SesionesLibres({ semestreValue }) {
   const [accion, setAccion] = useState(null);
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
 
+  const [estadoSesiones, setEstadoSesiones] = useState({});
+
+
+
+
   // ✅ Formatear fecha (YYYY-MM-DD → DD/MM/YYYY)
   const formatearFecha = (fecha) => {
     if (!fecha) return "";
@@ -36,26 +42,50 @@ function SesionesLibres({ semestreValue }) {
 
   // ✅ Cargar sesiones
   const cargarSesiones = async () => {
-    if (!usuario || !usuario.docente) return;
-    setLoading(true);
+  if (!usuario || !usuario.docente) return;
+  setLoading(true);
 
-    const token = usuario?.codigotokenautenticadorunj;
-    const persona = usuario.docente.persona;
+  const token = usuario?.codigotokenautenticadorunj;
+  const persona = usuario.docente.persona;
 
-    try {
-      const url = `${config.apiUrl}api/Tutoria/sesiones-libres/${persona}/${semestre}`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setSesiones(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("❌ Error al obtener sesiones libres:", error);
-      Swal.fire("Error", "No se pudo obtener la lista de sesiones libres.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const url = `${config.apiUrl}api/Tutoria/sesiones-libres/${persona}/${semestre}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const datos = await res.json();
+
+    // 👉 Traer evidencias igual que en sesiones de ciclo
+    const sesionesConEvidencias = await Promise.all(
+      datos.map(async (s) => {
+        const ev = await obtenerEvidenciasSesionLibre(
+          persona,
+          semestre,
+          s.sesion,
+          token
+        );
+
+        const tieneAsistencia = Number(ev?.asistencias) > 0;
+        const tieneFoto = Number(ev?.fotos) > 0;
+
+        return {
+          ...s,
+          tieneAsistencia,
+          tieneFoto,
+        };
+      })
+    );
+
+    setSesiones(sesionesConEvidencias);
+  } catch (error) {
+    console.error("❌ Error", error);
+    Swal.fire("Error", "No se pudieron cargar las sesiones.", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     cargarSesiones();
@@ -137,12 +167,7 @@ function SesionesLibres({ semestreValue }) {
                   <input id="fecha" type="date" class="swal2-input" style="width:60%;" value="${fechaISO}">
                 </td>
               </tr>
-              <tr>
-                <td style="padding:6px;"><label>Concluida:</label></td>
-                <td style="padding:6px;">
-                  <input type="checkbox" id="concluida" ${Number(s.activo) === 1 ? "checked" : ""}>
-                </td>
-              </tr>
+              
             </table>
           `,
           showCancelButton: true,
@@ -153,13 +178,13 @@ function SesionesLibres({ semestreValue }) {
             const descripcion = document.getElementById("descripcion")?.value?.trim() || "";
             const link = document.getElementById("link")?.value?.trim() || "";
             const fecha = document.getElementById("fecha")?.value?.trim() || "";
-            const concluida = document.getElementById("concluida")?.checked ? 1 : 0;
+            
 
             if (!descripcion || !fecha) {
               Swal.showValidationMessage("Complete los campos obligatorios (Descripción, Fecha).");
               return false;
             }
-            return { descripcion, link, fecha, concluida };
+            return { descripcion, link, fecha };
           },
         }).then(async (result) => {
           if (!result.isConfirmed) return;
@@ -172,7 +197,7 @@ function SesionesLibres({ semestreValue }) {
             sesion.sesion,
             descripcion,
             fecha,
-            concluida,
+     
             link,
             token
           );
@@ -223,6 +248,7 @@ function SesionesLibres({ semestreValue }) {
         onVolver={() => {
           setAccion(null);
           setSesionSeleccionada(null);
+            cargarSesiones(); 
         }}
       />
     );
@@ -238,9 +264,16 @@ function SesionesLibres({ semestreValue }) {
             <strong>Semestre:</strong>
           </label>
         </div>
-        <div className="col-md-3">
-          <SemestreSelect value={semestre} onChange={handleChange} name="cboSemestre" />
+
+         <div className="col-md-1">
+          <SemestreSelect
+            value={semestre}
+            onChange={handleChange}
+            name="cboSemestre"
+            style={{ maxWidth: "130px" }}   // 👈 más pequeño
+          />
         </div>
+
       </div>
 
       {/* 📊 Resumen de avance sesiones libres */}
@@ -291,6 +324,7 @@ function SesionesLibres({ semestreValue }) {
           </Button>
         </div>
       </div>
+
 
 
       {/* Botón: Nueva Sesión */}
@@ -420,7 +454,109 @@ function SesionesLibres({ semestreValue }) {
                     <span className="badge bg-danger">Pendiente</span>
                   )}
                 </td>
+
+
                 <td style={{ textAlign: "center" }}>
+
+                  {/* DEBUG: mostrar estado de evidencias */}
+<span className="badge bg-light text-dark me-1" style={{ fontSize: "11px" }}>
+  A:{String(!!s.tieneAsistencia)} 
+  &nbsp; F:{String(!!s.tieneFoto)} 
+  &nbsp; ACT:{Number(s.activo)}
+</span>
+
+
+                  {/* Foto */}
+                  <Button
+                    variant="outline-light"
+                    size="sm"
+                    className="me-1 btn-icon"
+                    onClick={() => {
+                      let vistaPrevia = "";
+
+                      Swal.fire({
+                        title: "📸 Subir foto de la sesión libre",
+                        html: `
+                          <p><b>Sesión:</b> ${s.descripcion}</p>
+                          <input type="file" id="foto" accept="image/*"
+                            style="margin-top:10px; display:block; width:100%; border:1px solid #ccc; border-radius:6px; padding:8px;" />
+                          <div id="preview" style="margin-top:10px; text-align:center;"></div>
+                          <small style="color:#666;">Formatos permitidos: JPG, PNG, HEIC. Máx 2 MB.</small>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: "Subir",
+                        didOpen: () => {
+                          const fileInput = document.getElementById("foto");
+                          const preview = document.getElementById("preview");
+
+                          fileInput.addEventListener("change", (e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                preview.innerHTML = `
+                                  <img src="${ev.target.result}" style="max-width:100%; max-height:200px; border-radius:10px;" />
+                                `;
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          });
+                        },
+                        preConfirm: () => {
+                          const file = document.getElementById("foto").files[0];
+                          if (!file) return Swal.showValidationMessage("Seleccione una imagen.");
+                          if (file.size > 2 * 1024 * 1024)
+                            return Swal.showValidationMessage("Máximo permitido: 2 MB");
+                          return file;
+                        },
+                      }).then(async (result) => {
+                        if (!result.isConfirmed) return;
+
+                        const foto = result.value;
+                        const token = usuario?.codigotokenautenticadorunj;
+
+                        const formData = new FormData();
+                        formData.append("foto", foto);
+                        formData.append("persona", usuario.docente.persona);
+                        formData.append("semestre", semestre);
+                        formData.append("sesion", s.sesion);
+
+                        const resp = await fetch(`${config.apiUrl}api/Tutoria/subir-foto-libre`, {
+                          method: "POST",
+                          headers: { Authorization: `Bearer ${token}` },
+                          body: formData,
+                        });
+
+                        const data = await resp.json();
+
+                       if (data.success) {
+                        Swal.fire({
+                          icon: "success",
+                          title: "📸 ¡Foto subida!",
+                          text: "La imagen se registró correctamente.",
+                          showConfirmButton: false,
+                          timer: 1800,
+                          timerProgressBar: true,
+                        });
+                        cargarSesiones();
+                      } else {
+                        Swal.fire({
+                          icon: "error",
+                          title: "Error",
+                          text: data.message || "No se pudo subir la foto.",
+                        });
+                      }
+
+
+                      });
+                    }}
+                  >
+                    <i className="far fa-smile icono-amarillo"></i>
+                  </Button>
+
+
+
+
                   <Button
                     variant="outline-light"
                     size="sm"
@@ -439,6 +575,62 @@ function SesionesLibres({ semestreValue }) {
                     <i className="fa fa-edit icono-negro"></i>
                   </Button>
 
+
+                  {/* Concluir sesión */}
+                {Number(s.activo) === 0 &&
+                  s.tieneAsistencia &&
+                  s.tieneFoto && (
+                    <Button
+                      variant="outline-light"
+                      size="sm"
+                      className="me-1 btn-icon"
+                      onClick={async () => {
+                        const persona = usuario.docente.persona;
+                        const token = usuario?.codigotokenautenticadorunj;
+
+                        const ok = await Swal.fire({
+                          title: "¿Concluir sesión libre?",
+                          text: `Sesión: ${s.descripcion}`,
+                          icon: "question",
+                          showCancelButton: true,
+                          confirmButtonText: "Sí, concluir",
+                        });
+
+                        if (!ok.isConfirmed) return;
+
+                        const url = `${config.apiUrl}api/Tutoria/concluir-sesion-libre`;
+                        const res = await fetch(url, {
+                          method: "POST",
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            persona,
+                            semestre,
+                            sesion: s.sesion,
+                          }),
+                        });
+
+                        const data = await res.json();
+
+                        if (data.success) {
+                          Swal.fire("✅ Concluida", "Sesión marcada como concluida", "success");
+                          cargarSesiones();
+                        } else {
+                          Swal.fire("⚠️ No concluida", data.message || "", "warning");
+                        }
+                      }}
+                    >
+                      <i className="fa fa-check-circle icono-verde"></i>
+                    </Button>
+                  )}
+
+
+
+
+
+
                   <Button
                     variant="outline-light"
                     size="sm"
@@ -447,6 +639,10 @@ function SesionesLibres({ semestreValue }) {
                   >
                     <i className="fa fa-trash icono-rojo"></i>
                   </Button>
+
+
+
+
                 </td>
               </tr>
             ))}
