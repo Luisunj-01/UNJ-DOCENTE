@@ -250,4 +250,31 @@ export const obtenerReportenotas = async (sede, semestre, escuela, curricula, cu
 };
 
 
+export async function obtenerEscuelas(token) {
+  const r = await axios.get(`${config.apiUrl}api/reportes/escuelas`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return r.data;
+}
+
+export async function generarReporte(token, escuela, tipo) {
+  const r = await axios.post(
+    `${config.apiUrl}api/reportes/curricular`,
+    { escuela, tipo },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return r.data;
+}
+
+export async function obtenerDetalle(token, escuela, tipo) {
+  const r = await axios.post(
+    `${config.apiUrl}api/reportes/curriculardetalle`,
+    { escuela, tipo },
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+
+  return r.data;
+}
 

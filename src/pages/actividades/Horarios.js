@@ -17,7 +17,7 @@ import { FaPrint } from "react-icons/fa";
 
 function Horarios() {
   const { usuario } = useUsuario();
-  const [semestre, setSemestre] = useState("202501");
+  const [semestre, setSemestre] = useState("202502");
   const persona = usuario.docente?.persona;  
   const sede = "01";
   const [datos, setDatos] = useState(null);
@@ -33,8 +33,10 @@ function Horarios() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
   const [formHabilitado, setFormHabilitado] = useState(false);
+  const [mensajeFecha, setMensajeFecha] = useState("");
+
   const token = usuario?.codigotokenautenticadorunj;
-  console.log(usuario);
+  
 
   // 🔹 FUNCIÓN ELIMINAR CARGA NO LECTIVA
   const eliminarCargaNoLectiva = async (fila) => {
@@ -177,7 +179,8 @@ useEffect(() => {
 
       if (hoy >= inicio && hoy <= fin) {
         setFormHabilitado(true);
-        console.log("✅ Formulario habilitado");
+         setMensajeFecha("");
+   
       } else {
         setFormHabilitado(false);
         Swal.fire(
@@ -186,10 +189,10 @@ useEffect(() => {
           "warning"
         );
       }
-    } else {
-      setFormHabilitado(false);
-      Swal.fire("Fechas no válidas", resp.message, "warning");
-    }
+  } else {
+  setFormHabilitado(false);
+  setMensajeFecha(`⚠ Fuera de rango de fechas (${resp.inicio} → ${resp.fin})`);
+}
   };
 
   cargarYValidar();
@@ -554,6 +557,8 @@ useEffect(() => {
               actividades={actividades}
               onAgregar={guardarCargaNoLectiva}
               disabled={!formHabilitado}
+              formHabilitado={formHabilitado}   // 👈 agregar
+              mensajeFecha={mensajeFecha}       // 👈 agregar
             />
           </div>
           

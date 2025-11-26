@@ -2,7 +2,13 @@
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 
-function FormNoLectiva({ actividades, onAgregar, disabled }) {
+function FormNoLectiva({
+  actividades,
+  onAgregar,
+  disabled,
+  formHabilitado,
+  mensajeFecha
+}) {
   const [actividad, setActividad] = useState("TUTORÍA Y CONSEJERÍA");
   const [dia, setDia] = useState("LUN");
   const [inicio, setInicio] = useState("08:00");
@@ -129,9 +135,25 @@ function FormNoLectiva({ actividades, onAgregar, disabled }) {
           >
             Asignar
           </Button>
-          
         </div>
         
+        {/* Mensaje debajo (ocupa toda la fila) */}
+          {!formHabilitado && mensajeFecha && (
+            <div className="row mt-2">
+              <div className="col-12">
+                <p
+                  style={{
+                    color: "red",
+                    fontSize: "0.90rem",
+                    marginTop: "5px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {mensajeFecha}
+                </p>
+              </div>
+            </div>
+          )}
       </div>
     </Form>
   );

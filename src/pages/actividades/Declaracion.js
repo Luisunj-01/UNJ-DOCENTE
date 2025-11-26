@@ -9,7 +9,7 @@ import config from "../../config";
 import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 
 function Declaracion() {
-  const [semestre, setSemestre] = useState("202501");
+  const [semestre, setSemestre] = useState("202502");
   const { usuario } = useUsuario();
 
   const [docente, setDocente] = useState(null);

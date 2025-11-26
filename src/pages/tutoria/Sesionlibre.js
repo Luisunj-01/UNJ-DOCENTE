@@ -459,11 +459,11 @@ function SesionesLibres({ semestreValue }) {
                 <td style={{ textAlign: "center" }}>
 
                   {/* DEBUG: mostrar estado de evidencias */}
-<span className="badge bg-light text-dark me-1" style={{ fontSize: "11px" }}>
-  A:{String(!!s.tieneAsistencia)} 
-  &nbsp; F:{String(!!s.tieneFoto)} 
-  &nbsp; ACT:{Number(s.activo)}
-</span>
+                  {/* <span className="badge bg-light text-dark me-1" style={{ fontSize: "11px" }}>
+                    A:{String(!!s.tieneAsistencia)} 
+                    &nbsp; F:{String(!!s.tieneFoto)} 
+                    &nbsp; ACT:{Number(s.activo)}
+                  </span> */}
 
 
                   {/* Foto */}
