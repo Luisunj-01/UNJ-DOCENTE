@@ -37,6 +37,44 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion ] = decoded.split('|');
 
+  const [habilitado, setHabilitado] = useState(false);
+  const [mensajeFecha, setMensajeFecha] = useState("");
+  const validarRango = async () => {
+  const mapa = {
+    "01": 27,
+    "02": 28,
+    "03": 29,
+    "04": 32,
+    "05": 33,
+    
+  };
+
+  const actividad = mapa[unidad];
+
+  try {
+   const res = await fetch(
+  `${config.apiUrl}api/curso/notasvalidarfecha/${semestre}/${escuela}/${actividad}`,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/json'
+    }
+  }
+);
+
+    const data = await res.json();
+
+    if (data.success) {
+      setHabilitado(data.habilitado);
+      setMensajeFecha(data.mensaje);
+    }
+  } catch (error) {
+    console.error("Error validando rango de notas:", error);
+  }
+};
+
+
+
   useEffect(() => {
     const cargarDatos = async () => {
       setLoading(true);
@@ -57,7 +95,13 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
 
     cargarDatos();
   }, [unidad, sede, semestre, escuela, curricula, curso, seccion]);
-  console.log(datos);
+ 
+
+// ⬇️ ⬇️ ⬇️ ESTE VA AQUÍ, DEBAJO del anterior
+useEffect(() => {
+  validarRango();
+}, [unidad, semestre]);
+
 const cerrar = () => {
   // Aquí la lógica que necesites al “cerrar”
   console.log("Función cerrar ejecutada");
@@ -198,6 +242,36 @@ const guardarCalificaciones = async () => {
   setTimeout(() => document.body.removeChild(canvas), 5000);
 }
 
+const validarRango = async () => {
+  const mapa = {
+    "01": 27, // PRIMER PROMEDIO
+    "02": 28, // SEGUNDO PROMEDIO
+    "03": 29, // TERCER PROMEDIO
+    "04": 32, // SUSTITUTORIO
+    "05": 33, // APLAZADOS
+    "06": 34  // SEGUNDO APLAZADO (si usan)
+  };
+
+  const actividad = mapa[unidad];
+
+  try {
+    const res = await fetch(
+      `${config.apiUrl}api/notas/validar-fecha/${semestre}/${actividad}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setHabilitado(data.habilitado);
+      setMensajeFecha(data.mensaje);
+    }
+  } catch (error) {
+    console.error("Error validando rango de notas:", error);
+  }
+};
+
+
 
   const payload = {
     sede,
@@ -282,6 +356,7 @@ const guardarCalificaciones = async () => {
       render: (row) => (
         <input
           type="text"
+          disabled={!habilitado}   // 🟩 AQUÍ VA
           inputMode="decimal"
           maxLength="5"
           size="6"
@@ -333,6 +408,7 @@ const guardarCalificaciones = async () => {
       render: (row) => (
         <input
           type="text"
+          disabled={!habilitado}   // 🟩 AQUÍ VA
           inputMode="decimal"
           maxLength="5"
           size="6"
@@ -386,6 +462,7 @@ const guardarCalificaciones = async () => {
        
           <input
           type="text"
+          disabled={!habilitado}   // 🟩 AQUÍ VA
           inputMode="decimal"
           maxLength="5"
           size="6"
@@ -505,6 +582,13 @@ const guardarCalificaciones = async () => {
           </ul>
         </div>
       </div>
+
+      <div className={`alert ${habilitado ? "alert-info" : "alert-danger"} mt-3`}>
+      <strong>Aviso:</strong> {mensajeFecha}
+    </div>
+
+
+
 
       {loading ? (
         <TablaSkeleton filas={9} columnas={7} />

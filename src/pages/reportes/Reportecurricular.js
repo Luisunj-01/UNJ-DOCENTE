@@ -3,6 +3,7 @@ import { useUsuario } from "../../context/UserContext";
 import { obtenerEscuelas, obtenerDetalle } from "./logica/Reportes";
 import Swal from "sweetalert2";
 import { Modal, Button } from "react-bootstrap";
+import config from "../../config";
 
 function ReporteCurricular() {
   const { usuario } = useUsuario();
@@ -114,19 +115,23 @@ function ReporteCurricular() {
 
               <div className="d-flex flex-wrap gap-2">
                 {detalle.curriculas.map((c, i) => (
-                  <Button
-                    key={i}
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={() => {
-                      const cadena = `${detalle.pagina}|${escuela}|${c}`;
-                      const codigo = btoa(btoa(cadena));
-                      window.open(`/impresion?codigo=${codigo}`, "_blank");
-                    }}
-                  >
-                    {c}
-                  </Button>
-                ))}
+                <Button
+                  key={i}
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => {
+  const url = `${config.apiUrl}api/plancurricular/${escuela}/${c}`;
+  window.open(
+    url,
+    "popup",
+    "width=900,height=700,scrollbars=yes,resizable=yes"
+  );
+}}
+
+                >
+                  {c}
+                </Button>
+              ))}
               </div>
             </>
           )}
