@@ -8,7 +8,7 @@ import config from "../../../config"; // ajusta según tu proyecto
 // 1.
 export const obtenerAlumnosTutor = async (semestre, per, doc, escuela = "", vperfil = "", token) => {
   try {
-   
+
     const url = `${config.apiUrl}api/Tutoria/rendimiento/${semestre}/${per}/${doc}/${escuela}/${vperfil}`;
     const res = await axios.get(url, {
       headers: {
@@ -17,7 +17,7 @@ export const obtenerAlumnosTutor = async (semestre, per, doc, escuela = "", vper
       },
     });
     if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-      
+
       return { datos: res.data, mensaje: "" };
     } else {
       console.warn("⚠️ Sin datos de alumnos.");
@@ -83,7 +83,7 @@ export const obtenerAsistenciaSesiones = async (persona, semestre, sesion, token
 export const obtenerTemasDisponibles = async (semestre, persona, token) => {
   try {
     const url = `${config.apiUrl}api/Tutoria/temas/${semestre}/${persona}`;
-    
+
 
     const res = await axios.get(url, {
       headers: {
@@ -91,7 +91,7 @@ export const obtenerTemasDisponibles = async (semestre, persona, token) => {
       },
     });
 
-   
+
 
     // Verificamos si viene con el formato del controlador
     if (res.data?.success && Array.isArray(res.data.data)) {
@@ -133,7 +133,7 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
       }
     );
 
-    
+
 
     // Si llega aquí, la conexión fue exitosa
     if (res.data?.exito) {
@@ -160,31 +160,31 @@ export const obtenerRecomendacion = async (persona, semestre, sesion, token) => 
     console.log("🔑 Token:", token);
 
     const respuesta = await fetch(url, {
-  method: "GET",
-  headers: {
-    Accept: "application/json",
-    Authorization: `Bearer ${token}`,
-  },
-});
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-const json = await respuesta.json();
-console.log("📥 Respuesta obtenerRecomendacion:", json);
+    const json = await respuesta.json();
+    console.log("📥 Respuesta obtenerRecomendacion:", json);
 
-if (json.success && json.data) {
-  return {
-    descripcion: json.data.descripcion || "",
-    logrozet: json.data.logrozet || "",
-    dificultadzet: json.data.dificultadzet || "",
-    recomendacionzet: json.data.recomendacionzet || "",
-  };
-} else {
-  return {
-    descripcion: "",
-    logrozet: "",
-    dificultadzet: "",
-    recomendacionzet: "",
-  };
-}
+    if (json.success && json.data) {
+      return {
+        descripcion: json.data.descripcion || "",
+        logrozet: json.data.logrozet || "",
+        dificultadzet: json.data.dificultadzet || "",
+        recomendacionzet: json.data.recomendacionzet || "",
+      };
+    } else {
+      return {
+        descripcion: "",
+        logrozet: "",
+        dificultadzet: "",
+        recomendacionzet: "",
+      };
+    }
 
 
   } catch (error) {
@@ -368,7 +368,7 @@ export const obtenerSesionLibre = async (persona, semestre, sesion, token) => {
 
 // 🔹 Obtener sesiones disponibles (no registradas)
 export const obtenerSesionesLibresDisponibles = async (persona, semestre, token) => {
-  
+
   try {
     const url = `${config.apiUrl}api/Tutoria/sesiones-libres-disponibles/${persona}/${semestre}`;
     const res = await fetch(url, {
@@ -425,7 +425,7 @@ export const actualizarSesionLibre = async (
   sesion,
   descripcion,
   fecha,
-  
+
   link,
   token
 ) => {
@@ -438,7 +438,7 @@ export const actualizarSesionLibre = async (
       sesion,
       descripcion,
       fecha,
-      
+
       aula: link,
     };
 
@@ -561,7 +561,7 @@ export const obtenerAtencionesAlumno = async (
   return data;
 };
 
- 
+
 export const obtenerDatosNuevaAtencion = async (
   personaTutor,     // per
   semestre,         // semestre
@@ -585,7 +585,7 @@ export const obtenerDatosNuevaAtencion = async (
     const data = await res.json();
     console.log("📥 obtenerDatosNuevaAtencion ->", data);
 
-    return data; 
+    return data;
     // Esperamos:
     // {
     //   success: true,
@@ -605,18 +605,18 @@ export const obtenerDatosNuevaAtencion = async (
 
 export const grabarAtencionIndividual = async (
   {
-    per,           // persona tutor (8 chars, ej "00003694")
-    semestre,      // ej "202501"
-    doc,           // usuario docente (10 chars) - lo mandamos por si acaso auditoría
-    peralu,        // persona alumno (8 chars)
-    alu,           // código alumno (matrícula, ej "2024220007")
-    estructura,    // estructura/carrera del alumno, ej "02"  <-- IMPORTANTE QUE SEA CORTO
-
-    descripcion,   // tema tratado / resumen corto: ej "sin dinero", "problema familiar"
-    motivo,        // código del motivo seleccionado, ej "01","02","03"
-    fecha,         // "YYYY-MM-DD" desde el form (ej "2025-10-29")
-    areaDerivada,  // "00" si NO derivó, o por ej "03" si derivó a psicología/bienestar/etc
-    observacion,   // texto libre detallado
+    per,
+    semestre,
+    doc,
+    peralu,
+    alu,
+    estructura,
+    descripcion,
+    motivo,
+    fecha,
+    areaDerivada,
+    observacion,
+    celular,       // 👈 AGREGADO
   },
   token
 ) => {
@@ -629,12 +629,13 @@ export const grabarAtencionIndividual = async (
       doc,
       peralu,
       alu,
-      estructura,   // este llega al controlador y termina en el parámetro 6 del SP ✅
-      descripcion,  // este termina como _tema en el SP (parámetro 7)
-      motivo,       // este llega al parámetro 10 del SP
-      fecha,        // el backend lo convierte a YYYYMMDD
-      areaDerivada, // esto sirve para marcar si es derivado y a dónde
-      observacion,  // parámetro 11 del SP
+      estructura,
+      descripcion,
+      motivo,
+      fecha,
+      areaDerivada,
+      observacion,
+      celular,      // 👈 AGREGADO AQUÍ TAMBIÉN
     };
 
     const res = await fetch(url, {
@@ -651,8 +652,6 @@ export const grabarAtencionIndividual = async (
     console.log("💾 grabarAtencionIndividual ->", data);
 
     return data;
-    // Ejemplo esperado:
-    // { success: true, message: "Atención registrada correctamente", data: [...] }
 
   } catch (err) {
     console.error("❌ Error al grabar atención:", err);
@@ -662,12 +661,12 @@ export const grabarAtencionIndividual = async (
     };
   }
 };
-  
+
 
 // ./logica/DatosTutoria.js
 export const obtenerAtencionParaEditar = async (per, semestre, doc, peralu, alu, estructura, sesion, token) => {
   const url = `${config.apiUrl}api/Tutoria/atencion/editar/${per}/${semestre}/${doc}/${peralu}/${alu}/${estructura}/${sesion}`;
-  const res = await fetch(url, { headers: { Accept: "application/json", Authorization: `Bearer ${token}` }});
+  const res = await fetch(url, { headers: { Accept: "application/json", Authorization: `Bearer ${token}` } });
   return await res.json();
 };
 
@@ -686,23 +685,22 @@ export const actualizarAtencionIndividual = async (payload, token) => {
 export const eliminarAtencionIndividual = async (
   per, semestre, doc, peralu, alu, estructura, sesion, token
 ) => {
+  
   const pad2 = (v) => String(v ?? "").padStart(2, "0");
   const enc = (v) => encodeURIComponent(String(v ?? ""));
+
   const url = `${config.apiUrl}api/Tutoria/atencion/eliminar/${enc(per)}/${enc(semestre)}/${enc(doc)}/${enc(peralu)}/${enc(alu)}/${enc(estructura)}/${enc(pad2(sesion))}`;
 
   const res = await fetch(url, {
-    method: "DELETE",
+    method: "POST",    // 👈👈👈 AQUÍ EL CAMBIO IMPORTANTE
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${token}`,
-    },
+    }
   });
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data?.success) {
-    return { success: false, message: data?.message || `Error ${res.status} al eliminar.` };
-  }
-  return { success: true, message: data?.message || "Eliminado." };
+  return data;
 };
 
 
@@ -993,7 +991,7 @@ export const obtenerEscuelasTutor = async (semestre, token) => {
 
 export async function obtenerEvidenciasSesionLibre(per, sem, ses, token) {
   const url = `${config.apiUrl}api/Tutoria/evidencias-libre/${per}/${sem}/${ses}`;
-  
+
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` }
   });

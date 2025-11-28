@@ -4,6 +4,8 @@ import { obtenerEscuelas, obtenerDetalle } from "./logica/Reportes";
 import Swal from "sweetalert2";
 import { Modal, Button } from "react-bootstrap";
 import config from "../../config";
+import axios from "axios"; 
+
 
 function ReporteCurricular() {
   const { usuario } = useUsuario();
@@ -14,6 +16,69 @@ function ReporteCurricular() {
   const [tipo, setTipo] = useState("P");
   const [modalShow, setModalShow] = useState(false);
   const [detalle, setDetalle] = useState(null);
+
+
+  const abrirPdf = async (estructura, curricula) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/plancurricular/${estructura}/${curricula}`;
+
+    const resp = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: "blob" // 🔥 clave para archivos PDF
+    });
+
+    // Crear un objeto Blob con el PDF
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abrir el PDF en una nueva pestaña
+    window.open(
+  fileURL,
+  "ReporteCurricular",
+  "width=900,height=700,left=200,top=80,scrollbars=yes,resizable=yes"
+);
+
+  } catch (error) {
+    Swal.fire("Error", "No se pudo generar el PDF", "error");
+    console.error(error);
+  }
+};
+const abrirEquivalenciasSimples = async (estructura, curricula) => {
+  try {
+    const url = `${config.apiUrl}api/reportes/equivalencias/${estructura}/${curricula}`;
+
+    const resp = await axios.get(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: "blob"  // clave para PDF protegido
+    });
+
+    // Convertir a Blob
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abrir ventana emergente SIN tocar la ruta real
+    window.open(
+      fileURL,
+      "EquivalenciasSimples",
+      "width=900,height=700,left=200,top=80,scrollbars=yes,resizable=yes"
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.response && error.response.status === 404) {
+      Swal.fire({
+        icon: "info",
+        title: "Sin datos",
+        text: error.response.data.error,
+      });
+      return;
+    }
+
+    Swal.fire("Error", "No se pudo generar el PDF", "error");
+  }
+};
+
 
   // ======================
   // Cargar escuelas
@@ -113,26 +178,26 @@ function ReporteCurricular() {
 
               <p><strong>Currículas:</strong></p>
 
-              <div className="d-flex flex-wrap gap-2">
-                {detalle.curriculas.map((c, i) => (
-                <Button
-                  key={i}
-                  variant="outline-primary"
-                  size="sm"
-                  onClick={() => {
-  const url = `${config.apiUrl}api/plancurricular/${escuela}/${c}`;
-  window.open(
-    url,
-    "popup",
-    "width=900,height=700,scrollbars=yes,resizable=yes"
-  );
-}}
+            <div className="d-flex flex-wrap gap-2">
+  {detalle.curriculas.map((c, i) => (
+    <Button
+      key={i}
+      variant="outline-primary"
+      size="sm"
+      onClick={() =>
+        tipo === "P"
+          ? abrirPdf(escuela, c)                // PLAN CURRICULAR
+          : abrirEquivalenciasSimples(escuela, c) // EQUIVALENCIA SIMPLE
+      }
+    >
+      {tipo === "P"
+        ? `Ver Plan Curricular ${c}`
+        : `Ver Equivalencia ${c}`}
+    </Button>
+  ))}
+</div>
 
-                >
-                  {c}
-                </Button>
-              ))}
-              </div>
+
             </>
           )}
         </Modal.Body>

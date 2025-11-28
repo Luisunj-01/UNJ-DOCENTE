@@ -1,3 +1,4 @@
+//src/pages/tutoria/Sesionindiv.js
 import { useState, useEffect } from "react";
 import { Table, Button, Spinner } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
@@ -37,15 +38,15 @@ function SesionesIndividuales({ semestreValue }) {
   const [busqueda, setBusqueda] = useState("");
 
   const alumnosFiltrados = alumnos.filter((a) => {
-  const texto = busqueda.toLowerCase();
-  return (
-    (a.alumno || "").toLowerCase().includes(texto) ||
-    (a.nombrecompletos || "").toLowerCase().includes(texto) ||
-    (a.estructura || "").toLowerCase().includes(texto) ||
-    (a.celular || "").toLowerCase().includes(texto) ||
-    (a.email_institucional || "").toLowerCase().includes(texto)
-  );
-});
+    const texto = busqueda.toLowerCase();
+    return (
+      (a.alumno || "").toLowerCase().includes(texto) ||
+      (a.nombrecompletos || "").toLowerCase().includes(texto) ||
+      (a.estructura || "").toLowerCase().includes(texto) ||
+      (a.celular || "").toLowerCase().includes(texto) ||
+      (a.email_institucional || "").toLowerCase().includes(texto)
+    );
+  });
 
   // ---------------------------
   // estado de la vista DETALLE
@@ -107,7 +108,7 @@ function SesionesIndividuales({ semestreValue }) {
       token
     );
 
- 
+
 
     if (resp.success) {
       // resp.data[i] debe incluir:
@@ -135,46 +136,44 @@ function SesionesIndividuales({ semestreValue }) {
   // =====================================================
   // Lupa 🔍 -> comentario / recomendación rápida del alumno
   // =====================================================
-const handleVerDetalleRapido = async (rowAlumno) => {
-  try {
-    const token = usuario?.codigotokenautenticadorunj;
+  const handleVerDetalleRapido = async (rowAlumno) => {
+    try {
+      const token = usuario?.codigotokenautenticadorunj;
 
-    // Construir la URL del backend con los 5 parámetros
-    const url = `${config.apiUrl}api/Tutoria/reporte-historial/${
-      rowAlumno.semestre
-    }/${rowAlumno.tutorPersona}/${rowAlumno.personaalumno}/${rowAlumno.alumno}/${
-      rowAlumno.estructura
-    }`;
+      // Construir la URL del backend con los 5 parámetros
+      const url = `${config.apiUrl}api/Tutoria/reporte-historial/${rowAlumno.semestre
+        }/${rowAlumno.tutorPersona}/${rowAlumno.personaalumno}/${rowAlumno.alumno}/${rowAlumno.estructura
+        }`;
 
-    console.log("📄 URL historial:", url);
+      console.log("📄 URL historial:", url);
 
-    // Llamar API y obtener blob (PDF)
-    const resp = await axios.get(url, {
-      responseType: "blob",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      // Llamar API y obtener blob (PDF)
+      const resp = await axios.get(url, {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    // Crear PDF desde blob
-    const file = new Blob([resp.data], { type: "application/pdf" });
-    const fileURL = URL.createObjectURL(file);
+      // Crear PDF desde blob
+      const file = new Blob([resp.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
 
-    // Abrir PDF en nueva ventana
-    window.open(
-      fileURL,
-      "historialTutoria",
-      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
-    );
+      // Abrir PDF en nueva ventana
+      window.open(
+        fileURL,
+        "historialTutoria",
+        "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+      );
 
-  } catch (error) {
-    console.error("❌ Error cargando historial:", error);
-    Swal.fire("Error", "No se pudo generar el reporte historial.", "error");
-  }
-};
+    } catch (error) {
+      console.error("❌ Error cargando historial:", error);
+      Swal.fire("Error", "No se pudo generar el reporte historial.", "error");
+    }
+  };
 
 
-const handleChange = (value) => setSemestre(value);
+  const handleChange = (value) => setSemestre(value);
   // =====================================================
   // Utilidad: cargar historial de atenciones del alumno
   // =====================================================
@@ -192,7 +191,7 @@ const handleChange = (value) => setSemestre(value);
       token
     );
 
-  
+
 
 
     if (resp.success) {
@@ -203,7 +202,7 @@ const handleChange = (value) => setSemestre(value);
       Swal.fire(
         "⚠️",
         resp.message ||
-          "No se pudo cargar el historial de atenciones del estudiante.",
+        "No se pudo cargar el historial de atenciones del estudiante.",
         "warning"
       );
     }
@@ -268,27 +267,27 @@ const handleChange = (value) => setSemestre(value);
     setVista("detalle");
   };
 
-const abrirTutorandos = async () => {
-  try {
-    const persona = usuario?.docente?.persona;
+  const abrirTutorandos = async () => {
+    try {
+      const persona = usuario?.docente?.persona;
 
-    const url = `${config.apiUrl}api/Tutoria/tutorandos/${semestre}/${persona}`;
+      const url = `${config.apiUrl}api/Tutoria/tutorandos/${semestre}/${persona}`;
 
-    const resp = await axios.get(url, { responseType: "blob" });
+      const resp = await axios.get(url, { responseType: "blob" });
 
-    const file = new Blob([resp.data], { type: "application/pdf" });
-    const fileURL = URL.createObjectURL(file);
+      const file = new Blob([resp.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
 
-    window.open(
-      fileURL,
-      "reporteTutorandos",
-      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
-    );
+      window.open(
+        fileURL,
+        "reporteTutorandos",
+        "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+      );
 
-  } catch (err) {
-    Swal.fire("❌ Error", "No se pudo generar el reporte.", "error");
-  }
-};
+    } catch (err) {
+      Swal.fire("❌ Error", "No se pudo generar el reporte.", "error");
+    }
+  };
 
 
 
@@ -363,32 +362,32 @@ const abrirTutorandos = async () => {
 
     const fechaHoy = combosData.fechaHoy || "";
 
-// ==========================
-// 🔍 VALIDACIÓN: impedir duplicados por área en misma fecha
-// ==========================
-const fechaHoyDeriv = fechaHoy;
+    // ==========================
+    // 🔍 VALIDACIÓN: impedir duplicados por área en misma fecha
+    // ==========================
+    const fechaHoyDeriv = fechaHoy;
 
-const yaExiste = atenciones.some((x) =>
-  (x.areaDerivada || "") !== "00" &&
-  (x.fecha || "").substring(0, 10) === fechaHoyDeriv &&
-  x.estado_atencion !== "A"
-);
+    const yaExiste = atenciones.some((x) =>
+      (x.areaDerivada || "") !== "00" &&
+      (x.fecha || "").substring(0, 10) === fechaHoyDeriv &&
+      x.estado_atencion !== "A"
+    );
 
-if (yaExiste) {
-  Swal.fire(
-    "⚠️ No permitido",
-    "Ya existe una derivación registrada para esta área hoy. Solo puedes registrar otra si la atención ya fue ATENDIDA.",
-    "warning"
-  );
-  return;
-}
+    if (yaExiste) {
+      Swal.fire(
+        "⚠️ No permitido",
+        "Ya existe una derivación registrada para esta área hoy. Solo puedes registrar otra si la atención ya fue ATENDIDA.",
+        "warning"
+      );
+      return;
+    }
 
 
     // 2. Mostrar Swal con el formulario completo (Descripción, Motivo, Fecha, Derivado, Observación)
     const { value: formValues } = await Swal.fire({
-  title: "➕ Nueva Atención / Derivación",
-  width: 650,
-  html: `
+      title: "➕ Nueva Atención / Derivación",
+      width: 650,
+      html: `
     <style>
       .swal2-popup .form-wrap { font-size: .95rem; }
       .swal2-popup .row { margin-bottom: 12px; }
@@ -442,76 +441,92 @@ if (yaExiste) {
           <label for="swal-observacion">Observación:</label>
           <input id="swal-observacion" class="swal2-input" placeholder="Observación / recomendación" />
         </div>
+        <!-- NUEVO CAMPO: CELULAR -->
+
+    
       </div>
+          <div style="margin-top:10px;">
+          <label for="swal-celular">Celular del estudiante:</label>
+          <input 
+            id="swal-celular" 
+            class="swal2-input" 
+            placeholder="Ingrese número telefónico"
+            maxlength="9"
+          />
+        </div>
+
 
     </div>
   `,
-  focusConfirm: false,
-  showCancelButton: true,
-  confirmButtonText: "Grabar",
-  cancelButtonText: "Cancelar",
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Grabar",
+      cancelButtonText: "Cancelar",
 
-preConfirm: () => {
+      preConfirm: () => {
 
-  // Leer valores primero (ANTES de validar)
-  const descripcion = document.getElementById("swal-descripcion").value.trim();
-  const motivo = document.getElementById("swal-motivo").value;
-  const fechaSel = document.getElementById("swal-fecha").value; // YYYY-MM-DD
-  const areaDerivada = document.getElementById("swal-derivado").value;
-  const observacion = document.getElementById("swal-observacion").value.trim();
+        // Leer valores primero (ANTES de validar)
+        const descripcion = document.getElementById("swal-descripcion").value.trim();
+        const motivo = document.getElementById("swal-motivo").value;
+        const fechaSel = document.getElementById("swal-fecha").value; // YYYY-MM-DD
+        const areaDerivada = document.getElementById("swal-derivado").value;
+        const observacion = document.getElementById("swal-observacion").value.trim();
+        const celular = document.getElementById("swal-celular").value.trim();
 
-  // Validaciones de los campos del formulario
-  if (!descripcion) {
-    Swal.showValidationMessage("La descripción es obligatoria");
-    return;
-  }
-  if (!fechaSel) {
-    Swal.showValidationMessage("La fecha es obligatoria");
-    return;
-  }
+        if (celular && !/^\d{9}$/.test(celular)) {
+          Swal.showValidationMessage("El celular debe tener 9 dígitos");
+          return;
+        }
+        // Validaciones de los campos del formulario
+        if (!descripcion) {
+          Swal.showValidationMessage("La descripción es obligatoria");
+          return;
+        }
+        if (!fechaSel) {
+          Swal.showValidationMessage("La fecha es obligatoria");
+          return;
+        }
 
-  // ==========================
-  // 🔍 Validación: No duplicar derivaciones por área en la misma fecha
-  // ==========================
-const duplicado = atenciones.some((x) => {
-  const codigoAreaExistente = String(x.tutarea || "").trim();
-  const codigoAreaNueva = String(areaDerivada || "").trim();
+        // ==========================
+        // 🔍 Validación: No duplicar derivaciones por área en la misma fecha
+        // ==========================
+        const duplicado = atenciones.some((x) => {
+          const codigoAreaExistente = String(x.tutarea || "").trim();
+          const codigoAreaNueva = String(areaDerivada || "").trim();
 
-  const fechaExistente = (x.fecha || "").substring(0, 10).replace(/\//g, "-");
-  const fechaNueva = fechaSel;
+          const fechaExistente = (x.fecha || "").substring(0, 10).replace(/\//g, "-");
+          const fechaNueva = fechaSel;
 
-  const estaAtendido = ["A", "ATENDIDO", "Atendido", "atendido", "AT"]
-    .includes(String(x.estado_atencion).trim());
+          const estaAtendido = ["A", "ATENDIDO", "Atendido", "atendido", "AT"]
+            .includes(String(x.estado_atencion).trim());
 
-  return (
-    codigoAreaExistente === codigoAreaNueva &&
-    fechaExistente === fechaNueva.split("-").reverse().join("-") &&
-    !estaAtendido   // solo bloquear si NO está atendido
-  );
-});
-
-
-
-  if (duplicado) {
-    Swal.showValidationMessage(
-      "Ya existe una derivación para esta área en esta fecha. Solo puede registrar otra si la anterior está ATENDIDA."
-    );
-    return;
-  }
-
-  // Si todo ok, retornamos valores
-  return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
-},
-
-});
+          return (
+            codigoAreaExistente === codigoAreaNueva &&
+            fechaExistente === fechaNueva.split("-").reverse().join("-") &&
+            !estaAtendido   // solo bloquear si NO está atendido
+          );
+        });
 
 
+
+        if (duplicado) {
+          Swal.showValidationMessage(
+            "Ya existe una derivación para esta área en esta fecha. Solo puede registrar otra si la anterior está ATENDIDA."
+          );
+          return;
+        }
+
+        // Si todo ok, retornamos valores
+        return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion, celular };
+      },
+
+    });
     // si canceló, salimos
     if (!formValues) {
       return;
     }
 
-  
+
 
     // 3. Enviar al backend para grabar
     const respGrabar = await grabarAtencionIndividual(
@@ -528,6 +543,7 @@ const duplicado = atenciones.some((x) => {
         fecha: formValues.fecha,               // "YYYY-MM-DD"
         areaDerivada: formValues.areaDerivada, // "00" => no derivado
         observacion: formValues.observacion,
+        celular: formValues.celular,
       },
       token
     );
@@ -559,69 +575,69 @@ const duplicado = atenciones.some((x) => {
     });
   };
 
-// Helper para validar si una atención está ATENDIDA
-// =====================================================
-const estaAtendido = (estado) => {
-  return ["A", "ATENDIDO", "Atendido", "atendido", "AT"]
-    .includes(String(estado).trim());
-};
+  // Helper para validar si una atención está ATENDIDA
+  // =====================================================
+  const estaAtendido = (estado) => {
+    return ["A", "ATENDIDO", "Atendido", "atendido", "AT"]
+      .includes(String(estado).trim());
+  };
 
 
 
   // ✅ Helper: si trabajamos con código en TEXTO PLANO
-const extraerSesionDeCodigo = (codigo) => {
-  try {
-    return (codigo || "").substring(44, 46); // pos 44, largo 2
-  } catch {
-    return "";
-  }
-};
+  const extraerSesionDeCodigo = (codigo) => {
+    try {
+      return (codigo || "").substring(44, 46); // pos 44, largo 2
+    } catch {
+      return "";
+    }
+  };
 
-// ✏ Botón editar
-const handleEditarAtencion = async (item) => {
-  const token = usuario.codigotokenautenticadorunj;
+  // ✏ Botón editar
+  const handleEditarAtencion = async (item) => {
+    const token = usuario.codigotokenautenticadorunj;
 
-  const per        = ctxAtencion.tutorPersona;
-  const semestre   = ctxAtencion.semestre;
-  const doc        = ctxAtencion.tutorUsuario;
-  const peralu     = ctxAtencion.alumnoPersona;
-  const alu        = ctxAtencion.alumnoCodigo;
-  const estructura = String(ctxAtencion.alumnoEstructura || "").padStart(2, "0");
+    const per = ctxAtencion.tutorPersona;
+    const semestre = ctxAtencion.semestre;
+    const doc = ctxAtencion.tutorUsuario;
+    const peralu = ctxAtencion.alumnoPersona;
+    const alu = ctxAtencion.alumnoCodigo;
+    const estructura = String(ctxAtencion.alumnoEstructura || "").padStart(2, "0");
 
-  // 👇 YA NO ADIVINAMOS. Viene del backend en el listado:
-  const sesion = item?.sesion || "00";
+    // 👇 YA NO ADIVINAMOS. Viene del backend en el listado:
+    const sesion = item?.sesion || "00";
 
-  // 1) Traer data para editar (M)
-  const datos = await obtenerAtencionParaEditar(per, semestre, doc, peralu, alu, estructura, sesion, token);
-  if (!datos?.success) {
-    Swal.fire("⚠️", datos?.message || "No se pudo obtener la atención.", "warning");
-    return;
-  }
-  const info = datos.data || {};
+    // 1) Traer data para editar (M)
+    const datos = await obtenerAtencionParaEditar(per, semestre, doc, peralu, alu, estructura, sesion, token);
+    if (!datos?.success) {
+      Swal.fire("⚠️", datos?.message || "No se pudo obtener la atención.", "warning");
+      return;
+    }
+    const info = datos.data || {};
 
-  // 2) Catálogos
-  const combosData = await obtenerDatosNuevaAtencion(per, semestre, doc, peralu, alu, estructura, token);
-  if (!combosData?.success) {
-    Swal.fire("⚠️", "No se pudieron cargar los catálogos.", "warning");
-    return;
-  }
+    // 2) Catálogos
+    const combosData = await obtenerDatosNuevaAtencion(per, semestre, doc, peralu, alu, estructura, token);
+    if (!combosData?.success) {
+      Swal.fire("⚠️", "No se pudieron cargar los catálogos.", "warning");
+      return;
+    }
 
-  const motivosOptions = (combosData.motivos || [])
-    .map(m => `<option value="${m.codigo}" ${m.codigo===info.motivo?'selected':''}>${m.descripcion}</option>`)
-    .join("");
+    const motivosOptions = (combosData.motivos || [])
+      .map(m => `<option value="${m.codigo}" ${m.codigo === info.motivo ? 'selected' : ''}>${m.descripcion}</option>`)
+      .join("");
 
-  const areasOptions = (combosData.areas || [])
-    .map(a => `<option value="${a.codigo}" ${a.codigo===(info.areaDerivada||'00')?'selected':''}>${a.descripcion}</option>`)
-    .join("");
+    const areasOptions = (combosData.areas || [])
+      .map(a => `<option value="${a.codigo}" ${a.codigo === (info.areaDerivada || '00') ? 'selected' : ''}>${a.descripcion}</option>`)
+      .join("");
 
-  const fechaISO = (info.fecha && info.fecha.includes('-')) ? info.fecha : "";
-  const fechaMostrar = fechaISO ? fechaISO.split('-').reverse().join('/') : "";
+    const fechaISO = (info.fecha && info.fecha.includes('-')) ? info.fecha : "";
+    const fechaMostrar = fechaISO ? fechaISO.split('-').reverse().join('/') : "";
 
-  // 3) Modal EDITAR (mismo layout)
-  const { value: formValues } = await Swal.fire({
-    title: "✏️ Modificar Atención / Derivación",
-    width: 650,
-    html: `
+    // 3) Modal EDITAR (mismo layout)
+    const { value: formValues } = await Swal.fire({
+      title: "✏️ Modificar Atención / Derivación",
+      width: 650,
+      html: `
       <style>
         .swal2-popup .form-wrap { font-size: .95rem; }
         .swal2-popup .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
@@ -638,7 +654,7 @@ const handleEditarAtencion = async (item) => {
 
         <div style="margin-bottom:12px;">
           <label for="swal-descripcion">Descripción:</label>
-          <input id="swal-descripcion" class="swal2-input" value="${(info.descripcion||'').replace(/"/g,'&quot;')}" />
+          <input id="swal-descripcion" class="swal2-input" value="${(info.descripcion || '').replace(/"/g, '&quot;')}" />
         </div>
 
         <div class="grid-2">
@@ -665,89 +681,112 @@ const handleEditarAtencion = async (item) => {
           </div>
           <div>
             <label for="swal-observacion">Observación:</label>
-            <input id="swal-observacion" class="swal2-input" value="${(info.observacion||'').replace(/"/g,'&quot;')}" />
+            <input id="swal-observacion" class="swal2-input" value="${(info.observacion || '').replace(/"/g, '&quot;')}" />
           </div>
         </div>
+
+        <!-- NUEVO CAMPO CELULAR -->
+      <div style="margin-top:10px;">
+        <label for="swal-celular">Celular del estudiante:</label>
+        <input 
+          id="swal-celular"
+          class="swal2-input"
+          placeholder="Ingrese número telefónico"
+          maxlength="9"
+          value="${info.celular || ''}"
+        />
+      </div>
+
+
+
       </div>
     `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Guardar cambios",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const descripcion = document.getElementById("swal-descripcion").value.trim();
-      const motivo = document.getElementById("swal-motivo").value;
-      const fechaSel = document.getElementById("swal-fecha").value;
-      const areaDerivada = document.getElementById("swal-derivado").value;
-      const observacion = document.getElementById("swal-observacion").value.trim();
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Guardar cambios",
+      cancelButtonText: "Cancelar",
+      preConfirm: () => {
+        const descripcion = document.getElementById("swal-descripcion").value.trim();
+        const motivo = document.getElementById("swal-motivo").value;
+        const fechaSel = document.getElementById("swal-fecha").value;
+        const areaDerivada = document.getElementById("swal-derivado").value;
+        const observacion = document.getElementById("swal-observacion").value.trim();
+        const celular = document.getElementById("swal-celular").value.trim();
 
-      if (!descripcion) return Swal.showValidationMessage("La descripción es obligatoria");
-      if (!fechaSel)     return Swal.showValidationMessage("La fecha es obligatoria");
+        // VALIDACIÓN CELULAR
+    if (celular && !/^\d{9}$/.test(celular)) {
+      Swal.showValidationMessage("El celular debe tener 9 dígitos");
+      return;
+    }
 
-      return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion };
-    },
-  });
- 
-  if (!formValues) return;
+        if (!descripcion) return Swal.showValidationMessage("La descripción es obligatoria");
+        if (!fechaSel) return Swal.showValidationMessage("La fecha es obligatoria");
 
-  // 4) Actualizar (W)
-  const resp = await actualizarAtencionIndividual({
-    per, semestre, doc, peralu, alu, estructura,
-    sesion,
-    descripcion: formValues.descripcion,
-    motivo: formValues.motivo,
-    fecha: formValues.fecha,
-    areaDerivada: formValues.areaDerivada,
-    observacion: formValues.observacion,
-  }, token);
+        return { descripcion, motivo, fecha: fechaSel, areaDerivada, observacion,celular };
+      },
+    });
 
-  if (!resp?.success) {
-    Swal.fire("⚠️", resp?.message || "No se pudo actualizar.", "warning");
-    return;
-  }
+    if (!formValues) return;
 
-  await Swal.fire({ icon: "success", title: "Actualizado", text: "Cambios guardados correctamente." });
+    // 4) Actualizar (W)
+    const resp = await actualizarAtencionIndividual({
+      per, semestre, doc, peralu, alu, estructura,
+      sesion,
+      descripcion: formValues.descripcion,
+      motivo: formValues.motivo,
+      fecha: formValues.fecha,
+      areaDerivada: formValues.areaDerivada,
+      observacion: formValues.observacion,
+        celular: formValues.celular,  // 👈 AGREGADO
+    }, token);
 
-  // 5) Recargar historial
-  await cargarHistorialAtenciones({ per, semestre, doc, peralu, alu });
-};
+    if (!resp?.success) {
+      Swal.fire("⚠️", resp?.message || "No se pudo actualizar.", "warning");
+      return;
+    }
+
+    await Swal.fire({ icon: "success", title: "Actualizado", text: "Cambios guardados correctamente." });
+
+    // 5) Recargar historial
+    await cargarHistorialAtenciones({ per, semestre, doc, peralu, alu });
+  };
 
 
 
 
   // botón eliminar (ícono fa-ban)
   const handleEliminarAtencion = async (item) => {
-  const token = usuario?.codigotokenautenticadorunj;
+    const token = usuario?.codigotokenautenticadorunj;
 
-  const per        = ctxAtencion.tutorPersona;
-  const semestre   = ctxAtencion.semestre;
-  const doc        = ctxAtencion.tutorUsuario;
-  const peralu     = ctxAtencion.alumnoPersona;
-  const alu        = ctxAtencion.alumnoCodigo;
-  const estructura = String(ctxAtencion.alumnoEstructura || "").toUpperCase().padStart(2, "0");
-  const sesion     = item?.sesion; // '01'..'12'
+    const per = ctxAtencion.tutorPersona;
+    const semestre = ctxAtencion.semestre;
+    const doc = ctxAtencion.tutorUsuario;
+    const peralu = ctxAtencion.alumnoPersona;
+    const alu = ctxAtencion.alumnoCodigo;
+    const estructura = String(ctxAtencion.alumnoEstructura || "").toUpperCase().padStart(2, "0");
+    const sesion = item?.sesion; // '01'..'12'
 
-  const ask = await Swal.fire({
-    icon: "warning",
-    title: "¿Eliminar atención?",
-    text: `Se eliminará la sesión ${sesion} del alumno ${item?.nombre || ""}. Esta acción no se puede deshacer.`,
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-  });
-  if (!ask.isConfirmed) return;
+    const ask = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar atención?",
+      text: `Se eliminará la sesión ${sesion} del alumno ${item?.nombre || ""}. Esta acción no se puede deshacer.`,
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!ask.isConfirmed) return;
 
-  const r = await eliminarAtencionIndividual(per, semestre, doc, peralu, alu, estructura, sesion, token);
+    const r = await eliminarAtencionIndividual(per, semestre, doc, peralu, alu, estructura, sesion, token);
 
-  if (!r.success) {
-    Swal.fire("⚠️", r.message || "No se pudo eliminar.", "warning");
-    return;
-  }
+    if (!r.success) {
+      Swal.fire("⚠️", r.message || "No se pudo eliminar.", "warning");
+      return;
+    }
 
-  await Swal.fire({ icon: "success", title: "Eliminado", text: r.message });
-  // Recarga el historial/listado
-  await cargarHistorialAtenciones({ per, semestre, doc, peralu, alu });
-};
+    await Swal.fire({ icon: "success", title: "Eliminado", text: r.message });
+    // Recarga el historial/listado
+    await cargarHistorialAtenciones({ per, semestre, doc, peralu, alu });
+  };
 
 
   // =====================================================
@@ -768,36 +807,36 @@ const handleEditarAtencion = async (item) => {
             value={semestre}
             onChange={handleChange}
             name="cboSemestre"
-            style={{ maxWidth: "130px"}}   // 👈 más pequeño
+            style={{ maxWidth: "130px" }}   // 👈 más pequeño
           />
         </div>
 
       </div>
 
-   {/* Docente Tutor + botón imprimir */}
-<div className="d-flex justify-content-between mb-2">
-  <div>
-    <strong>Docente Tutor:</strong>{" "}
-    {usuario?.docente?.nombrecompleto || "Sin nombre"}
-  </div>
+      {/* Docente Tutor + botón imprimir */}
+      <div className="d-flex justify-content-between mb-2">
+        <div>
+          <strong>Docente Tutor:</strong>{" "}
+          {usuario?.docente?.nombrecompleto || "Sin nombre"}
+        </div>
 
-  <div>
-    <Button onClick={abrirTutorandos} size="sm" variant="outline-primary">
-      <i className="fa fa-print"></i> Tutorandos
-    </Button>
-  </div>
-</div>
+        <div>
+          <Button onClick={abrirTutorandos} size="sm" variant="outline-primary">
+            <i className="fa fa-print"></i> Tutorandos
+          </Button>
+        </div>
+      </div>
 
-{/* 🔎 Buscador DEBAJO del docente */}
-<div className="mb-3" style={{ maxWidth: "300px" }}>
-  <input
-    type="text"
-    className="form-control"
-    placeholder="🔍 Buscar alumno..."
-    value={busqueda}
-    onChange={(e) => setBusqueda(e.target.value)}
-  />
-</div>
+      {/* 🔎 Buscador DEBAJO del docente */}
+      <div className="mb-3" style={{ maxWidth: "300px" }}>
+        <input
+          type="text"
+          className="form-control"
+          placeholder="🔍 Buscar alumno..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
 
 
       {/* Tabla alumnos */}
@@ -867,7 +906,7 @@ const handleEditarAtencion = async (item) => {
             )}
           </tbody>
 
-          
+
         </Table>
       )}
     </div>
@@ -900,7 +939,7 @@ const handleEditarAtencion = async (item) => {
           fontSize: "0.9rem",
           lineHeight: "1.3rem",
         }}
-       >
+      >
         <div>
           <strong>Semestre:</strong> {ctxAtencion.semestre || "-"}
         </div>
@@ -939,8 +978,8 @@ const handleEditarAtencion = async (item) => {
       {loadingDetalle ? (
         <Spinner animation="border" />
       ) : (
-        <Table 
-        bordered
+        <Table
+          bordered
           hover
           size="sm"
           responsive
@@ -967,12 +1006,12 @@ const handleEditarAtencion = async (item) => {
                 <td>{item.descripcion || ""}</td>
                 <td className="text-center">{item.fecha || ""}</td>
                 <td className="text-center">{item.fecha_atencion || ""}</td>
-                <td className="text-center">{item.descripcionarea|| ""}</td>
+                <td className="text-center">{item.descripcionarea || ""}</td>
 
 
                 <td className="text-center">
-        <EstadoBadge estado={item.estado_atencion} />
-      </td>
+                  <EstadoBadge estado={item.estado_atencion} />
+                </td>
 
                 <td className="text-center">
                   {/* Editar */}
@@ -989,27 +1028,27 @@ const handleEditarAtencion = async (item) => {
                   </button>
 
                   {/* Eliminar SOLO si no está atendido */}
-                    {!estaAtendido(item.estado_atencion) ? (
-              <button
-                className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
-                style={{ width: "28px", height: "28px" }}
-                onClick={() => handleEliminarAtencion(item)}
-                title="Eliminar"
-              >
-                <i
-                  className="fa fa-ban"
-                  style={{ color: "#970000ff", fontSize: "13px" }}
-                ></i>
-              </button>
-            ) : (
-              <i
-                className="fa fa-lock"
-                style={{ color: "gray", fontSize: "14px" }}
-                title="No se puede eliminar porque ya fue ATENDIDO"
-              ></i>
-            )}
+                  {!estaAtendido(item.estado_atencion) ? (
+                    <button
+                      className="btn btn-light btn-sm border-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                      style={{ width: "28px", height: "28px" }}
+                      onClick={() => handleEliminarAtencion(item)}
+                      title="Eliminar"
+                    >
+                      <i
+                        className="fa fa-ban"
+                        style={{ color: "#970000ff", fontSize: "13px" }}
+                      ></i>
+                    </button>
+                  ) : (
+                    <i
+                      className="fa fa-lock"
+                      style={{ color: "gray", fontSize: "14px" }}
+                      title="No se puede eliminar porque ya fue ATENDIDO"
+                    ></i>
+                  )}
 
-                  
+
                 </td>
               </tr>
             ))}
