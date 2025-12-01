@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Table, Button, Spinner } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { useUsuario } from "../../../context/UserContext";
-import { guardarAsistenciaSesiones, obtenerAsistenciaSesiones } from "../logica/DatosTutoria";
+import { guardarAsistenciaLibre, obtenerAsistenciaSesionesLibre } from "../logica/DatosTutoria";
 
 function AsistenciaSesion({ persona, semestre, sesion, descripcion, onVolver }) {
 
@@ -13,27 +13,28 @@ function AsistenciaSesion({ persona, semestre, sesion, descripcion, onVolver }) 
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState(""); // 🔹 Nuevo: para filtrar
-
-  useEffect(() => {
+useEffect(() => {
     const cargarDatos = async () => {
-      if (!token) {
-        Swal.fire("Error", "Token no disponible. Inicie sesión nuevamente.", "error");
-        setLoading(false);
-        return;
-      }
+        if (!token) {
+            Swal.fire("Error", "Token no disponible. Inicie sesión nuevamente.", "error");
+            setLoading(false);
+            return;
+        }
 
-      const { datos, mensaje } = await obtenerAsistenciaSesiones(persona, semestre, sesion, token);
-      if (datos) {
-        // Inicializa la visibilidad de todos los alumnos
-        setAlumnos(datos.map((a) => ({ ...a, visible: true })));
-      } else {
-        Swal.fire("Error", mensaje, "error");
-      }
-      setLoading(false);
+        const resp = await obtenerAsistenciaSesionesLibre(persona, semestre, sesion, token);
+
+        if (resp.success) {
+            setAlumnos(resp.data.map((a) => ({ ...a, visible: true })));
+        } else {
+            Swal.fire("Error", resp.message || "No se pudieron cargar los alumnos.", "error");
+        }
+
+        setLoading(false);
     };
 
     cargarDatos();
-  }, [persona, semestre, sesion, token]);
+}, [persona, semestre, sesion, token]);
+
 
   const handleAsistenciaChange = (codigo, checked) => {
     setAlumnos((prev) =>
@@ -51,28 +52,26 @@ function AsistenciaSesion({ persona, semestre, sesion, descripcion, onVolver }) 
     );
   };
 
-  const handleGuardar = async () => {
-  setGuardando(true);
+ const handleGuardar = async () => {
+    setGuardando(true);
 
-  // 🔹 Construimos los detalles correctamente
-  const detalles = alumnos.map((a) => ({
-    personaAlumno: a.personaalumno,
-    alumno: a.alumno,
-    estructura: a.estructura,
-    observacion: a.observacion || "",
-    asistencia: a.asistencia || 0,
-  }));
+    const detalles = alumnos.map((a) => ({
+        personaalumno: a.personaalumno,
+        alumno: a.alumno,
+        estructura: a.estructura,
+        observacion: a.observacion || "",
+        asistencia: a.asistencia || 0,
+    }));
 
-  const { exito, mensaje } = await guardarAsistenciaSesiones(
-    persona,
-    semestre,
-    sesion,
-    detalles,
-    token
-  );
+    const resp = await guardarAsistenciaLibre(persona, semestre, sesion, detalles, token);
 
-  Swal.fire(exito ? "✅ Éxito" : "❌ Error", mensaje, exito ? "success" : "error");
-  setGuardando(false);
+    if (resp.success) {
+        Swal.fire("✅ Éxito", resp.message, "success");
+    } else {
+        Swal.fire("❌ Error", resp.message || "No se pudo guardar.", "error");
+    }
+
+    setGuardando(false);
 };
 
   // 🔹 Filtrar alumnos según búsqueda

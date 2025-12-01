@@ -1002,5 +1002,30 @@ export async function obtenerEvidenciasSesionLibre(per, sem, ses, token) {
 
 
 
+export const obtenerAsistenciaSesionesLibre = async (persona, semestre, sesion, token) => {
+  const url = `${config.apiUrl}api/Tutoria/asistencialibre/${persona}/${semestre}/${sesion}`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return await res.json();
+};
+
+export const guardarAsistenciaLibre = async (persona, semestre, sesion, detalles, token) => {
+  const url = `${config.apiUrl}api/Tutoria/asistencialibreguardar`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ persona, semestre, sesion, detalles }),
+  });
+
+  return await res.json();
+};
+
 
 

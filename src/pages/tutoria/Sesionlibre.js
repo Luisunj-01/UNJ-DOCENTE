@@ -458,192 +458,198 @@ function SesionesLibres({ semestreValue }) {
 
                 <td style={{ textAlign: "center" }}>
 
-                  {/* DEBUG: mostrar estado de evidencias */}
-                  {/* <span className="badge bg-light text-dark me-1" style={{ fontSize: "11px" }}>
-                    A:{String(!!s.tieneAsistencia)} 
-                    &nbsp; F:{String(!!s.tieneFoto)} 
-                    &nbsp; ACT:{Number(s.activo)}
-                  </span> */}
+  {/* 🟦 Si la sesión está concluida → mostrar solo el aviso */}
+  {Number(s.activo) === 1 ? (
+  <Button
+    variant="light"
+    size="sm"
+    disabled
+    style={{
+      opacity: 1,
+      cursor: "not-allowed",
+      fontWeight: "bold",
+      borderColor: "#d0d0d0",
+      backgroundColor: "#f8f9fa",
+      color: "#6c757d",
+    }}
+  >
+    <i className="fa fa-lock me-1"></i>
+    Sesión cerrada
+  </Button>
+) : (
+  <>
+
+      {/* 🟩 SI ESTÁ PENDIENTE → SE MUESTRAN LOS BOTONES NORMALMENTE */}
+
+      {/* Foto */}
+      <Button
+        variant="outline-light"
+        size="sm"
+        className="me-1 btn-icon"
+        onClick={() => {
+          // 👇 tu lógica completa para subir foto (copiar la tuya aquí)
+          let vistaPrevia = "";
+
+          Swal.fire({
+            title: "📸 Subir foto de la sesión libre",
+            html: `
+              <p><b>Sesión:</b> ${s.descripcion}</p>
+              <input type="file" id="foto" accept="image/*"
+                style="margin-top:10px; display:block; width:100%; border:1px solid #ccc; border-radius:6px; padding:8px;" />
+              <div id="preview" style="margin-top:10px; text-align:center;"></div>
+              <small style="color:#666;">Formatos permitidos: JPG, PNG, HEIC. Máx 2 MB.</small>
+            `,
+            showCancelButton: true,
+            confirmButtonText: "Subir",
+            didOpen: () => {
+              const fileInput = document.getElementById("foto");
+              const preview = document.getElementById("preview");
+
+              fileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    preview.innerHTML = `
+                      <img src="${ev.target.result}" style="max-width:100%; max-height:200px; border-radius:10px;" />
+                    `;
+                  };
+                  reader.readAsDataURL(file);
+                }
+              });
+            },
+            preConfirm: () => {
+              const file = document.getElementById("foto").files[0];
+              if (!file) return Swal.showValidationMessage("Seleccione una imagen.");
+              if (file.size > 2 * 1024 * 1024)
+                return Swal.showValidationMessage("Máximo permitido: 2 MB");
+              return file;
+            },
+          }).then(async (result) => {
+            if (!result.isConfirmed) return;
+
+            const foto = result.value;
+            const token = usuario?.codigotokenautenticadorunj;
+
+            const formData = new FormData();
+            formData.append("foto", foto);
+            formData.append("persona", usuario.docente.persona);
+            formData.append("semestre", semestre);
+            formData.append("sesion", s.sesion);
+
+            const resp = await fetch(`${config.apiUrl}api/Tutoria/subir-foto-libre`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}` },
+              body: formData,
+            });
+
+            const data = await resp.json();
+
+            if (data.success) {
+              Swal.fire({
+                icon: "success",
+                title: "📸 ¡Foto subida!",
+                text: "La imagen se registró correctamente.",
+                showConfirmButton: false,
+                timer: 1800,
+                timerProgressBar: true,
+              });
+              cargarSesiones();
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: data.message || "No se pudo subir la foto.",
+              });
+            }
+          });
+        }}
+      >
+        <i className="far fa-smile icono-amarillo"></i>
+      </Button>
+
+      {/* Asistencia */}
+      <Button
+        variant="outline-light"
+        size="sm"
+        className="me-1 btn-icon"
+        onClick={() => handleAccion("asis", s)}
+      >
+        <i className="fa fa-male icono-azul"></i>
+      </Button>
+
+      {/* Editar */}
+      <Button
+        variant="outline-light"
+        size="sm"
+        className="me-1 btn-icon"
+        onClick={() => handleAccion("edit", s)}
+      >
+        <i className="fa fa-edit icono-negro"></i>
+      </Button>
+
+      {/* Concluir sesión */}
+      {Number(s.activo) === 0 && s.tieneAsistencia && s.tieneFoto && (
+        <Button
+          variant="outline-light"
+          size="sm"
+          className="me-1 btn-icon"
+          onClick={async () => {
+            const persona = usuario.docente.persona;
+            const token = usuario?.codigotokenautenticadorunj;
+
+            const ok = await Swal.fire({
+              title: "¿Concluir sesión libre?",
+              text: `Sesión: ${s.descripcion}`,
+              icon: "question",
+              showCancelButton: true,
+              confirmButtonText: "Sí, concluir",
+            });
+
+            if (!ok.isConfirmed) return;
+
+            const url = `${config.apiUrl}api/Tutoria/concluir-sesion-libre`;
+            const res = await fetch(url, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                persona,
+                semestre,
+                sesion: s.sesion,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+              Swal.fire("✅ Concluida", "Sesión marcada como concluida", "success");
+              cargarSesiones();
+            } else {
+              Swal.fire("⚠️ No concluida", data.message || "", "warning");
+            }
+          }}
+        >
+          <i className="fa fa-check-circle icono-verde"></i>
+        </Button>
+      )}
+
+      {/* Eliminar */}
+      <Button
+        variant="outline-light"
+        size="sm"
+        className="me-1 btn-icon"
+        onClick={() => handleAccion("elim", s)}
+      >
+        <i className="fa fa-trash icono-rojo"></i>
+      </Button>
+    </>
+  )}
+</td>
 
 
-                  {/* Foto */}
-                  <Button
-                    variant="outline-light"
-                    size="sm"
-                    className="me-1 btn-icon"
-                    onClick={() => {
-                      let vistaPrevia = "";
-
-                      Swal.fire({
-                        title: "📸 Subir foto de la sesión libre",
-                        html: `
-                          <p><b>Sesión:</b> ${s.descripcion}</p>
-                          <input type="file" id="foto" accept="image/*"
-                            style="margin-top:10px; display:block; width:100%; border:1px solid #ccc; border-radius:6px; padding:8px;" />
-                          <div id="preview" style="margin-top:10px; text-align:center;"></div>
-                          <small style="color:#666;">Formatos permitidos: JPG, PNG, HEIC. Máx 2 MB.</small>
-                        `,
-                        showCancelButton: true,
-                        confirmButtonText: "Subir",
-                        didOpen: () => {
-                          const fileInput = document.getElementById("foto");
-                          const preview = document.getElementById("preview");
-
-                          fileInput.addEventListener("change", (e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => {
-                                preview.innerHTML = `
-                                  <img src="${ev.target.result}" style="max-width:100%; max-height:200px; border-radius:10px;" />
-                                `;
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          });
-                        },
-                        preConfirm: () => {
-                          const file = document.getElementById("foto").files[0];
-                          if (!file) return Swal.showValidationMessage("Seleccione una imagen.");
-                          if (file.size > 2 * 1024 * 1024)
-                            return Swal.showValidationMessage("Máximo permitido: 2 MB");
-                          return file;
-                        },
-                      }).then(async (result) => {
-                        if (!result.isConfirmed) return;
-
-                        const foto = result.value;
-                        const token = usuario?.codigotokenautenticadorunj;
-
-                        const formData = new FormData();
-                        formData.append("foto", foto);
-                        formData.append("persona", usuario.docente.persona);
-                        formData.append("semestre", semestre);
-                        formData.append("sesion", s.sesion);
-
-                        const resp = await fetch(`${config.apiUrl}api/Tutoria/subir-foto-libre`, {
-                          method: "POST",
-                          headers: { Authorization: `Bearer ${token}` },
-                          body: formData,
-                        });
-
-                        const data = await resp.json();
-
-                       if (data.success) {
-                        Swal.fire({
-                          icon: "success",
-                          title: "📸 ¡Foto subida!",
-                          text: "La imagen se registró correctamente.",
-                          showConfirmButton: false,
-                          timer: 1800,
-                          timerProgressBar: true,
-                        });
-                        cargarSesiones();
-                      } else {
-                        Swal.fire({
-                          icon: "error",
-                          title: "Error",
-                          text: data.message || "No se pudo subir la foto.",
-                        });
-                      }
-
-
-                      });
-                    }}
-                  >
-                    <i className="far fa-smile icono-amarillo"></i>
-                  </Button>
-
-
-
-
-                  <Button
-                    variant="outline-light"
-                    size="sm"
-                    className="me-1 btn-icon"
-                    onClick={() => handleAccion("asis", s)}
-                  >
-                    <i className="fa fa-male icono-azul"></i>
-                  </Button>
-
-                  <Button
-                    variant="outline-light"
-                    size="sm"
-                    className="me-1 btn-icon"
-                    onClick={() => handleAccion("edit", s)}
-                  >
-                    <i className="fa fa-edit icono-negro"></i>
-                  </Button>
-
-
-                  {/* Concluir sesión */}
-                {Number(s.activo) === 0 &&
-                  s.tieneAsistencia &&
-                  s.tieneFoto && (
-                    <Button
-                      variant="outline-light"
-                      size="sm"
-                      className="me-1 btn-icon"
-                      onClick={async () => {
-                        const persona = usuario.docente.persona;
-                        const token = usuario?.codigotokenautenticadorunj;
-
-                        const ok = await Swal.fire({
-                          title: "¿Concluir sesión libre?",
-                          text: `Sesión: ${s.descripcion}`,
-                          icon: "question",
-                          showCancelButton: true,
-                          confirmButtonText: "Sí, concluir",
-                        });
-
-                        if (!ok.isConfirmed) return;
-
-                        const url = `${config.apiUrl}api/Tutoria/concluir-sesion-libre`;
-                        const res = await fetch(url, {
-                          method: "POST",
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                            "Content-Type": "application/json",
-                          },
-                          body: JSON.stringify({
-                            persona,
-                            semestre,
-                            sesion: s.sesion,
-                          }),
-                        });
-
-                        const data = await res.json();
-
-                        if (data.success) {
-                          Swal.fire("✅ Concluida", "Sesión marcada como concluida", "success");
-                          cargarSesiones();
-                        } else {
-                          Swal.fire("⚠️ No concluida", data.message || "", "warning");
-                        }
-                      }}
-                    >
-                      <i className="fa fa-check-circle icono-verde"></i>
-                    </Button>
-                  )}
-
-
-
-
-
-
-                  <Button
-                    variant="outline-light"
-                    size="sm"
-                    className="me-1 btn-icon"
-                    onClick={() => handleAccion("elim", s)}
-                  >
-                    <i className="fa fa-trash icono-rojo"></i>
-                  </Button>
-
-
-
-
-                </td>
               </tr>
             ))}
           </tbody>

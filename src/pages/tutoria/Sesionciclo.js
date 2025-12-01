@@ -37,15 +37,29 @@ function SesionesCiclo({ semestreValue }) {
   const [cargandoTemas, setCargandoTemas] = useState(false);
   const [estadoSesiones, setEstadoSesiones] = useState({});
 
-  const formatearFecha = (fecha) => {
-    if (!fecha) return "";
-    if (fecha.includes("/")) return fecha;
+ const formatearFecha = (fecha) => {
+  if (!fecha) return "";
+
+  // Si viene como "2025-12-01 11:28:00"
+  if (fecha.includes(" ")) {
+    const [fechaPart, horaPart] = fecha.split(" ");
+    const [anio, mes, dia] = fechaPart.split("-");
+    const [hora, minuto] = horaPart.split(":");
+
+    return `${dia}/${mes}/${anio} ${hora}:${minuto}`;
+  }
+
+  // Si viene sin hora "2025-12-01"
+  if (fecha.includes("-")) {
     const partes = fecha.split("-");
     if (partes.length === 3) {
       return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
-    return fecha;
-  };
+  }
+
+  return fecha;
+};
+
 
   // ==========================
   // CARGAR SESIONES
@@ -227,6 +241,11 @@ function SesionesCiclo({ semestreValue }) {
             fechaFormateada = data.fecha.split(" ")[0];
           }
         }
+        // 1️⃣ Convertir fecha de la BD al formato para datetime-local
+const fechaISO = data.fecha
+  ? new Date(data.fecha).toISOString().slice(0, 16)
+  : "";
+
 
         Swal.fire({
           title: "✏️ Modificar sesión",
@@ -244,9 +263,10 @@ function SesionesCiclo({ semestreValue }) {
                 </td>
               </tr>
               <tr>
-                <td style="padding:6px;"><label>Fecha:</label></td>
+                <td style="padding:6px;"><label>Fecha y Hora:</label></td>
                 <td style="padding:6px;">
-                  <input id="fecha" type="date" class="swal2-input" style="width:60%;" value="${fechaFormateada || ""}">
+                  <input id="fecha" type="datetime-local" class="swal2-input" style="width:70%;" value="${fechaISO}">
+
                 </td>
               </tr>
             </table>
@@ -260,7 +280,8 @@ function SesionesCiclo({ semestreValue }) {
           focusConfirm: false,
           preConfirm: () => {
             const aula = document.getElementById("aula").value.trim();
-            const fecha = document.getElementById("fecha").value;
+            const fecha = document.getElementById("fecha").value.replace("T", " ") + ":00";
+
             if (!aula || !fecha) {
               Swal.showValidationMessage("Complete todos los campos.");
               return false;
@@ -435,8 +456,8 @@ function SesionesCiclo({ semestreValue }) {
               <td style="padding:6px;"><input id="aula" class="swal2-input" style="width:90%;"></td>
             </tr>
             <tr>
-              <td style="padding:6px;"><label>Fecha:</label></td>
-              <td style="padding:6px;"><input id="fecha" type="date" class="swal2-input" style="width:50%;"></td>
+              <td style="padding:6px;"><label>Fecha y hora:</label></td>
+              <td style="padding:6px;"><input id="fecha" type="datetime-local" class="swal2-input" style="width:70%;"></td>
             </tr>
           </table>
           <small style="color:#666;display:block;margin-top:6px;">
@@ -450,7 +471,7 @@ function SesionesCiclo({ semestreValue }) {
         preConfirm: () => {
           const sesion = (document.getElementById("sesion") || {}).value;
           const aula = (document.getElementById("aula") || {}).value?.trim();
-          const fecha = (document.getElementById("fecha") || {}).value;
+          const fecha = document.getElementById("fecha").value.replace("T", " ") + ":00";
 
           if (!sesion || !aula || !fecha) {
             Swal.showValidationMessage("Por favor complete todos los campos.");
@@ -505,7 +526,7 @@ function SesionesCiclo({ semestreValue }) {
             <tr>
               <th style={{ width: "5%", textAlign: "center" }}>Nro.</th>
               <th>Descripción</th>
-              <th style={{ width: "10%", textAlign: "center" }}>Fecha</th>
+              <th style={{ width: "10%", textAlign: "center" }}>Fecha y Hora </th>
               <th style={{ width: "10%", textAlign: "center" }}>
                 Estado <small className="text-muted">({porcentaje}%)</small>
               </th>
