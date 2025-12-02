@@ -94,7 +94,8 @@ function SesionesCiclo({ semestreValue }) {
 
             return {
               ...s,
-              sesion: sesion2,
+              codSesion: String(s.sesion).padStart(2, "0"), // para mostrar en la tabla
+              sesion: s.sesion,                             // valor REAL para backend
               tieneAsistencia: toBool(ev?.asistencias),
               tieneFoto: toBool(ev?.fotos),
             };
@@ -220,31 +221,49 @@ function SesionesCiclo({ semestreValue }) {
 
     // EDITAR
     if (tipo === "edit") {
+      const sesionReal = String(sesion.sesion).padStart(2, "0");
+      console.log("SESION REAL ENVIADA:", sesionReal);
       const token = usuario?.codigotokenautenticadorunj;
       const persona = usuario.docente.persona;
 
       try {
-        const { success, data, message } = await obtenerSesion(persona, semestre, sesion.sesion, token);
-        if (!success) {
-          Swal.fire("❌ Error", message, "error");
-          return;
-        }
+       
+        const { success, data, message } = await obtenerSesion(persona, semestre, sesionReal, token);
+       
+
+      if (!success || !data) {
+  Swal.fire("❌ Error", message || "No se encontró la sesión.", "error");
+  return;
+}
 
         const activoOriginal = Number(data.activo) === 1 ? 1 : 0;
 
-        let fechaFormateada = "";
-        if (data.fecha) {
-          if (data.fecha.includes("/")) {
-            const [dia, mes, anio] = data.fecha.split("/");
-            fechaFormateada = `${anio}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-          } else if (data.fecha.includes("-")) {
-            fechaFormateada = data.fecha.split(" ")[0];
-          }
-        }
-        // 1️⃣ Convertir fecha de la BD al formato para datetime-local
-const fechaISO = data.fecha
-  ? new Date(data.fecha).toISOString().slice(0, 16)
-  : "";
+        // FORMATEAR FECHA PARA <input type="datetime-local">
+let fechaISO = "";
+
+if (data.fecha) {
+  if (data.fecha.includes("/")) {
+    const partes = data.fecha.split(" ");
+    const [dia, mes, anio] = partes[0].split("/");
+
+    let hora = "00";
+    let minuto = "00";
+
+    if (partes.length > 1) {
+      const [h, m] = partes[1].split(":");
+      hora = h;
+      minuto = m;
+    }
+
+    fechaISO = `${anio}-${mes}-${dia}T${hora}:${minuto}`;
+  } else {
+    const [fechaPart, horaPart] = data.fecha.split(" ");
+    const [anio, mes, dia] = fechaPart.split("-");
+    const [hora, minuto] = horaPart.split(":");
+    fechaISO = `${anio}-${mes}-${dia}T${hora}:${minuto}`;
+  }
+}
+
 
 
         Swal.fire({

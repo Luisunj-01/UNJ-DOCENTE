@@ -1027,5 +1027,21 @@ export const guardarAsistenciaLibre = async (persona, semestre, sesion, detalles
   return await res.json();
 };
 
+// OBTENER TODAS LAS DERIVACIONES DEL DOCENTE (para calendario)
+export const obtenerDerivacionesTutor = async (semestre, persona, token) => {
+  try {
+    const url = `${config.apiUrl}api/Tutoria/derivaciones-tutor/${semestre}/${persona}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    return data; // { success: true, data: [...] }
+  } catch (err) {
+    console.error("❌ Error obteniendo derivaciones calendario:", err);
+    return { success: false, data: [] };
+  }
+};
 
 

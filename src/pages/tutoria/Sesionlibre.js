@@ -135,8 +135,33 @@ function SesionesLibres({ semestreValue }) {
           return;
         }
 
-        const s = data.data || {};
-        const fechaISO = normalizarFecha(s.fecha);
+        const s = data.data || {};  // este sí existe
+
+       let fechaISO = "";
+
+          if (s.fecha) {
+            if (s.fecha.includes("/")) {
+              const partes = s.fecha.split(" ");
+              const [dia, mes, anio] = partes[0].split("/");
+
+              let hora = "00";
+              let minuto = "00";
+
+              if (partes.length > 1) {
+                const [h, m] = partes[1].split(":");
+                hora = h;
+                minuto = m;
+              }
+
+              fechaISO = `${anio}-${mes}-${dia}T${hora}:${minuto}`;
+            } else {
+              const [fechaPart, horaPart] = s.fecha.split(" ");
+              const [anio, mes, dia] = fechaPart.split("-");
+              const [hora, minuto] = horaPart.split(":");
+              fechaISO = `${anio}-${mes}-${dia}T${hora}:${minuto}`;
+            }
+          }
+
 
         Swal.fire({
           title: "✏️ Editar sesión libre",
@@ -162,9 +187,10 @@ function SesionesLibres({ semestreValue }) {
                 </td>
               </tr>
               <tr>
-                <td style="padding:6px;"><label>Fecha:</label></td>
+                <td style="padding:6px;"><label>Fecha y hora:</label></td>
                 <td style="padding:6px;">
-                  <input id="fecha" type="date" class="swal2-input" style="width:60%;" value="${fechaISO}">
+                  <input id="fecha" type="datetime-local" class="swal2-input" style="width:80%;" value="${fechaISO}">
+
                 </td>
               </tr>
               
@@ -177,7 +203,8 @@ function SesionesLibres({ semestreValue }) {
           preConfirm: () => {
             const descripcion = document.getElementById("descripcion")?.value?.trim() || "";
             const link = document.getElementById("link")?.value?.trim() || "";
-            const fecha = document.getElementById("fecha")?.value?.trim() || "";
+            const fecha = document.getElementById("fecha").value.replace("T", " ") + ":00";
+
             
 
             if (!descripcion || !fecha) {
@@ -370,8 +397,10 @@ function SesionesLibres({ semestreValue }) {
                     <td><input id="link" class="swal2-input"></td>
                   </tr>
                   <tr>
-                    <td><b>Fecha:</b></td>
-                    <td><input id="fecha" type="date" class="swal2-input"></td>
+                    <td><b>Fecha y Hora:</b></td>
+                    <td>
+                    <input id="fecha" type="datetime-local" class="swal2-input" style="width:80%;">
+                    </td>
                   </tr>
                 </table>
               `,
@@ -381,7 +410,8 @@ function SesionesLibres({ semestreValue }) {
                 const sesion = document.getElementById("sesion").value;
                 const descripcion = document.getElementById("descripcion").value.trim();
                 const link = document.getElementById("link").value.trim();
-                const fecha = document.getElementById("fecha").value.trim();
+                const fecha = document.getElementById("fecha").value.replace("T", " ") + ":00";
+
 
                 if (!sesion || !descripcion || !fecha) {
                   Swal.showValidationMessage("Complete los campos obligatorios.");

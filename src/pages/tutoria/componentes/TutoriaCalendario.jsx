@@ -13,7 +13,7 @@ import Swal from "sweetalert2";
 
 import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../../context/UserContext";
-import { obtenerSesionesCiclo, obtenerSesionesLibres } from "../logica/DatosTutoria";
+import { obtenerSesionesCiclo, obtenerSesionesLibres,obtenerDerivacionesTutor } from "../logica/DatosTutoria";
 
 // --- Localizador en español (lunes inicio de semana)
 const locales = { es };
@@ -25,21 +25,39 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// --- Funciones de fecha
-const toYMD = (fecha) => {
-  if (!fecha) return "";
-  if (fecha.includes("T")) return fecha.split("T")[0];
-  if (/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return fecha;
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) {
-    const [d, m, y] = fecha.split("/");
-    return `${y}-${m}-${d}`;
+// Convierte "2025-12-02 09:06:00" → Date real
+const toDateTime = (fecha) => {
+  if (!fecha) return null;
+
+  // Caso: MySQL "YYYY-MM-DD HH:MM:SS"
+  if (fecha.includes("-") && fecha.includes(":")) {
+    const [fechaPart, horaPart] = fecha.split(" ");
+    const [anio, mes, dia] = fechaPart.split("-").map(Number);
+    const [h, m] = horaPart.split(":").map(Number);
+    return new Date(anio, mes - 1, dia, h, m);
   }
-  return "";
+
+  // Caso "DD/MM/YYYY HH:MM"
+  if (fecha.includes("/") && fecha.includes(":")) {
+    const [f, h] = fecha.split(" ");
+    const [dia, mes, anio] = f.split("/").map(Number);
+    const [hor, min] = h.split(":").map(Number);
+    return new Date(anio, mes - 1, dia, hor, min);
+  }
+
+  // Caso solo fecha
+  if (fecha.includes("-")) {
+    const [a, m, d] = fecha.split("-").map(Number);
+    return new Date(a, m - 1, d);
+  }
+  if (fecha.includes("/")) {
+    const [d, m, a] = fecha.split("/").map(Number);
+    return new Date(a, m - 1, d);
+  }
+  
+  return null;
 };
-const ymdToDate = (ymd) => {
-  const [y, m, d] = ymd.split("-").map(Number);
-  return new Date(y, m - 1, d);
-};
+
 
 // --- Textos en español
 const messagesES = {
@@ -81,7 +99,7 @@ const formatsES = {
 
 function TutoriaCalendario({ semestreValue }) {
   const { usuario } = useUsuario();
-  const [semestre, setSemestre] = useState(semestreValue || "202502");
+  const semestre = "202502";
   const [eventos, setEventos] = useState([]);
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
@@ -98,15 +116,19 @@ function TutoriaCalendario({ semestreValue }) {
       // CICLO
       const { datos: datosCiclo } = await obtenerSesionesCiclo(persona, semestre, token);
       (datosCiclo || []).forEach((s) => {
-        const ymd = toYMD(s.fecha);
-        if (!ymd) return;
-        const f = ymdToDate(ymd);
+      const f = toDateTime(s.fecha);
+        if (!f) return;
+
         lista.push({
           title: `Ciclo: ${s.descripcion}`,
           start: f,
           end: f,
-          allDay: true,
-          meta: { tipo: "ciclo", estado: Number(s.activo) === 1 ? "concluida" : "pendiente", sesion: s.sesion },
+          allDay: false,  // 👈 MUY IMPORTANTE
+          meta: {
+            tipo: "ciclo",
+            estado: Number(s.activo) === 1 ? "concluida" : "pendiente",
+            sesion: s.sesion
+          },
         });
       });
 
@@ -114,17 +136,59 @@ function TutoriaCalendario({ semestreValue }) {
       const libresRaw = await obtenerSesionesLibres(persona, semestre, token);
       const datosLibres = Array.isArray(libresRaw) ? libresRaw : libresRaw?.data || [];
       (datosLibres || []).forEach((s) => {
-        const ymd = toYMD(s.fecha);
-        if (!ymd) return;
-        const f = ymdToDate(ymd);
+        const f = toDateTime(s.fecha);
+        if (!f) return;
+
         lista.push({
           title: `Libre: ${s.descripcion}`,
           start: f,
           end: f,
-          allDay: true,
-          meta: { tipo: "libre", estado: Number(s.activo) === 1 ? "concluida" : "pendiente", sesion: s.sesion },
+          allDay: false,
+          meta: {
+            tipo: "libre",
+            estado: Number(s.activo) === 1 ? "concluida" : "pendiente",
+            sesion: s.sesion
+          },
         });
       });
+
+// === DERIVACIONES ===
+const derivRaw = await obtenerDerivacionesTutor(semestre, persona, token);
+const derivList = derivRaw?.derivaciones || [];
+
+derivList.forEach((d) => {
+  const start = toDateTime(d.fechaDeriva);
+  if (!start) return;
+
+  let end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hora por defecto
+  let tieneAtencion = false;
+
+  // Si hay fechatencion válida → usar como 'end'
+  if (d.fechatencion && d.fechatencion.trim() !== "" && d.fechatencion !== "null") {
+    const fechaAtencion = toDateTime(d.fechatencion);
+    if (fechaAtencion && fechaAtencion >= start) {
+      end = fechaAtencion;
+      tieneAtencion = true;
+    }
+  }
+
+  lista.push({
+    title: `Derivación: ${d.area}`,
+    start,
+    end,
+    allDay: false,
+    meta: {
+      tipo: "derivacion",
+      alumno: d.alumno,
+      descripcion: d.descripcion,
+      area: d.area,
+      estado: (d.estado || "").toLowerCase(),
+      fechaDeriva: d.fechaDeriva,
+      fechatencion: d.fechatencion, // ← string original o null
+      tieneAtencion, // ← bandera para el popup
+    }
+  });
+});
 
       setEventos(lista);
     } catch (e) {
@@ -133,10 +197,13 @@ function TutoriaCalendario({ semestreValue }) {
     }
   };
 
-  useEffect(() => {
-    cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [usuario, semestre]);
+ // ELIMINA ESTO (ya no cambia)
+// useEffect(() => { cargar(); }, [usuario, semestre]);
+
+// REEMPLAZA POR:
+useEffect(() => {
+  if (usuario?.docente) cargar();
+}, [usuario]); // ← solo cuando carga el usuario
 
   const eventosFiltrados = useMemo(
     () => (mostrarSoloPendientes ? eventos.filter((e) => e.meta?.estado === "pendiente") : eventos),
@@ -150,6 +217,14 @@ function TutoriaCalendario({ semestreValue }) {
     let backgroundColor = "#0d6efd"; // ciclo = azul
     if (tipo === "libre") backgroundColor = "#198754"; // libre = verde
     if (tipo === "individual") backgroundColor = "#6f42c1"; // individual = violeta
+    // En eventPropGetter
+if (tipo === "derivacion") {
+  backgroundColor = "#d63384"; // rosa por defecto
+  if (event.meta.estado === "atendido") {
+    backgroundColor = "#6c757d"; // gris
+  }
+}
+
     return {
       style: {
         backgroundColor,
@@ -163,9 +238,69 @@ function TutoriaCalendario({ semestreValue }) {
     };
   };
 
-  // 📅 Click en evento
-  const onSelectEvent = (event) => {
+
+
+ // 📅 Click en evento
+const onSelectEvent = (event) => {
   const { tipo, estado, sesion } = event.meta || {};
+
+ const getEstadoBadge = (estado) => {
+  const est = (estado || "").toLowerCase().trim();
+  let bgColor = "bg-secondary";
+  let textColor = "text-white";
+  let texto = est;
+
+  if (est === "programado") {
+    bgColor = "bg-primary";
+  } else if (est === "pendiente") {
+    bgColor = "bg-warning";
+    textColor = "text-dark"; // ← NEGRO para amarillo
+  } else if (est === "atendido") {
+    bgColor = "bg-success";
+  } else {
+    texto = est || "desconocido";
+  }
+
+  return `
+    <span class="badge ${bgColor} ${textColor}" 
+          style="font-size:13px; padding:4px 8px; border-radius:12px; font-weight:600;">
+      ${texto.charAt(0).toUpperCase() + texto.slice(1)}
+    </span>
+  `;
+};
+
+  // ===========================
+  // 🟣 CASO DERIVACIÓN
+  // ===========================
+if (tipo === "derivacion") {
+  Swal.fire({
+  title: `Derivación - ${event.meta.alumno}`,
+  width: 600,
+  html: `
+    <div style="text-align:left; font-size:15px; line-height:1.6;">
+      <div><b>Alumno:</b> ${event.meta.alumno}</div>
+      <div><b>Descripción:</b> ${event.meta.descripcion}</div>
+      <div><b>Área:</b> ${event.meta.area}</div>
+      <div><b>Estado:</b> ${getEstadoBadge(event.meta.estado)}</div>
+      <div><b>Derivación:</b> ${format(event.start, "dd/MM/yyyy HH:mm", { locale: es })}</div>
+      <div><b>Atención:</b> ${
+        event.meta.tieneAtencion
+          ? format(event.end, "dd/MM/yyyy HH:mm", { locale: es })
+          : "<i style='color:#999'>Pendiente</i>"
+      }</div>
+    </div>
+  `,
+  icon: "info",
+  showCancelButton: true,
+  confirmButtonText: "OK",
+  cancelButtonText: "Cerrar",
+});
+  return;
+}
+
+  // ===========================
+  // 🟦 CICLO / 🟩 LIBRE
+  // ===========================
 
   let botones = {};
 
@@ -186,11 +321,11 @@ function TutoriaCalendario({ semestreValue }) {
   Swal.fire({
     title: event.title,
     html: `
-      <div style="text-align:left">
+      <div style="text-align:left;">
         <div><b>Tipo:</b> ${tipo}</div>
         <div><b>Estado:</b> ${estado}</div>
         <div><b>Sesión:</b> ${sesion || "-"}</div>
-        <div><b>Fecha:</b> ${format(event.start, "dd/MM/yyyy", { locale: es })}</div>
+        <div><b>Fecha:</b> ${format(event.start, "dd/MM/yyyy HH:mm", { locale: es })}</div>
       </div>
     `,
     icon: "info",
@@ -198,39 +333,35 @@ function TutoriaCalendario({ semestreValue }) {
     showCancelButton: true,
     cancelButtonText: "Cerrar",
   }).then((r) => {
-    if (r.isConfirmed && tipo === "ciclo") {
-      navigate("/tutoria/ciclo");
-    }
-    if (r.isDenied && tipo === "libre") {
-      navigate("/tutoria/libre");
-    }
+    if (r.isConfirmed && tipo === "ciclo") navigate("/tutoria/ciclo");
+    if (r.isDenied && tipo === "libre") navigate("/tutoria/libre");
   });
 };
 
 
+
   return (
     <div className="container mt-3">
-      {/* Barra superior */}
-      <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
-        <div className="me-2"><strong>Semestre:</strong></div>
-        <SemestreSelect value={semestre} onChange={setSemestre} name="cboSemestre" />
-        <div className="ms-auto d-flex align-items-center gap-2">
-          <Badge bg="primary">Ciclo</Badge>
-          <Badge bg="success">Libre</Badge>
-          <div className="form-check form-switch ms-3">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="switchPend"
-              checked={mostrarSoloPendientes}
-              onChange={(e) => setMostrarSoloPendientes(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="switchPend">
-              Mostrar solo pendientes
-            </label>
+      
+      
+        {/* REEMPLAZA la barra superior por algo más limpio */}
+          <div className="d-flex align-items-center justify-content-end gap-2 mb-3">
+            <Badge bg="primary">Ciclo</Badge>
+            <Badge bg="success">Libre</Badge>
+            <Badge bg="danger">Derivación</Badge>
+            <div className="form-check form-switch ms-3">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="switchPend"
+                checked={mostrarSoloPendientes}
+                onChange={(e) => setMostrarSoloPendientes(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="switchPend">
+                Mostrar solo pendientes
+              </label>
+            </div>
           </div>
-        </div>
-      </div>
 
       <div style={{ height: 650, background: "#fff", borderRadius: 12, padding: 8 }}>
         <Calendar
