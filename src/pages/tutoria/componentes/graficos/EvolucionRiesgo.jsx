@@ -1,13 +1,13 @@
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 
 export default function EvolucionRiesgo({ data }) {
 
-  // Garantizar arrays válidos
   const bajo = Array.isArray(data.bajo) ? data.bajo : [data.bajo || 0];
   const medio = Array.isArray(data.medio) ? data.medio : [data.medio || 0];
   const alto = Array.isArray(data.alto) ? data.alto : [data.alto || 0];
 
-  const meses = ["Marzo", "Abril", "Mayo", "Junio"].slice(0, bajo.length);
+  const meses = ["Total"];
+
 
   const chartData = {
     labels: meses,
@@ -15,26 +15,45 @@ export default function EvolucionRiesgo({ data }) {
       {
         label: "Bajo riesgo",
         data: bajo,
-        borderColor: "#0d6efd",
-        fill: false,
-        tension: 0.4
+        backgroundColor: "#0d6efd",
       },
       {
         label: "Riesgo medio",
         data: medio,
-        borderColor: "#f0ad4e",
-        fill: false,
-        tension: 0.4
+        backgroundColor: "#f0ad4e",
       },
       {
         label: "Alto riesgo",
         data: alto,
-        borderColor: "#dc3545",
-        fill: false,
-        tension: 0.4
+        backgroundColor: "#dc3545",
       }
     ]
   };
 
-  return <Line data={chartData} height={90} />;
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        align: "center",
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          pointStyle: "rectRounded"
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  };
+
+  return (
+    <div style={{ height: "260px", width: "100%" }}>
+      <Bar data={chartData} options={options} />
+    </div>
+  );
 }

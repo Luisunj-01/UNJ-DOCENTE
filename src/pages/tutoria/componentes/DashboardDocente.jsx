@@ -224,14 +224,41 @@ const [alertas, setAlertas] = useState({
     ]);
 
     // =================================================
-    // 6️⃣ RENDIMIENTO RADAR (mock)
-    // =================================================
-    setRendimiento([
-      { area: "Comunicación", score: 78 },
-      { area: "Matemática", score: 65 },
-      { area: "Ciencias", score: 72 },
-      { area: "Humanidades", score: 80 },
-    ]);
+// 🔥 5️⃣ CURSOS CRÍTICOS DESDE OBS. RENDIMIENTO
+// =================================================
+
+const rObs = await fetch(
+  `${config.apiUrl}api/Tutoria/rendimiento/${semestre}/${persona}/${docente}/xx/G`,
+  { headers }
+);
+
+const dObs = await rObs.json();
+
+// Diccionario para contar repitencias
+let conteo = {};
+
+dObs.forEach(al => {
+  ["segunda", "tercera", "cuarta"].forEach(col => {
+    if (al[col]) {
+      al[col]
+        .split(",")
+        .map(c => c.trim().toUpperCase())
+        .filter(c => c !== "")
+        .forEach(curso => {
+          conteo[curso] = (conteo[curso] || 0) + 1;
+        });
+    }
+  });
+});
+
+// Convertir en array para el gráfico
+const listaCursos = Object.entries(conteo).map(([curso, repitentes]) => ({
+  curso,
+  repitentes
+}));
+
+setCursosCriticos(listaCursos);
+
 
     // =================================================
     // 7️⃣ GUARDAR EN ESTADO PRINCIPAL
@@ -299,88 +326,66 @@ const [alertas, setAlertas] = useState({
             </Col>
         </Row>
 
-{/* ⬇️ AQUÍ VA EXACTAMENTE LOS GRÁFICOS */}
+        {/* =============================== */}
+{/* GRÁFICOS ORDENADOS */}
+{/* =============================== */}
+
+<Row className="mt-4 g-4">
+
+  <Col md={4}>
+    <Card className="shadow-sm p-3 grafico-card">
+      <h6 className="mb-3 text-center">Evolución del riesgo</h6>
+      <EvolucionRiesgo data={datosRiesgo} />
+    </Card>
+  </Col>
+
+  <Col md={4}>
+    <Card className="shadow-sm p-3 grafico-card">
+      <h6 className="mb-3 text-center">Asistencia a sesiones</h6>
+      <AsistenciaSesiones data={datosAsistencia} />
+    </Card>
+  </Col>
+
+  <Col md={4}>
+    <Card className="shadow-sm p-3 grafico-card">
+      <h6 className="mb-3 text-center">Recomendaciones emitidas</h6>
+      <RecomendacionesDona data={datosRecomendaciones} />
+    </Card>
+  </Col>
+
+</Row>
+
+<Row className="mt-4 g-4">
+
+  <Col md={4}>
+    <Card className="shadow-sm p-3 grafico-card">
+      <h6 className="mb-3 text-center">Cursos críticos</h6>
+      <CursosCriticos data={cursosCriticos} />
+    </Card>
+  </Col>
+
+  <Col md={4}>
+    <Card className="shadow-sm p-3 grafico-card">
+      <h6 className="mb-3 text-center">Rendimiento por área</h6>
+      <RendimientoRadar data={rendimiento} />
+    </Card>
+  </Col>
+
+  <Col md={4}>
+    <Card className="shadow-sm p-3 grafico-card">
+      <h6 className="mb-3 text-center">Alertas importantes</h6>
+      <AlertasCard alertas={alertas} />
+    </Card>
+  </Col>
+
+</Row>
+
+
+
+
+
+
       
-      <Row className="mt-4 g-4">
-        <Col md={4}><EvolucionRiesgo data={datosRiesgo} /></Col>
-        <Col md={4}><AsistenciaSesiones data={datosAsistencia} /></Col>
-        <Col md={4}><RecomendacionesDona data={datosRecomendaciones} /></Col>
-      </Row>
-
-      <Row className="mt-4 g-4">
-        <Col md={4}><CursosCriticos data={cursosCriticos} /></Col>
-        <Col md={4}><RendimientoRadar data={rendimiento} /></Col>
-        <Col md={4}><AlertasCard alertas={alertas} /></Col>
-      </Row>
-
-
-
-      {/* ==================================== */}
-      {/* GRÁFICO DONA */}
-      {/* ==================================== */}
-      <Row className="mt-4">
-        <Col md={4}>
-  <Card className="p-3 shadow-sm">
-    <h6 className="text-center">Categorización de Riesgo</h6>
-
-    <div style={{
-      width: "260px",
-      height: "260px",
-      margin: "0 auto"
-    }}>
-      <Doughnut
-        data={dataDona}
-        options={{
-          maintainAspectRatio: false,
-        }}
-      />
-    </div>
-
-  </Card>
-</Col>
-
-
-
-        {/* Espacios vacíos para más gráficos */}
-        <Col md={4}>
-          <Card className="p-3 shadow-sm">
-            <div style={{ width: "100%", height: "250px", background: "#0d5978" }}></div>
-          </Card>
-        </Col>
-
-        <Col md={4}>
-          <Card className="p-3 shadow-sm">
-            <div style={{ width: "100%", height: "250px", background: "#0d5978" }}></div>
-          </Card>
-        </Col>
-
-      </Row>
-
-      {/* ==================================== */}
-      {/* FILA 2 - GRÁFICOS OPCIONALES */}
-      {/* ==================================== */}
-      <Row className="g-4 mt-3">
-
-        <Col md={4}>
-          <Card className="p-3 shadow-sm">
-            <div style={{ width: "100%", height: "250px", background: "#0d5978" }}></div>
-          </Card>
-        </Col>
-
-        <Col md={4}>
-          <Card className="p-3 shadow-sm">
-            <div style={{ width: "100%", height: "250px", background: "#0d5978" }}></div>
-          </Card>
-        </Col>
-
-        <Col md={4}>
-          <Card className="p-3 shadow-sm">
-            <div style={{ width: "100%", height: "250px", background: "#0d5978" }}></div>
-          </Card>
-        </Col>
-
-      </Row>
-
     </div>
   );
 }

@@ -34,4 +34,27 @@
   font-weight: bold;
 }
 
+.grafico-card {
+  height: 300px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.grafico-contenedor {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.grafico-card {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.grafico-card canvas {
+  max-height: 230px !important;
+}
