@@ -1,4 +1,4 @@
-// src/api/Docente.js
+// src/pages/reutilizables/logica/docente.js
 import axios from 'axios';
 import config from '../../../config';
 
@@ -6,8 +6,21 @@ import config from '../../../config';
 // Función para obtener información del alumno
 export const obtenersemestre = async (codigo) => {
   try {
-    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
     const res = await axios.get(`${config.apiUrl}api/Reportedoc/semestre/202002/${codigo}`);
+    if (Array.isArray(res.data) && res.data.length > 0) {
+      return { datos: res.data, mensaje: '' };
+    } else {
+      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
+    }
+  } catch (err) {
+    console.error('Error al obtener datos del Docente:', err);
+    return null;
+  }
+};
+
+export const obtenersemestre2 = async (codigo) => {
+  try {
+    const res = await axios.get(`${config.apiUrl}api/Reportedoc/semestre2/${codigo}`);
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -21,7 +34,6 @@ export const obtenersemestre = async (codigo) => {
 
 export const obtenersemana = async (sede, semestre, escuela, curricula, curso, seccion) => {
   try {
-    //const res = await axios.get(`http://127.0.0.1:8000/api/alumno/${codigo}/${escuela}/${nivel}/${tipo}/${accion}`);
     const res = await axios.get(`${config.apiUrl}api/Reportedoc/semana/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}`);
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
@@ -39,7 +51,7 @@ export const obtenersemana = async (sede, semestre, escuela, curricula, curso, s
 
 // Función para obtener los cursos de prematrícula
 export const obtenerCursosPrematricula = async (semestre, persona, usuario, tipo) => {
-  
+
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));
     //const token = usuario?.token;
@@ -58,7 +70,7 @@ export const obtenerCursosPrematricula = async (semestre, persona, usuario, tipo
 };
 
 export const obtenerdatosreu = async (id, tabla, tipocampo) => {
-  
+
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));
     //const token = usuario?.token;
@@ -78,7 +90,7 @@ export const obtenerdatosreu = async (id, tabla, tipocampo) => {
 
 
 export const obtenerReza = async (semestre, persona, dni, codigotokenautenticadorunj) => {
-  
+
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));
     //const token = usuario?.token;
@@ -98,7 +110,7 @@ export const obtenerReza = async (semestre, persona, dni, codigotokenautenticado
 };
 
 export const obtenerAplaz = async (semestre, persona, dni, codigotokenautenticadorunj) => {
-  
+
   try {
     //const usuario = JSON.parse(localStorage.getItem('usuario'));
     //const token = usuario?.token;

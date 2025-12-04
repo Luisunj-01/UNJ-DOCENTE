@@ -110,7 +110,7 @@ export const obtenerTemasDisponibles = async (semestre, persona, token) => {
 export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo = "N", token) => {
   try {
     const url = `${config.apiUrl}api/Tutoria/guardar-sesion`;
-    console.log("📡 Solicitando:", url);
+   
 
     const res = await axios.post(
       url,
@@ -144,7 +144,7 @@ export const guardarSesion = async (codigo, semana, aula, fecha, concluida, tipo
 
   } catch (err) {
     console.error("❌ Error al guardar sesión:", err.message);
-    console.log("🧩 err.response:", err.response);
+  
     return { exito: false, mensaje: "Error al conectar con la API." };
   }
 };
@@ -153,11 +153,10 @@ export const obtenerRecomendacion = async (persona, semestre, sesion, token) => 
   try {
     // 🔹 Concatenar el código directamente en texto plano
     const codigo = `${persona}${semestre}${sesion}`;
-    console.log("🔍 Código generado:", codigo);
+    
     const url = `${config.apiUrl}api/Tutoria/obtener-recomendacion/${codigo}`;
 
-    console.log("🌐 URL:", url);
-    console.log("🔑 Token:", token);
+  
 
     const respuesta = await fetch(url, {
       method: "GET",
@@ -168,7 +167,7 @@ export const obtenerRecomendacion = async (persona, semestre, sesion, token) => 
     });
 
     const json = await respuesta.json();
-    console.log("📥 Respuesta obtenerRecomendacion:", json);
+
 
     if (json.success && json.data) {
       return {
@@ -205,7 +204,7 @@ export const guardarRecomendacion = async (
   try {
     const url = `${config.apiUrl}api/Tutoria/guardar-recomendacion`;
 
-    console.log("📡 Enviando datos a:", url);
+ 
 
     const res = await axios.post(
       url,
@@ -227,7 +226,7 @@ export const guardarRecomendacion = async (
       }
     );
 
-    console.log("📥 Respuesta del servidor:", res.data);
+   
 
     // ✅ Manejo correcto de la respuesta
     if (res.status === 200 && res.data?.success) {
@@ -252,7 +251,6 @@ export const eliminarSesion = async (persona, semestre, sesion, token) => {
   try {
     const codigo = `${persona}${semestre}${sesion}`;
     const url = `${config.apiUrl}api/Tutoria/eliminar-sesion/${codigo}`;
-    console.log("🗑️ Eliminando sesión:", url);
 
     const respuesta = await fetch(url, {
       method: "DELETE",
@@ -263,7 +261,7 @@ export const eliminarSesion = async (persona, semestre, sesion, token) => {
     });
 
     const data = await respuesta.json();
-    console.log("📥 Respuesta eliminarSesion:", data);
+  
 
     if (data.success) {
       return { error: 0, mensaje: data.message };
@@ -500,7 +498,7 @@ export const obtenerSesionesIndividuales = async (
     });
 
     const data = await res.json();
-    console.log("🔁 API sesiones-individuales responde:", data);
+    
     return data;
   } catch (err) {
     console.error("❌ Error al obtener sesiones individuales:", err);
@@ -530,7 +528,7 @@ export const obtenerSesionIndividual = async (
     });
 
     const data = await res.json();
-    console.log("🔍 API sesion-individual responde:", data);
+  
     return data;
   } catch (err) {
     console.error("❌ Error al obtener detalle tutorando:", err);
@@ -583,7 +581,7 @@ export const obtenerDatosNuevaAtencion = async (
     });
 
     const data = await res.json();
-    console.log("📥 obtenerDatosNuevaAtencion ->", data);
+  
 
     return data;
     // Esperamos:
@@ -649,7 +647,7 @@ export const grabarAtencionIndividual = async (
     });
 
     const data = await res.json();
-    console.log("💾 grabarAtencionIndividual ->", data);
+
 
     return data;
 
@@ -756,7 +754,7 @@ export const verificarSesion = async (persona, semestre, sesion, token) => {
 export const obtenerFichaMatricula = async (alumno, escuela, curricula, semestre, token) => {
   try {
     const url = `${config.apiUrl}api/reportes/FichaMatricula/${alumno}/${escuela}/${curricula}/${semestre}`;
-    console.log("📡 URL API FichaMatricula:", url);
+  
 
     const resp = await fetch(url, {
       method: "GET",
@@ -767,8 +765,7 @@ export const obtenerFichaMatricula = async (alumno, escuela, curricula, semestre
     });
 
     const data = await resp.json();
-    console.log("📊 Respuesta API FichaMatricula:", data);
-    return data;
+    
   } catch (err) {
     console.error("❌ Error al obtener ficha de matrícula:", err);
     return { success: false, datos: [] };

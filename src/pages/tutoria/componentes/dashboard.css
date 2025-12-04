@@ -1,0 +1,37 @@
+.card-mini {
+  background: white !important;
+  padding: 10px 14px !important;
+  border-radius: 8px;
+  min-height: 55px;
+  font-size: 0.85rem;
+  border: 1px solid #e5e5e5;
+}
+
+.card-mini b {
+  font-size: 1rem;
+}
+.metric-card {
+  background: #fff;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+}
+
+.metric-icon {
+  display: flex;
+  align-items: center;
+}
+
+.metric-title {
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+

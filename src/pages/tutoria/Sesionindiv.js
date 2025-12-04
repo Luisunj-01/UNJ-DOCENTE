@@ -91,13 +91,7 @@ function SesionesIndividuales({ semestreValue }) {
 
     const vperfil = "P02";
 
-    console.log("👉 Llamando sesiones-individuales con:", {
-      semestre,
-      persona,
-      docente,
-      escuela,
-      vperfil,
-    });
+   
 
     const resp = await obtenerSesionesIndividuales(
       semestre,
@@ -145,7 +139,7 @@ function SesionesIndividuales({ semestreValue }) {
         }/${rowAlumno.tutorPersona}/${rowAlumno.personaalumno}/${rowAlumno.alumno}/${rowAlumno.estructura
         }`;
 
-      console.log("📄 URL historial:", url);
+    
 
       // Llamar API y obtener blob (PDF)
       const resp = await axios.get(url, {
@@ -333,7 +327,7 @@ function SesionesIndividuales({ semestreValue }) {
       estructura,
       token
     );
-    console.log("📥 Datos para nueva atención:", combosData);
+   
 
     if (!combosData.success) {
       Swal.fire(

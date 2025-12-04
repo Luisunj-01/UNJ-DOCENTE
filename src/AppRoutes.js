@@ -43,7 +43,7 @@ import ImprimirRecordDetallado from "./pages/tutoria/componentes/ImprimirRecordD
 import ImprimirCursosFaltantes from './pages/tutoria/componentes/ImprimirCursosFaltantes';
 import ImprimirCursosDisponibles from './pages/tutoria/componentes/ImprimirCursosDisponibles';
 
-
+import DashboardDocente from './pages/tutoria/componentes/DashboardDocente';
 
 
 
@@ -135,9 +135,14 @@ function AppRoutes() {
             {/* <Route path="tutoria/individual" element={<SesionIndiv />} /> */}
             <Route path="tutoria/individual" element={<RutaPrivada permisoRequerido="009-003"><SesionIndiv /></RutaPrivada>} />
 
-            <Route path="Reportes" element={<Reportes />} />
+            {/* <Route path="Reportes" element={<Reportes />} /> */}
 
             <Route path="Reportes" element={<RutaPrivada permisoRequerido="009-004"><Reportes /></RutaPrivada>} />
+
+
+            <Route path="Dashboard" element={<RutaPrivada permisoRequerido="009-008"><DashboardDocente /></RutaPrivada>} />
+
+
 
             {/* <Route path="Curso" element={<Cursos />} /> */}
             <Route path="Curso" element={<RutaPrivada permisoRequerido="002-040"><Cursos /></RutaPrivada>} />
@@ -145,7 +150,9 @@ function AppRoutes() {
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
             <Route path="participantes/:id" element={<ParticipantesGuias />} />
 
-            {/* <Route path="Declaracion" element={<Declaracion />} /> */}
+
+          
+            {/* <RUTA DE MODULO CARGA NO LECTIVAS/>} /> */}
            <Route path="Declaracion" element={<RutaPrivada permisoRequerido="001-004"><Declaracion /></RutaPrivada>} />
             <Route path="Horarios" element={<RutaPrivada permisoRequerido="001-005"><Horarios /></RutaPrivada>} />
        

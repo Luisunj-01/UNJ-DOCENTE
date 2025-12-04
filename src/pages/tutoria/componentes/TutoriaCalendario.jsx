@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "react-bootstrap";
 import Swal from "sweetalert2";
 
-import SemestreSelect from "../../reutilizables/componentes/SemestreSelect";
+
 import { useUsuario } from "../../../context/UserContext";
 import { obtenerSesionesCiclo, obtenerSesionesLibres,obtenerDerivacionesTutor } from "../logica/DatosTutoria";
 

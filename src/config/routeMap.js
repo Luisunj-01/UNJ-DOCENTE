@@ -89,6 +89,8 @@ export const routeMap = {
   '009-006': '/tutoria/derivaciones',
   '009-100': '/tutoria/formatos',
   '009-007': '/tuto/micalendario',
+  '009-008': 'Dashboard',
+
 
   //-------------------MODULO CARGA NO LECTIVA
   '001-004': 'Declaracion',

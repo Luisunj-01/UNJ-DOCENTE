@@ -1,3 +1,4 @@
+//src/pages/reutilizables/SemestreSelect.js
 import { useEffect, useState } from 'react';
 import { useUsuario } from '../../../context/UserContext';
 import { obtenersemestre, obtenersemana } from '../logica/docente';
