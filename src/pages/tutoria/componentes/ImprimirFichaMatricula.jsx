@@ -23,7 +23,7 @@ const ImprimirFichaMatricula = () => {
     if (codigoParam) {
       const decoded = atob(codigoParam);
       [alumno, escuela, curricula, semestre] = decoded.split("|");
-      console.log("📦 Parámetros decodificados:", { alumno, escuela, curricula, semestre });
+      // console.log("📦 Parámetros decodificados:", { alumno, escuela, curricula, semestre });
     }
   } catch (error) {
     console.error("❌ Error al decodificar parámetros:", error);
@@ -53,7 +53,8 @@ const ImprimirFichaMatricula = () => {
       let cursos = [];
       try {
         const resp = await obtenerFichaMatricula(alumno, escuela, curricula, semestre, token);
-        cursos = resp.datos || resp.data || [];
+        cursos = resp.data || [];
+          console.log("📌 RESP COMPLETO:", resp); // <-- AQUÍ
       } catch (error) {
         console.error("❌ Error al obtener cursos:", error);
       }

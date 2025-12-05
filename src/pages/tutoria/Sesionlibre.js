@@ -65,14 +65,18 @@ function SesionesLibres({ semestreValue }) {
           s.sesion,
           token
         );
+        console.log("📌 Evidencias sesión", s.sesion, ev);
+
 
         const tieneAsistencia = Number(ev?.asistencias) > 0;
         const tieneFoto = Number(ev?.fotos) > 0;
+        const activo= Number(ev?.activo) 
 
         return {
           ...s,
           tieneAsistencia,
           tieneFoto,
+          activo
         };
       })
     );
@@ -327,11 +331,19 @@ function SesionesLibres({ semestreValue }) {
 
       {/* Leyenda */}
       <div className="alert alert-info py-2">
-        <strong>Leyenda:</strong>&nbsp;
-        <i className="fa fa-male"></i> Asistencia&nbsp;
-        <i className="fa fa-edit"></i> Editar&nbsp;
-        <i className="fa fa-trash"></i> Eliminar
-      </div>
+  <strong>Leyenda:</strong>&nbsp;
+
+  <i className="far fa-smile icono-amarillo"></i> Subir foto&nbsp;&nbsp;
+
+  <i className="fa fa-male icono-azul"></i> Asistencia&nbsp;&nbsp;
+
+  <i className="fa fa-edit icono-negro"></i> Editar&nbsp;&nbsp;
+
+  <i className="fa fa-check-circle icono-verde"></i> Concluir sesión&nbsp;&nbsp;
+
+  <i className="fa fa-trash icono-rojo"></i> Eliminar
+</div>
+
 
 
 
