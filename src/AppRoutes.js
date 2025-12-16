@@ -74,6 +74,11 @@ import ImprimirAsistenciaPorcentaje from './pages/reportes/componentes/ImprimirA
 import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsistenciaSesiones.jsx';
 
 import GoogleCallback from './pages/login/AuthCallback.js'; // agrega este archivo
+import RecuperarPassword from "./pages/login/RecuperarPassword.jsx";
+import NuevaPassword from "./pages/login/NuevaPassword.jsx"; 
+
+
+
 
 
 function AppRoutes() {
@@ -100,6 +105,8 @@ function AppRoutes() {
       <Route path="/login" element={usuario ? <Navigate to="/" replace /> : <Login />} />
       {/* <Route path="/google/callback" element={<GoogleCallback />} /> */}
       <Route path="/auth/callback" element={<GoogleCallback />} />
+      <Route path="/recuperar" element={<RecuperarPassword />} />
+      <Route path="/nueva-password" element={<NuevaPassword />} />
 
 
       {/* Rutas privadas dentro de Layout */}
