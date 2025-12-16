@@ -33,57 +33,57 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
   }, []);
 
   const cargarDatos = async () => {
-  setLoading(true);
-  try {
-    const respTrabajos = await obtenerDatostrabajoguias(
-      sede, semestre, escuela, curricula, curso, seccion, semana
-    );
-    console.log(respTrabajos);
-    const listaTrabajos = respTrabajos?.datos || [];
-    setTrabajos(listaTrabajos);
+    setLoading(true);
+    try {
+      const respTrabajos = await obtenerDatostrabajoguias(
+        sede, semestre, escuela, curricula, curso, seccion, semana
+      );
+      console.log(respTrabajos);
+      const listaTrabajos = respTrabajos?.datos || [];
+      setTrabajos(listaTrabajos);
 
-    // 👇 Ajuste aquí
-    const respAlumnos = await obtenerRevisionTrabajo(
-      sede, semestre, escuela, curricula, curso, seccion, semana
-    );
-    
-    const alumnos = respAlumnos?.datos || [];  // <— usamos .datos
+      // 👇 Ajuste aquí
+      const respAlumnos = await obtenerRevisionTrabajo(
+        sede, semestre, escuela, curricula, curso, seccion, semana
+      );
 
-    if (alumnos.length === 0) {
-      setMensajeApi('No se encontraron alumnos para esta sección.');
-      setLoading(false);
-      return;
+      const alumnos = respAlumnos?.datos || [];  // <— usamos .datos
+
+      if (alumnos.length === 0) {
+        setMensajeApi('No se encontraron alumnos para esta sección.');
+        setLoading(false);
+        return;
+      }
+
+      const datosConNotas = await Promise.all(
+        alumnos.map(async (al) => {
+          const notasResp = await obtenerDatosnotas(
+            sede, semestre, escuela, curricula, curso, seccion, semana, al.alumno
+          );
+          const notas = notasResp?.datos || [];
+
+          const notasMap = {};
+          listaTrabajos.forEach((trabajo, idx) => {
+            const n = notas.find((x) => x.tra === trabajo.tra);
+            notasMap[`nota${idx + 1}`] = n ? n.nota : '';
+          });
+
+          return {
+            ...al,
+            personaCompleta: `${al.persona || ''}${al.alumno || ''}`,
+            ...notasMap,
+          };
+        })
+      );
+
+      setDatos(datosConNotas);
+      setMensajeApi('');
+    } catch (err) {
+      console.error('Error al cargar datos:', err);
+      setMensajeApi('Ocurrió un error al obtener los datos.');
     }
-
-    const datosConNotas = await Promise.all(
-      alumnos.map(async (al) => {
-        const notasResp = await obtenerDatosnotas(
-          sede, semestre, escuela, curricula, curso, seccion, semana, al.alumno
-        );
-        const notas = notasResp?.datos || [];
-
-        const notasMap = {};
-        listaTrabajos.forEach((trabajo, idx) => {
-          const n = notas.find((x) => x.tra === trabajo.tra);
-          notasMap[`nota${idx + 1}`] = n ? n.nota : '';
-        });
-
-        return {
-          ...al,
-          personaCompleta: `${al.persona || ''}${al.alumno || ''}`,
-          ...notasMap,
-        };
-      })
-    );
-
-    setDatos(datosConNotas);
-    setMensajeApi('');
-  } catch (err) {
-    console.error('Error al cargar datos:', err);
-    setMensajeApi('Ocurrió un error al obtener los datos.');
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
 
 
@@ -112,7 +112,7 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
     );
   };
 
-  
+
 
   const guardarNotaTrabajo = async (tra, alumno, nota) => {
     const payload = {
@@ -191,84 +191,117 @@ const RevisionTraPart = ({ datoscurso, semana }) => {
 
   // Columnas dinámicas
   // Columnas dinámicas
-const columnas = [
-  { clave: 'alumno', titulo: 'Código' },
-  { clave: 'nombrecompleto', titulo: 'Nombres Completos' },
-  ...trabajos.map((trabajo, idx) => {
-    // 🔹 convertir a minúsculas y truncar a 20 caracteres con “...”
-    const nombre = trabajo.contenido.toLowerCase();
-    const nombreCorto =
-      nombre.length > 15 ? nombre.slice(0, 15) + '…' : nombre;
+  const columnas = [
+    { clave: 'alumno', titulo: 'Código' },
+    { clave: 'nombrecompleto', titulo: 'Nombres Completos' },
+    ...trabajos.map((trabajo, idx) => {
+      // 🔹 convertir a minúsculas y truncar a 20 caracteres con “...”
+      const nombre = trabajo.contenido.toLowerCase();
+      const nombreCorto =
+        nombre.length > 15 ? nombre.slice(0, 15) + '…' : nombre;
 
-    return {
-      clave: `tra${idx + 1}`,
-      titulo: (
-        <div
-          style={{
-            fontSize: '0.75rem',
-            textAlign: 'center',
-            lineHeight: 1.2,
-            whiteSpace: 'normal'
-          }}
-        >
-          <strong>TRABAJO {idx + 1}</strong>
-          <br />
-          <p style={{fontSize:'11px', marginTop: '4px'}}>{nombreCorto}</p>
-        </div>
-      ),
-      render: (fila) => {
-        const idTrabajo = fila[`tra${idx + 1}`];
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            {idTrabajo ? (
-              <BotonPDFTrabajo
-                fila={{
-                  trabajo: idTrabajo,
-                  sede,
-                  semestre,
-                  estructura: escuela,
-                  curricula,
-                  curso,
-                  seccion,
-                  alumno: fila.alumno,
-                }}
-                semestre={semestre}
-                token={token}
-                titulo=""
-                nombrecarpeta="tra"
-                semana={semana}
-              />
-            ) : (
-              <span className="text-muted">No enviado</span>
-            )} 
-            <input
-              type="text"
-              className="form-control form-control-sm"
-              placeholder="nota"
-              value={fila[`nota${idx + 1}`] || ''}
-              onChange={(e) => {
-                const nuevaNota = e.target.value;
-                const trabajoId = trabajos[idx].tra;
-
-                // Actualiza el estado local
-                actualizarAsistenciaLocal(fila.alumno, fila.nombrecompleto, {
-                  [`nota${idx + 1}`]: nuevaNota,
-                });
-
-                // Guarda en backend
-                if (nuevaNota.trim() !== '') {
-                  guardarNotaTrabajo(trabajoId, fila.alumno, nuevaNota);
-                }
-              }}
-              style={{ width: '50px' }}
-            />
-
+      return {
+        clave: `tra${idx + 1}`,
+        titulo: (
+          <div
+            style={{
+              fontSize: '0.75rem',
+              textAlign: 'center',
+              lineHeight: 1.2,
+              whiteSpace: 'normal'
+            }}
+          >
+            <strong>TRABAJO {idx + 1}</strong>
+            <br />
+            <p style={{ fontSize: '11px', marginTop: '4px' }}>{nombreCorto}</p>
           </div>
-        );
-      },
-    };
-  }),
-];
+        ),
+        render: (fila) => {
+          const idTrabajo = fila[`tra${idx + 1}`];
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {idTrabajo ? (
+                <BotonPDFTrabajo
+                  fila={{
+                    tra: idTrabajo,                 // id del trabajo (tra)
+                    alumno: fila.alumno,            // ✅ codigo alumno
+                    sede,
+                    estructura: datoscurso?.estructura ?? escuela, // ✅ estructura real
+                    curricula,
+                    curso,
+                    seccion,
+                  }}
+                  semestre={semestre}
+                  token={token}
+                />
+
+
+              ) : (
+                <span className="text-muted">No enviado</span>
+              )}
+              <input
+                type="number"
+                min="0"
+                max="20"
+                step="0.01"
+                className="form-control form-control-sm"
+                placeholder="nota"
+                value={fila[`nota${idx + 1}`] || ''}
+                style={{ width: '60px' }}
+
+                onChange={(e) => {
+                  const nuevaNota = e.target.value.replace(',', '.');
+
+                  // Permitir vacío (para editar)
+                  if (nuevaNota === '') {
+                    actualizarAsistenciaLocal(fila.alumno, fila.nombrecompleto, {
+                      [`nota${idx + 1}`]: '',
+                    });
+                    return;
+                  }
+
+                  // Validar que sea número
+                  const notaNum = Number(nuevaNota);
+
+                  if (isNaN(notaNum)) {
+                    mostrarToast('La nota debe ser numérica', 'warning');
+                    return;
+                  }
+
+                  // Validar rango 0 - 20
+                  if (notaNum < 0 || notaNum > 20) {
+                    mostrarToast('❌ Nota incorrecta: debe estar entre 0 y 20', 'danger');
+                    return;
+                  }
+
+                  // Validar máximo 2 decimales
+                  if (!/^\d{1,2}(\.\d{0,2})?$/.test(nuevaNota)) {
+                    mostrarToast('La nota solo puede tener hasta 2 decimales', 'warning');
+                    return;
+                  }
+
+                  const trabajoId = trabajos[idx].tra;
+
+                  // ✅ Actualiza estado local
+                  actualizarAsistenciaLocal(fila.alumno, fila.nombrecompleto, {
+                    [`nota${idx + 1}`]: nuevaNota,
+                  });
+
+                  // ✅ Guarda en backend
+                  guardarNotaTrabajo(trabajoId, fila.alumno, notaNum);
+                }}
+
+
+            
+
+              />
+
+            </div>
+          );
+        },
+      };
+    }),
+  ];
 
 
 

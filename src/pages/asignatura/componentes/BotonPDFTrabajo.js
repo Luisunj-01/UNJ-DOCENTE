@@ -1,63 +1,63 @@
+// src/pages/asignatura/componentes/BotonPDFTrabajo.jsx
 import React, { useEffect, useState } from 'react';
 import { FaFilePdf } from 'react-icons/fa';
-import config from '../../../config';
-import { construirNombreArchivo, verificarArchivo } from '../../asignatura/logica/asignatura';
 import { Button } from 'react-bootstrap';
-import ModalPDF2 from '../../../componentes/modales/ModalPDF2';
+import ModalPDF from '../../../componentes/modales/ModalPDF';
+import PdfViewer from '../../../componentes/modales/PdfViewer';
+import { verificarArchivo } from '../../asignatura/logica/asignatura';
 
-const BotonPDFTrabajo = ({ fila, semestre, token, titulo, semana }) => {
+const BotonPDFTrabajo = ({ fila, semestre, token, titulo }) => {
   const [urlPDF, setUrlPDF] = useState(null);
   const [mostrarModal, setMostrarModal] = useState(false);
- 
-  useEffect(() => {
-    if (!fila || !fila.curso || !fila.estructura) return;
 
-    const nombreArchivo = construirNombreArchivo(fila, semestre, semana, 'tra');
-    const ruta = `tra/${nombreArchivo}`;
+  useEffect(() => {
+    // ✅ si no tengo alumno o tra, no busco nada
+    if (!fila?.tra || !fila?.alumno) {
+      setUrlPDF(null);
+      return;
+    }
+
+    const cursoSinGuion = (fila.curso || '').replace(/-/g, '');
+
+    const nombre =
+      `${fila.sede || ''}${semestre || ''}${fila.estructura || ''}${fila.curricula || ''}` +
+      `${cursoSinGuion}${fila.seccion || ''}${fila.tra}${fila.alumno}.pdf`;
+
+    const ruta = `tra/${nombre}`;
+
+    setUrlPDF(null); // ✅ para que no se quede “rojo” con el anterior
 
     verificarArchivo(ruta, token).then((res) => {
-      if (res.success && res.url) {
-        // Solo guardamos la cadena de la URL
-        setUrlPDF(res.url);
-      } else {
-        setUrlPDF(null); // Aseguramos que quede null si no existe
-      }
+      setUrlPDF(res?.success ? res.url : null);
     });
-  }, [fila, semestre, token, semana]);
- 
-  const abrirModal = () => {
-    setUrlPDF((prev) => `${prev}?t=${Date.now()}`); // cache busting
-    setMostrarModal(true);
-  };
+  }, [fila?.tra, fila?.alumno, fila?.sede, fila?.estructura, fila?.curricula, fila?.curso, fila?.seccion, semestre, token]);
+
 
   return (
     <>
       {urlPDF ? (
-        <Button
-          onClick={abrirModal}
-          className="btn btn-sm btn-danger d-flex align-items-center gap-1"
+        <Button 
+          onClick={() => setMostrarModal(true)}
+          className="btn btn-sm btn-danger"
           style={{ border: 'none' }}
         >
           <FaFilePdf fontSize={18} />
-          {titulo}
+          {titulo || ''}
         </Button>
       ) : (
         <Button
-          className="btn btn-sm btn-secondary d-flex align-items-center gap-1"
-          style={{ cursor: 'not-allowed', opacity: 0.5, border: 'none' }}
-          title="PDF no disponible"
-          disabled
-        >
+          onClick={() => window.open(`${urlPDF}?t=${Date.now()}`, '_blank', 'noopener,noreferrer')}
+         className="btn btn-sm btn-secondary" disabled style={{opacity:0.5}}>
           <FaFilePdf fontSize={18} />
-          {titulo}
+          {titulo || ''}
         </Button>
       )}
 
-      <ModalPDF2
+      <ModalPDF
         show={mostrarModal}
         onHide={() => setMostrarModal(false)}
-        componente={urlPDF}
-        titulo={fila.nombrecurso}
+        titulo={titulo || 'Trabajo'}
+        componente={<PdfViewer url={urlPDF} />}
       />
     </>
   );
