@@ -5,6 +5,7 @@ import { useUsuario } from "../../context/UserContext";
 import Swal from "sweetalert2";
 import config from "../../config";
 import "./SesionesCiclo.css";
+import axios from "axios";
 
 import {
   obtenerSesionesLibres,
@@ -29,6 +30,34 @@ function SesionesLibres({ semestreValue }) {
   const [estadoSesiones, setEstadoSesiones] = useState({});
 
 
+const abrirReporteReunionesLibre = async () => {
+  try {
+    const persona = usuario?.docente?.persona;
+    const token = usuario?.codigotokenautenticadorunj;
+
+    const url = `${config.apiUrl}api/Tutoria/reporte-reuniones-libre/${semestre}/${persona}`;
+
+    const resp = await axios.get(url, {
+      responseType: "blob",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    window.open(
+      fileURL,
+      "reporteReunionesLibre",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+
+  } catch (error) {
+    console.error("❌ Error al abrir reporte de sesiones libres:", error);
+    Swal.fire("❌ Error", "No se pudo generar el reporte.", "error");
+  }
+};
 
 
   // ✅ Formatear fecha (YYYY-MM-DD → DD/MM/YYYY)
@@ -357,10 +386,11 @@ function SesionesLibres({ semestreValue }) {
           <Button
             variant="outline-primary"
             size="sm"
-            onClick={() => Swal.fire("🖨", "Función de impresión en desarrollo.")}
+            onClick={abrirReporteReunionesLibre}
           >
             <i className="fa fa-print"></i> Registro de reuniones
           </Button>
+
         </div>
       </div>
 

@@ -189,7 +189,40 @@ function Reportes() {
     setCargandoRend(false);
   }
 };
-console.log("Estructura del docente:", usuario.docente);
+
+const abrirConsolidado = async (estructura) => {
+  try {
+    const persona = usuario.docente.persona;
+    const token = usuario.codigotokenautenticadorunj;
+
+    const codigo = btoa(btoa(`${persona}${semestre}`));
+
+    const url = `${config.apiUrl}api/Tutoria/rpt-consolidado?codigo=${codigo}&estru=${estructura}`;
+
+    const resp = await axios.get(url, {
+      responseType: "blob",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const file = new Blob([resp.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    window.open(
+      fileURL,
+      "consolidadoPDF",
+      "width=900,height=800,left=250,top=90,resizable=yes,scrollbars=yes"
+    );
+
+  } catch (error) {
+    console.error("Error consolidado:", error);
+    alert("No se pudo generar el reporte.");
+  }
+};
+
+
+
 
 
   // ----------------------------------------------
@@ -206,10 +239,20 @@ console.log("Estructura del docente:", usuario.docente);
   ];
 
   const abrirReporte = (ruta, extra = "") => {
-    const persona = usuario.docente.persona;
-    const codigo = btoa(btoa(`${persona}${semestre}`));
-    window.open(`${ruta}?codigo=${codigo}&semestre=${semestre}${extra}`, "_blank");
-  };
+  const persona = usuario.docente.persona;
+  const codigo = btoa(btoa(`${persona}${semestre}`));
+  const token = usuario.codigotokenautenticadorunj;
+
+  const url =
+    `${config.apiUrl}api${ruta}` +
+    `?codigo=${codigo}` +
+    `&semestre=${semestre}` +
+    `&estru=${extra.replace("&estru=", "")}` +
+    `&token=${token}`;
+
+  window.open(url, "_blank");
+};
+
 
   return (
     <div className="container mt-4">
@@ -304,15 +347,15 @@ console.log("Estructura del docente:", usuario.docente);
                   </h6>
 
                   <Button
-                    size="sm"
-                    variant="success"
-                    className="mt-2"
-                    onClick={() =>
-                      abrirReporte("/tutoria/rpt-consolidado", `&estru=${e.estructura}`)
-                    }
-                  >
-                    Ver consolidado
-                  </Button>
+                  size="sm"
+                  variant="success"
+                  className="mt-2"
+                  onClick={() => abrirConsolidado(e.estructura)}
+                >
+                  Ver consolidado
+                </Button>
+
+
                 </div>
               </div>
             </Card.Body>
@@ -332,13 +375,13 @@ console.log("Estructura del docente:", usuario.docente);
         alumnos={alumnosRend}
       />
 
-  <ModalLogros
-  show={showLogros}
-  onHide={() => setShowLogros(false)}
-  semestre={semestre}
-  persona={usuario.docente.persona}
-  vperfil={usuario.perfil || "P02"}
-/>
+          <ModalLogros
+          show={showLogros}
+          onHide={() => setShowLogros(false)}
+          semestre={semestre}
+          persona={usuario.docente.persona}
+          vperfil={usuario.perfil || "P02"}
+        />
 
 
 
