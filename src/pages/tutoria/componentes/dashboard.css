@@ -58,3 +58,67 @@
 .grafico-card canvas {
   max-height: 230px !important;
 }
+
+
+
+
+
+
+
+
+
+.tabla-modal-contenedor {
+  max-height: 420px;
+  overflow-y: auto;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.tabla-modal {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabla-modal thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  color: #374151;
+  font-weight: 600;
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.tabla-modal tbody tr:nth-child(even) {
+  background: #f9fbfd;
+}
+
+.tabla-modal tbody tr:hover {
+  background: #eef6ff;
+}
+
+.tabla-modal td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.badge-codigo {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.alumno-nombre {
+  font-weight: 500;
+  color: #111827;
+}
+
+.alumno-carrera {
+  font-size: 13px;
+  color: #6b7280;
+}

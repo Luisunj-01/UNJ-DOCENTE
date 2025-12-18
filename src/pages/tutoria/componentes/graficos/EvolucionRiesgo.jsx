@@ -1,6 +1,7 @@
 import { Bar } from "react-chartjs-2";
 
-export default function EvolucionRiesgo({ data }) {
+export default function EvolucionRiesgo({ data, onBarClick }) {
+
 
   const bajo = Array.isArray(data.bajo) ? data.bajo : [data.bajo || 0];
   const medio = Array.isArray(data.medio) ? data.medio : [data.medio || 0];
@@ -31,25 +32,30 @@ export default function EvolucionRiesgo({ data }) {
   };
 
   const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-        align: "center",
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-          pointStyle: "rectRounded"
-        }
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true
-      }
+  responsive: true,
+  maintainAspectRatio: false,
+
+  onClick: (event, elements) => {
+    console.log("CLICK DETECTADO", elements);
+
+    if (!elements.length) return;
+
+    const index = elements[0].datasetIndex;
+    console.log("DATASET INDEX:", index);
+
+    if (onBarClick) onBarClick(index);
+  },
+
+  plugins: {
+    legend: {
+      position: "top"
     }
-  };
+  },
+  scales: {
+    y: { beginAtZero: true }
+  }
+};
+
 
   return (
     <div style={{ height: "260px", width: "100%" }}>

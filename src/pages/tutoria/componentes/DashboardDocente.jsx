@@ -12,10 +12,13 @@ import CardMetric from "./CardMetric";
 import CardRiesgo from "./CardRiesgo";
 import EvolucionRiesgo from "./graficos/EvolucionRiesgo";
 import AsistenciaSesiones from "./graficos/AsistenciaSesiones";
-import RecomendacionesDona from "./graficos/RecomendacionesDona";
+import DerivacionesServiciosDona from "./graficos/DerivacionesServiciosDona";
+
 import CursosCriticos from "./graficos/CursosCriticos";
 import RendimientoRadar from "./graficos/RendimientoRadar";
 import AlertasCard from "./graficos/AlertasCard";
+import { Modal, Table, Button } from "react-bootstrap";
+
 
 
 // ==========================
@@ -98,10 +101,14 @@ const [datosRiesgo, setDatosRiesgo] = useState({
 
 const [datosAsistencia, setDatosAsistencia] = useState([]);
 
-
-const [datosRecomendaciones, setDatosRecomendaciones] = useState({
-  emitidas: 0,
+// 📌 Alumnos clasificados por riesgo
+const [alumnosRiesgo, setAlumnosRiesgo] = useState({
+  bajo: [],
+  medio: [],
+  alto: []
 });
+
+
 
 const [cursosCriticos, setCursosCriticos] = useState([]);
 const [rendimiento, setRendimiento] = useState([]);
@@ -111,6 +118,15 @@ const [alertas, setAlertas] = useState({
   riesgoBajo: 0,
 });
 
+// 📌 Derivaciones (dashboard)
+const [derivaciones, setDerivaciones] = useState([]);
+const [totalDerivaciones, setTotalDerivaciones] = useState(0);
+
+
+//  Para los alumons en riego
+const [mostrarModal, setMostrarModal] = useState(false);
+const [listaModal, setListaModal] = useState([]);
+const [tituloModal, setTituloModal] = useState("");
 
 
 
@@ -145,32 +161,42 @@ const [alertas, setAlertas] = useState({
     const tutorados = Array.isArray(dRend) ? dRend.length : 0;
 
     // Tus riesgos (usando obtenerCategoriaRiesgo)
-    let riesgoBajo = 0;
-    let riesgoMedio = 0;
-    let riesgoAlto = 0;
+        const bajo = [];
+      const medio = [];
+      const alto = [];
 
-    if (Array.isArray(dRend)) {
-      dRend.forEach(al => {
-        const cat = obtenerCategoriaRiesgo(al);
-        if (cat === "Bajo riesgo") riesgoBajo++;
-        if (cat === "Riesgo medio") riesgoMedio++;
-        if (cat === "Alto riesgo") riesgoAlto++;
+      if (Array.isArray(dRend)) {
+        dRend.forEach(al => {
+          const cat = obtenerCategoriaRiesgo(al);
+
+          if (cat === "Bajo riesgo") bajo.push(al);
+          if (cat === "Riesgo medio") medio.push(al);
+          if (cat === "Alto riesgo") alto.push(al);
+        });
+      }
+
+      // 🔹 Para el gráfico
+      setDatosRiesgo({
+        bajo: bajo.length,
+        medio: medio.length,
+        alto: alto.length
       });
-    }
 
-    // Mis riesgos para gráficos
-    setDatosRiesgo({
-      bajo: riesgoBajo,
-      medio: riesgoMedio,
-      alto: riesgoAlto
-    });
+      // 🔹 Para el modal
+      setAlumnosRiesgo({
+        bajo,
+        medio,
+        alto
+      });
 
-    // Alertas (tarjeta pequeña abajo)
-    setAlertas({
-      riesgoBajo,
-      riesgoMedio,
-      riesgoAlto,
-    });
+      // 🔹 Para alertas
+      setAlertas({
+        riesgoBajo: bajo.length,
+        riesgoMedio: medio.length,
+        riesgoAlto: alto.length
+      });
+
+  
 
     // =================================================
     // 2️⃣ SESIONES DEL CICLO
@@ -200,19 +226,23 @@ const [alertas, setAlertas] = useState({
     const libresData = await rLibres.json();
     const libres = libresData.filter(s => s.activo === 1).length;
 
-    // =================================================
-    // 4️⃣ ATENCIONES + RECOMENDACIONES
-    // =================================================
-    const rDer = await fetch(
-      `${config.apiUrl}api/Tutoria/derivaciones-tutor/${semestre}/${persona}`,
-      { headers }
-    );
-    const dDer = await rDer.json();
 
-    const atenciones = dDer?.derivaciones?.length || 0;
-    const recomendaciones = atenciones;
+   // =================================================
+// 4️⃣ DERIVACIONES (Dashboard)
+// =================================================
+const rDer = await fetch(
+  `${config.apiUrl}api/Tutoria/dashboard-derivaciones/${semestre}/${persona}`,
+  { headers }
+);
 
-    setDatosRecomendaciones({ emitidas: recomendaciones });
+const dDer = await rDer.json();
+
+setDerivaciones(dDer?.datos || []);
+setTotalDerivaciones(dDer?.total_derivaciones || 0);
+
+
+
+
 
     // =================================================
     // 5️⃣ CURSOS CRÍTICOS (mock de momento)
@@ -264,15 +294,15 @@ setCursosCriticos(listaCursos);
     // 7️⃣ GUARDAR EN ESTADO PRINCIPAL
     // =================================================
     setStats({
-      tutorados,
-      sesionesTotal,
-      sesionesReal,
-      libres,
-      atenciones,
-      recomendaciones,
-      riesgoBajo,
-      riesgoMedio,
-      riesgoAlto,
+        tutorados,
+        sesionesTotal,
+        sesionesReal,
+        libres,
+        atenciones: dDer?.total_derivaciones || 0,
+        recomendaciones: dDer?.total_derivaciones || 0,
+        bajo: bajo.length,
+        medio: medio.length,
+        alto: alto.length
     });
 
   } catch (error) {
@@ -282,7 +312,7 @@ setCursosCriticos(listaCursos);
 
 
   // ===================================================================================
-  // 🎨 GRAFICO DE DONA (CATEGORÍAS DE RIESGO)
+  // (CATEGORÍAS DE RIESGO)
   // ===================================================================================
   const dataDona = {
     labels: ["Bajo riesgo", "Riesgo medio", "Alto riesgo"],
@@ -316,13 +346,14 @@ setCursosCriticos(listaCursos);
         <Col md={2}><CardMetric title="Tutorados" value={stats.tutorados} color="#007bff" icon={<FaUsers />} /></Col>
         <Col md={2}><CardMetric title="Sesiones ciclo" value={`${stats.sesionesReal}/${stats.sesionesTotal}`} color="#17a2b8" icon={<FaCheckCircle />} /></Col>
         <Col md={2}><CardMetric title="Sesiones libres" value={stats.libres} color="#20c997" icon={<FaUserClock />} /></Col>
-        <Col md={2}><CardMetric title="Atenciones" value={stats.atenciones} color="#ffc107" icon={<FaBook />} /></Col>
+        <Col md={2}><CardMetric title="Derivaciones" value={stats.atenciones} color="#ffc107" icon={<FaBook />} /></Col>
         <Col md={3}>
             <CardRiesgo 
-                bajo={stats.riesgoBajo} 
-                medio={stats.riesgoMedio} 
-                alto={stats.riesgoAlto} 
-            />
+            bajo={stats.bajo} 
+            medio={stats.medio} 
+            alto={stats.alto} 
+          />
+
             </Col>
         </Row>
 
@@ -335,7 +366,25 @@ setCursosCriticos(listaCursos);
   <Col md={4}>
     <Card className="shadow-sm p-3 grafico-card">
       <h6 className="mb-3 text-center">Evolución del riesgo</h6>
-      <EvolucionRiesgo data={datosRiesgo} />
+      <EvolucionRiesgo
+  data={datosRiesgo}
+  onBarClick={(index) => {
+    if (index === 0) {
+      setListaModal(alumnosRiesgo.bajo);
+      setTituloModal("Alumnos en Bajo Riesgo");
+    }
+    if (index === 1) {
+      setListaModal(alumnosRiesgo.medio);
+      setTituloModal("Alumnos en Riesgo Medio");
+    }
+    if (index === 2) {
+      setListaModal(alumnosRiesgo.alto);
+      setTituloModal("Alumnos en Alto Riesgo");
+    }
+    setMostrarModal(true);
+  }}
+/>
+
     </Card>
   </Col>
 
@@ -348,8 +397,9 @@ setCursosCriticos(listaCursos);
 
   <Col md={4}>
     <Card className="shadow-sm p-3 grafico-card">
-      <h6 className="mb-3 text-center">Recomendaciones emitidas</h6>
-      <RecomendacionesDona data={datosRecomendaciones} />
+      <h6 className="mb-3 text-center">Derivaciones Emitidas</h6>
+      <DerivacionesServiciosDona data={derivaciones} />
+
     </Card>
   </Col>
 
@@ -381,6 +431,61 @@ setCursosCriticos(listaCursos);
 </Row>
 
 
+{/* =============================== */}
+{/* MODAL ALUMNOS POR RIESGO */}
+{/* =============================== */}
+<Modal
+  show={mostrarModal}
+  onHide={() => setMostrarModal(false)}
+  size="lg"
+  centered
+>
+  <Modal.Header closeButton>
+    <Modal.Title>{tituloModal}</Modal.Title>
+  </Modal.Header>
+
+    <Modal.Body>
+  {listaModal.length === 0 ? (
+    <p className="text-center">No hay alumnos en esta categoría</p>
+  ) : (
+    <div className="tabla-modal-contenedor">
+      <table className="tabla-modal">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Alumno</th>
+            <th>Carrera</th>
+          </tr>
+        </thead>
+        <tbody>
+          {listaModal.map((al, idx) => (
+            <tr key={idx}>
+              <td>
+                <span className="badge-codigo">
+                  {al.alumno}
+                </span>
+              </td>
+              <td className="alumno-nombre">
+                {al.nombrecompleto}
+              </td>
+              <td className="alumno-carrera">
+                {al.nombreescuela}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</Modal.Body>
+
+
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setMostrarModal(false)}>
+      Cerrar
+    </Button>
+  </Modal.Footer>
+</Modal>
 
 
 

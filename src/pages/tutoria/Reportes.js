@@ -197,7 +197,7 @@ const abrirConsolidado = async (estructura) => {
 
     const codigo = btoa(btoa(`${persona}${semestre}`));
 
-    const url = `${config.apiUrl}api/Tutoria/rpt-consolidado?codigo=${codigo}&estru=${estructura}`;
+    const url = `${config.apiUrl}api/Tutoria/rpt-consolidado/${semestre}/${persona}`;
 
     const resp = await axios.get(url, {
       responseType: "blob",
