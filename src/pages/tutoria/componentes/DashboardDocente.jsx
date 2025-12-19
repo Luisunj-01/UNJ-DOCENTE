@@ -11,7 +11,7 @@ import "./dashboard.css";
 import CardMetric from "./CardMetric";
 import CardRiesgo from "./CardRiesgo";
 import EvolucionRiesgo from "./graficos/EvolucionRiesgo";
-import AsistenciaSesiones from "./graficos/AsistenciaSesiones";
+
 import DerivacionesServiciosDona from "./graficos/DerivacionesServiciosDona";
 
 import CursosCriticos from "./graficos/CursosCriticos";
@@ -19,6 +19,7 @@ import RendimientoRadar from "./graficos/RendimientoRadar";
 import AlertasCard from "./graficos/AlertasCard";
 import { Modal, Table, Button } from "react-bootstrap";
 
+import SesionesResumen from "./graficos/SesionesResumen";
 
 
 // ==========================
@@ -80,17 +81,19 @@ function DashboardDocente() {
   const headers = { Authorization: `Bearer ${token}` };
   
 
-  const [stats, setStats] = useState({
-    tutorados: 0,
-    sesionesTotal: 0,
-    sesionesReal: 0,
-    libres: 0,
-    atenciones: 0,
-    recomendaciones: 0,
-    bajo: 0,
-    medio: 0,
-    alto: 0
-  });
+const [stats, setStats] = useState({
+  tutorados: 0,
+  sesionesTotal: 0,
+  sesionesReal: 0,
+  libresReal: 0,
+  libresTotal: 0,
+  atenciones: 0,
+  recomendaciones: 0,
+  bajo: 0,
+  medio: 0,
+  alto: 0
+});
+
 
 // 📌 Gráficos
 const [datosRiesgo, setDatosRiesgo] = useState({
@@ -99,7 +102,13 @@ const [datosRiesgo, setDatosRiesgo] = useState({
   alto: 0,
 });
 
-const [datosAsistencia, setDatosAsistencia] = useState([]);
+// const [datosAsistencia, setDatosAsistencia] = useState([]);
+
+const [datosSesiones, setDatosSesiones] = useState({
+  ciclo: { concluidas: 0, pendientes: 0 },
+  libres: { concluidas: 0, pendientes: 0 }
+});
+
 
 // 📌 Alumnos clasificados por riesgo
 const [alumnosRiesgo, setAlumnosRiesgo] = useState({
@@ -211,10 +220,10 @@ const [tituloModal, setTituloModal] = useState("");
     const sesionesReal =
       dCiclo?.sesiones?.filter(s => s.activo === 1).length || 0;
 
-   setDatosAsistencia([
-  { label: "Realizadas", value: sesionesReal },
-  { label: "Pendientes", value: sesionesTotal - sesionesReal },
-]);
+//    setDatosAsistencia([
+//   { label: "Realizadas", value: sesionesReal },
+//   { label: "Pendientes", value: sesionesTotal - sesionesReal },
+// ]);
 
     // =================================================
     // 3️⃣ SESIONES LIBRES
@@ -224,8 +233,21 @@ const [tituloModal, setTituloModal] = useState("");
       { headers }
     );
     const libresData = await rLibres.json();
-    const libres = libresData.filter(s => s.activo === 1).length;
+    const totalLibres = libresData.length;
+    const libresReal = libresData.filter(s => s.activo === 1).length;
+    const libresPend = totalLibres - libresReal;
 
+
+setDatosSesiones({
+  ciclo: {
+    concluidas: sesionesReal,
+    pendientes: sesionesTotal - sesionesReal
+  },
+  libres: {
+    concluidas: libresReal,
+    pendientes: libresPend
+  }
+});
 
    // =================================================
 // 4️⃣ DERIVACIONES (Dashboard)
@@ -294,16 +316,18 @@ setCursosCriticos(listaCursos);
     // 7️⃣ GUARDAR EN ESTADO PRINCIPAL
     // =================================================
     setStats({
-        tutorados,
-        sesionesTotal,
-        sesionesReal,
-        libres,
-        atenciones: dDer?.total_derivaciones || 0,
-        recomendaciones: dDer?.total_derivaciones || 0,
-        bajo: bajo.length,
-        medio: medio.length,
-        alto: alto.length
-    });
+  tutorados,
+  sesionesTotal,
+  sesionesReal,
+  libresReal,
+  libresTotal: totalLibres,
+  atenciones: dDer?.total_derivaciones || 0,
+  recomendaciones: dDer?.total_derivaciones || 0,
+  bajo: bajo.length,
+  medio: medio.length,
+  alto: alto.length
+});
+
 
   } catch (error) {
     console.error("Error en dashboard:", error);
@@ -345,7 +369,7 @@ setCursosCriticos(listaCursos);
       <Row className="g-3 mt-2">
         <Col md={2}><CardMetric title="Tutorados" value={stats.tutorados} color="#007bff" icon={<FaUsers />} /></Col>
         <Col md={2}><CardMetric title="Sesiones ciclo" value={`${stats.sesionesReal}/${stats.sesionesTotal}`} color="#17a2b8" icon={<FaCheckCircle />} /></Col>
-        <Col md={2}><CardMetric title="Sesiones libres" value={stats.libres} color="#20c997" icon={<FaUserClock />} /></Col>
+        <Col md={2}><CardMetric title="Sesiones libres" value={`${stats.libresReal}/${stats.libresTotal}`} color="#20c997" icon={<FaUserClock />} /></Col>
         <Col md={2}><CardMetric title="Derivaciones" value={stats.atenciones} color="#ffc107" icon={<FaBook />} /></Col>
         <Col md={3}>
             <CardRiesgo 
@@ -389,11 +413,12 @@ setCursosCriticos(listaCursos);
   </Col>
 
   <Col md={4}>
-    <Card className="shadow-sm p-3 grafico-card">
-      <h6 className="mb-3 text-center">Asistencia a sesiones</h6>
-      <AsistenciaSesiones data={datosAsistencia} />
-    </Card>
-  </Col>
+  <Card className="shadow-sm p-3 grafico-card">
+    <h6 className="mb-2 text-center">Estado de sesiones</h6>
+    <SesionesResumen data={datosSesiones} />
+  </Card>
+</Col>
+
 
   <Col md={4}>
     <Card className="shadow-sm p-3 grafico-card">
