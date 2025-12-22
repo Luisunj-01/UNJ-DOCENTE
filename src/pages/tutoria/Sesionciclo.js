@@ -427,13 +427,16 @@ if (data.fecha) {
 
       {/* Leyenda */}
       <div className="alert alert-info py-2">
-        <strong>Leyenda:</strong>&nbsp;
-        <i className="fa fa-book"></i> Logros, dificultades y observaciones &nbsp;
-        <i className="far fa-smile"></i> Subir imagen &nbsp;
-        <i className="fa fa-male"></i> Asistencia y observaciones &nbsp;
-        <i className="fa fa-edit"></i> Editar &nbsp;
-        <i className="fa fa-ban"></i> Eliminar
-      </div>
+          <strong>Leyenda:</strong>&nbsp;
+          <i className="fa fa-book"></i> Logros, dificultades y observaciones &nbsp;
+          <i className="far fa-smile"></i> Subir imagen &nbsp;
+          <i className="fa fa-male"></i> Asistencia  &nbsp;
+          <i className="fa fa-edit"></i> Editar &nbsp;
+          <i className="fa fa-check-circle text-success"></i> Concluido &nbsp;
+          <i className="fa fa-ban"></i> Eliminar &nbsp;
+          
+        </div>
+
       
 
 {/* ---------- BOTÓN NUEVA SESIÓN (SIEMPRE VISIBLE) ---------- */}

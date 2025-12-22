@@ -15,7 +15,8 @@ import EvolucionRiesgo from "./graficos/EvolucionRiesgo";
 import DerivacionesServiciosDona from "./graficos/DerivacionesServiciosDona";
 
 import CursosCriticos from "./graficos/CursosCriticos";
-import RendimientoRadar from "./graficos/RendimientoRadar";
+import ImpactoRiesgo from "./graficos/ImpactoRiesgo";
+
 import AlertasCard from "./graficos/AlertasCard";
 import { Modal, Table, Button } from "react-bootstrap";
 
@@ -29,9 +30,8 @@ import {
   FaUsers,
   FaCheckCircle,
   FaUserClock,
-  FaUserShield,
-  FaBook,
-  FaUser
+  FaBook
+
 } from "react-icons/fa";
 
 
@@ -102,7 +102,8 @@ const [datosRiesgo, setDatosRiesgo] = useState({
   alto: 0,
 });
 
-// const [datosAsistencia, setDatosAsistencia] = useState([]);
+
+
 
 const [datosSesiones, setDatosSesiones] = useState({
   ciclo: { concluidas: 0, pendientes: 0 },
@@ -120,7 +121,7 @@ const [alumnosRiesgo, setAlumnosRiesgo] = useState({
 
 
 const [cursosCriticos, setCursosCriticos] = useState([]);
-const [rendimiento, setRendimiento] = useState([]);
+
 const [alertas, setAlertas] = useState({
   riesgoAlto: 0,
   riesgoMedio: 0,
@@ -138,6 +139,11 @@ const [listaModal, setListaModal] = useState([]);
 const [tituloModal, setTituloModal] = useState("");
 
 
+const [riesgoComparativo, setRiesgoComparativo] = useState({
+  anterior: { bajo: 0, medio: 0, alto: 0 },
+  actual: { bajo: 0, medio: 0, alto: 0 }
+});
+
 
   useEffect(() => {
     if (persona && docente) {
@@ -151,6 +157,19 @@ const [tituloModal, setTituloModal] = useState("");
     if (a.segunda !== null) return "Riesgo medio";
     return "Bajo riesgo";
   }
+
+
+  function obtenerSemestreAnterior(sem) {
+  const anio = parseInt(sem.substring(0, 4));
+  const periodo = parseInt(sem.substring(4, 6));
+
+  // 01 → vuelve al 02 del año anterior
+  if (periodo === 1) {
+    return `${anio - 1}02`;
+  }
+  // 02 → vuelve al 01 del mismo año
+  return `${anio}01`;
+}
 
   // ===================================================================================
   // 🔵 CARGAR TODOS LOS DATOS DEL DASHBOARD
@@ -168,6 +187,33 @@ const [tituloModal, setTituloModal] = useState("");
     const dRend = await rRend.json();
 
     const tutorados = Array.isArray(dRend) ? dRend.length : 0;
+
+    // ================================
+// 🔁 RIESGO SEMESTRE ANTERIOR
+// ================================
+const semestreAnterior = obtenerSemestreAnterior(semestre);
+
+const rAnterior = await fetch(
+  `${config.apiUrl}api/Tutoria/rendimiento/${semestreAnterior}/${persona}/${docente}/TM/G`,
+  { headers }
+);
+
+const dAnterior = await rAnterior.json();
+
+const bajoAnt = [];
+const medioAnt = [];
+const altoAnt = [];
+
+if (Array.isArray(dAnterior)) {
+  dAnterior.forEach(al => {
+    const cat = obtenerCategoriaRiesgo(al);
+
+    if (cat === "Bajo riesgo") bajoAnt.push(al);
+    if (cat === "Riesgo medio") medioAnt.push(al);
+    if (cat === "Alto riesgo") altoAnt.push(al);
+  });
+}
+
 
     // Tus riesgos (usando obtenerCategoriaRiesgo)
         const bajo = [];
@@ -190,6 +236,21 @@ const [tituloModal, setTituloModal] = useState("");
         medio: medio.length,
         alto: alto.length
       });
+      
+
+      setRiesgoComparativo({
+  anterior: {
+    bajo: bajoAnt.length,
+    medio: medioAnt.length,
+    alto: altoAnt.length
+  },
+  actual: {
+    bajo: bajo.length,
+    medio: medio.length,
+    alto: alto.length
+  }
+});
+
 
       // 🔹 Para el modal
       setAlumnosRiesgo({
@@ -439,19 +500,31 @@ setCursosCriticos(listaCursos);
     </Card>
   </Col>
 
-  <Col md={4}>
-    <Card className="shadow-sm p-3 grafico-card">
-      <h6 className="mb-3 text-center">Rendimiento por área</h6>
-      <RendimientoRadar data={rendimiento} />
-    </Card>
-  </Col>
 
+ <Col md={4}>
+  <Card className="shadow-sm p-3 grafico-card">
+    <h6 className="mb-3 text-center">
+      Comparación de riesgo académico por semestre
+    </h6>
+
+    <ImpactoRiesgo
+      datos={{
+        antes: riesgoComparativo.anterior,
+        despues: riesgoComparativo.actual
+      }}
+    />
+  </Card>
+</Col>
+
+
+
+{/* 
   <Col md={4}>
     <Card className="shadow-sm p-3 grafico-card">
       <h6 className="mb-3 text-center">Alertas importantes</h6>
       <AlertasCard alertas={alertas} />
     </Card>
-  </Col>
+  </Col> */}
 
 </Row>
 
