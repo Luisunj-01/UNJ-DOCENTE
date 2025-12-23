@@ -66,7 +66,7 @@
   width: 40px !important;
   text-align: center;
   font-weight: bold;
-  color: rgb(200, 0, 0) !important;
+ 
 }
 
 .tabla-acta-nota th:nth-child(17),
@@ -86,7 +86,7 @@
   width: 40px !important;
   text-align: center;
   font-weight: bold;
-  color: rgb(200, 0, 0) !important;
+
 }
 
 /* ==========================
@@ -96,4 +96,16 @@
 .tabla-acta-nota table td:nth-child(4) {
   padding-left: 10px !important;
   border-left: 2px solid #000;
+}
+
+/* Nota aprobada */
+.nota-aprobada {
+  color: #035aa6 !important; /* azul UNJ */
+  font-weight: bold;
+}
+
+/* Nota desaprobada */
+.nota-desaprobada {
+  color: rgb(200, 0, 0) !important;
+  font-weight: bold;
 }

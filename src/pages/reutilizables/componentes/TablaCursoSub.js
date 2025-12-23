@@ -31,14 +31,14 @@ function TablaCursoSub({ datos, columnasEncabezado = [], columnas = [], notamini
                 const raw = col.render ? col.render(fila) : fila[col.clave] ?? '';
                 const valorNumerico = col.esNota ? Number(raw) : null;
 
-                const notaBaja = !isNaN(valorNumerico) && valorNumerico < (notaMin || 11);
-                const aplicarRojo = notaBaja && ['promedio', 'final-rojo', 'promedioantes'].includes(col.estilo);
+              const claseNota = col.clase
+                ? col.clase(Number(valorNumerico))
+                : '';
 
-                const estilo = {
-                  color: aplicarRojo ? 'red' : undefined,
-                  fontWeight: aplicarRojo ? 'bold' : undefined,
-                  textDecoration: aplicarRojo && col.subrayar ? 'underline' : undefined,
-                };
+              const estilo = {
+                textDecoration: col.subrayar ? 'underline' : undefined,
+              };
+
 
 
                 // Mostrar: redondeado si es nota, sino tal como viene
@@ -51,19 +51,24 @@ function TablaCursoSub({ datos, columnasEncabezado = [], columnas = [], notamini
                 // 👇 Aquí agrego integración con tus clases CSS personalizadas
                 const extraClass = col.estilo ? `col-${col.estilo}` : '';
 
-                return (
-                  <td 
-                    key={i} 
-                    className={`${col.className || ''} ${extraClass}`.trim()} 
-                    style={estilo}
-                  >
-                    {usarStrong ? (
-                      <strong style={estilo}>{contenidoMostrar}</strong>
-                    ) : (
-                      contenidoMostrar
-                    )}
-                  </td>
-                );
+              return (
+  <td
+    key={i}
+    className={`
+      ${col.className || ''}
+      ${extraClass}
+      ${claseNota}
+    `.trim()}
+    style={estilo}
+  >
+    {usarStrong ? (
+      <strong>{contenidoMostrar}</strong>
+    ) : (
+      contenidoMostrar
+    )}
+  </td>
+);
+
               })}
             </tr>
           ))}

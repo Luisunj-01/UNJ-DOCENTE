@@ -159,7 +159,7 @@ const ImprimirReporteNota = () => {
     fetchDatos();
   }, [sede, semestre, escuela, curricula, curso, seccion, departamentoacademico]);
 
-  //console.log(datos);
+  console.log(datos);
 
   const columnasEncabezado = [
   [
@@ -201,11 +201,44 @@ const ImprimirReporteNota = () => {
   { clave: 'u03ea' },
   { clave: 'u03pr', estilo: 'promedio' },
 
-  { clave: 'promedioantes', estilo: 'promedio' },
-  { clave: 'sus', estilo: 'final-rojo' },
-  { clave: 'aplazado', estilo: 'final-rojo' },
-  { clave: 'promedio', estilo: 'final-rojo' },
+{
+  clave: 'promedioantes',
+  esNota: true,
+  clase: (v) => Number(v) >= 11 ? 'nota-aprobada' : 'nota-desaprobada'
+},
+{
+   clave: 'sus',
+  esNota: false,
+  render: (fila) =>
+    fila.rezagado2 == null || Number(fila.rezagado2) === 0
+      ? ''
+      : Math.trunc(Number(fila.rezagado2)),
+  clase: () => ''
+},
+{
+    clave: 'aplazado',
+  esNota: false,
+  render: (fila) =>
+    fila.aplazado == null || Number(fila.aplazado) === 0
+      ? ''
+      : Math.trunc(Number(fila.aplazado)),
+  clase: (v) =>
+    v == null || Number(v) === 0
+      ? ''
+      : Number(v) >= 11
+        ? 'nota-aprobada'
+        : 'nota-desaprobada'
+},
+
+
+{
+  clave: 'promedio',
+  esNota: true,
+  clase: (v) => Number(v) >= 11 ? 'nota-aprobada' : 'nota-desaprobada'
+}
+
 ];
+
 
 
 

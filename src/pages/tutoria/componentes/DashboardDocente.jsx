@@ -17,7 +17,7 @@ import DerivacionesServiciosDona from "./graficos/DerivacionesServiciosDona";
 import CursosCriticos from "./graficos/CursosCriticos";
 import ImpactoRiesgo from "./graficos/ImpactoRiesgo";
 
-import AlertasCard from "./graficos/AlertasCard";
+import LineaDistribucionRiesgo from "./graficos/LineaDistribucionRiesgo";
 import { Modal, Table, Button } from "react-bootstrap";
 
 import SesionesResumen from "./graficos/SesionesResumen";
@@ -518,13 +518,13 @@ setCursosCriticos(listaCursos);
 
 
 
-{/* 
+
   <Col md={4}>
     <Card className="shadow-sm p-3 grafico-card">
-      <h6 className="mb-3 text-center">Alertas importantes</h6>
-      <AlertasCard alertas={alertas} />
+      <h6 className="mb-3 text-center">Linea de Distribucion de Riesgo</h6>
+      <LineaDistribucionRiesgo alertas={alertas} />
     </Card>
-  </Col> */}
+  </Col>
 
 </Row>
 
