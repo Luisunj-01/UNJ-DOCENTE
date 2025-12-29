@@ -12,6 +12,7 @@ const TablaCursos = ({
   usarDataTable = true,
   paginacion = true,
   mostrarBuscador = true,
+   mostrarExportar = false,   // 👈 NUEVO (OCULTO POR DEFECTO)
   colorFondoEncabezado = "",
   colorTextoEncabezado = "",
 }) => {
@@ -161,29 +162,34 @@ const TablaCursos = ({
             onChange={(e) => setBusqueda(e.target.value)}
           />
         )}
-        <div>
-          <button
-            className="btn btn-success btn-sm me-2"
-            onClick={exportToExcel}
-            title="Exportar a Excel"
-          >
-            <FaFileExcel size={18} />
-          </button>
-          <button
-            className="btn btn-primary btn-sm me-2"
-            onClick={exportToCSV}
-            title="Exportar a CSV"
-          >
-            <FaFileCsv size={18} />
-          </button>
-          <button
-            className="btn btn-danger btn-sm"
-            onClick={exportToPDF}
-            title="Exportar a PDF"
-          >
-            <FaFilePdf size={18} />
-          </button>
-        </div>
+
+        {mostrarExportar && (
+  <div>
+    <button
+      className="btn btn-success btn-sm me-2"
+      onClick={exportToExcel}
+      title="Exportar a Excel"
+    >
+      <FaFileExcel size={18} />
+    </button>
+    <button
+      className="btn btn-primary btn-sm me-2"
+      onClick={exportToCSV}
+      title="Exportar a CSV"
+    >
+      <FaFileCsv size={18} />
+    </button>
+    <button
+      className="btn btn-danger btn-sm"
+      onClick={exportToPDF}
+      title="Exportar a PDF"
+    >
+      <FaFilePdf size={18} />
+    </button>
+  </div>
+)}
+
+
       </div>
 
       {usarDataTable ? (

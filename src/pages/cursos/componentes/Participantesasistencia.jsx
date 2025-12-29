@@ -10,7 +10,7 @@ import config from "../../../config";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { FaChalkboardTeacher, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import BotonPDFver from "../../asignatura/componentes/Botonpdfver";
+
 
 
 function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
@@ -337,6 +337,8 @@ const guardarAsistenciaFinal = async () => {
 
 
   const columnas = [
+
+    
     
     { clave: "alumno", titulo: "Código" },
     { clave: "nombrecompleto", titulo: "Nombres Completos" },
@@ -353,6 +355,9 @@ const guardarAsistenciaFinal = async () => {
           );
         }
 
+
+
+        
         return (
           <Form.Select
             value={fila.asistencia || "0"}
@@ -409,29 +414,58 @@ const guardarAsistenciaFinal = async () => {
       render: (fila) => fila.existe ? <FaCheckCircle style={{ color: "green" }} /> : <FaTimesCircle style={{ color: "red" }} />
       
     },
-    {
-      clave: "archivo",
-      titulo: "Justificación",
-      render: (fila) => {
-        // Si no tiene archivo registrado, mostramos un texto
-        if (!fila.archivo) {
-          return <span className="text-muted">Sin archivo</span>;
-        }
+   {
+  clave: "archivo",
+  titulo: "Justificación",
+  render: (fila) => {
 
-        // Si tiene archivo, mostramos el botón
-        return (
-          <BotonPDFver
-            fila={fila}
-            semestre={semestre}
-            token={token}
-            titulo={'Ver Silabo'}
-            nombrecarpeta={'falta_justificada'}
-            semana={datoscurso.sesion}
-          />
-        );
-      },
-    },
+    // 1️⃣ Si el archivo fue subido pero aún NO guardado (local)
+    if (archivosAsistencia[fila.alumno]) {
+      return <VerPDFLocal file={archivosAsistencia[fila.alumno]} />;
+    }
+
+    // 2️⃣ Si ya existe asistencia (puede tener PDF en backend)
+    if (fila.existe) {
+      const url = `${config.apiUrl}api/asistencia/justificacion/${fila.alumno}/${semestre}/${datoscurso.sesion}`;
+
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-outline-danger btn-sm"
+        >
+          📄 Ver PDF
+        </a>
+      );
+    }
+
+    // 3️⃣ Nada
+    return <span className="text-muted">Sin archivo</span>;
+  },
+},
+
+
   ];
+
+  const VerPDFLocal = ({ file }) => {
+    const abrirPDF = () => {
+      const url = URL.createObjectURL(file);
+      window.open(url, "_blank");
+    };
+
+    return (
+      <Button
+        variant="outline-primary"
+        size="sm"
+        onClick={abrirPDF}
+      >
+        📄 Ver archivo
+      </Button>
+    );
+  };
+
+  
 
   return (
     <div>
