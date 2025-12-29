@@ -29,6 +29,9 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   const [justificacion, setJustificacion] = useState({ archivo: null, observacion: "", alumno: null, nombrecompleto: "" });
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
   const [archivosAsistencia, setArchivosAsistencia] = useState({});
+  const [showModalPDF, setShowModalPDF] = useState(false);
+  const [archivoURL, setArchivoURL] = useState(null);
+  const [observacionPDF, setObservacionPDF] = useState("");
   const { id } = useParams();
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion] = decoded.split("|");
@@ -38,6 +41,28 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   // 🔹 límite de faltas = 30% del total de sesiones
   const maxFaltasPermitidas = Math.round((totalFechas || 0) * 0.3);
   //console.log();
+
+  // Función para mostrar el PDF en modal usando token (descarga como blob)
+  const mostrarPDFJustificacion = async (alumno) => {
+    try {
+      const urlArchivo = `${config.apiUrl}api/curso/archivo-falta/${sede}/${semestre}/${curso}/${escuela}/${datoscurso.sesion}/${alumno}`;
+      const resp = await axios.get(urlArchivo, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob",
+      });
+
+      const contentType = resp.headers["content-type"] || "application/pdf";
+      const blob = new Blob([resp.data], { type: contentType });
+      const objectUrl = URL.createObjectURL(blob);
+
+      setArchivoURL(objectUrl);
+      setObservacionPDF("");
+      setShowModalPDF(true);
+    } catch (error) {
+      console.error("Error al obtener archivo de justificación:", error);
+      mostrarToast("No se pudo cargar el archivo", "error");
+    }
+  };
   // --- Cargar datos ---
   const cargarDatos = async (fecha = null) => {
     setLoading(true);
@@ -58,6 +83,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
         const asistencia = encontrado ? (encontrado.condicion || "0") : "0";
         const observacion = encontrado ? encontrado.observaciones : "";
         const persona = encontrado ? encontrado.persona : nuevo.persona;
+        const archivo = encontrado ? encontrado.archivo : null; // Agregar archivo
 
         // ⚡ ya no calculamos en frontend, usamos total_faltas de la BD
         const faltasHistoricas = nuevo.total_faltas || 0;
@@ -67,6 +93,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
           asistencia,
           observacion,
           persona,
+          archivo,
           existe: !!encontrado,
           totalFaltas: faltasHistoricas
         };
@@ -146,7 +173,8 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   };
 
   const handleGuardarJustificacion = () => {
-    if (!justificacion.archivo && !justificacion.observacion) {
+    const tieneArchivoLocal = !!archivosAsistencia[justificacion.alumno];
+    if (!tieneArchivoLocal && !justificacion.observacion) {
       mostrarToast("Debes subir un archivo o escribir una observación", "warning");
       return;
     }
@@ -161,7 +189,7 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
       justificacion.nombrecompleto,
       "F",
       justificacion.observacion,
-      justificacion.archivo
+      tieneArchivoLocal ? "PENDIENTE" : null
     );
 
     setShowModalJustificacion(false);
@@ -313,6 +341,7 @@ const guardarAsistenciaFinal = async () => {
       } else {
         Swal.fire("✅ Éxito", data.mensaje, "success");
         localStorage.removeItem("asistenciasSeleccionadas");
+        setArchivosAsistencia({});
         cargarDatos(fechaSeleccionada);
       }
     } catch (err) {
@@ -355,9 +384,6 @@ const guardarAsistenciaFinal = async () => {
           );
         }
 
-
-
-        
         return (
           <Form.Select
             value={fila.asistencia || "0"}
@@ -421,22 +447,24 @@ const guardarAsistenciaFinal = async () => {
 
     // 1️⃣ Si el archivo fue subido pero aún NO guardado (local)
     if (archivosAsistencia[fila.alumno]) {
-      return <VerPDFLocal file={archivosAsistencia[fila.alumno]} />;
+      return (
+        <div className="d-flex align-items-center gap-2">
+          <VerPDFLocal file={archivosAsistencia[fila.alumno]} />
+          <span className="badge bg-warning text-dark">Pendiente</span>
+        </div>
+      );
     }
 
-    // 2️⃣ Si ya existe asistencia (puede tener PDF en backend)
-    if (fila.existe) {
-      const url = `${config.apiUrl}api/asistencia/justificacion/${fila.alumno}/${semestre}/${datoscurso.sesion}`;
-
+    // 2️⃣ Si la asistencia es falta justificada, mostrar botón para ver archivo del backend
+    if (fila.asistencia === "F") {
       return (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-outline-danger btn-sm"
+        <Button
+          variant="outline-danger"
+          size="sm"
+          onClick={() => mostrarPDFJustificacion(fila.alumno)}
         >
           📄 Ver PDF
-        </a>
+        </Button>
       );
     }
 
@@ -463,6 +491,16 @@ const guardarAsistenciaFinal = async () => {
         📄 Ver archivo
       </Button>
     );
+  };
+
+  const cerrarModalPDF = () => {
+    try {
+      if (archivoURL && typeof archivoURL === "string" && archivoURL.startsWith("blob:")) {
+        URL.revokeObjectURL(archivoURL);
+      }
+    } catch {}
+    setArchivoURL(null);
+    setShowModalPDF(false);
   };
 
   
@@ -527,7 +565,7 @@ const guardarAsistenciaFinal = async () => {
               setShowModalConfirmar(true);
             }}
           >
-            {datos.length === 0 ? "Nueva Asistencia" : "Modificar Asistencia"}
+            {datos.length === 0 ? "Nueva Asistencia" : "Guardar Asistencia"}
           </Button>
         </div>
 
@@ -549,12 +587,14 @@ const guardarAsistenciaFinal = async () => {
             
               <Form.Control
                 type="file"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const file = e.target.files[0];
                   setArchivosAsistencia(prev => ({
                     ...prev,
-                    [justificacion.alumno]: e.target.files[0] // guardamos el File real por alumno
-                  }))
-                }
+                    [justificacion.alumno]: file // guardamos el File real por alumno
+                  }));
+                  setJustificacion(prev => ({ ...prev, archivo: file }));
+                }}
               />
           </Form.Group>
           <Form.Group className="mb-3">
@@ -575,6 +615,36 @@ const guardarAsistenciaFinal = async () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModalConfirmar(false)}>Cancelar</Button>
           <Button variant="success" onClick={() => { setShowModalConfirmar(false); guardarAsistenciaFinal(); }}>Sí, guardar</Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal para mostrar PDF de Justificación */}
+      <Modal show={showModalPDF} onHide={() => cerrarModalPDF()} size="lg">
+        <Modal.Header closeButton><Modal.Title>Justificación de Falta</Modal.Title></Modal.Header>
+        <Modal.Body>
+          {observacionPDF && (
+            <div className="mb-3">
+              <h6>Observación:</h6>
+              <p>{observacionPDF}</p>
+            </div>
+          )}
+          {archivoURL && (
+            <div style={{ width: '100%', height: '600px' }}>
+              <iframe 
+                src={archivoURL} 
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                title="PDF Justificación"
+              />
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModalPDF(false)}>Cerrar</Button>
+          {archivoURL && (
+            <a href={archivoURL} download className="btn btn-primary">
+              Descargar
+            </a>
+          )}
         </Modal.Footer>
       </Modal>
     </div>
