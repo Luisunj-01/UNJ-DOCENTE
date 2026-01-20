@@ -239,7 +239,11 @@ const guardarCalificaciones = async () => {
   });
 
   // Opcional: eliminar el canvas después de la animación
-  setTimeout(() => document.body.removeChild(canvas), 5000);
+  setTimeout(() => {
+    if (canvas && canvas.parentNode) {
+      canvas.parentNode.removeChild(canvas);
+    }
+  }, 5000);
 }
 
 const validarRango = async () => {

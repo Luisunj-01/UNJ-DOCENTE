@@ -2,9 +2,21 @@ import { Modal, Table, Button } from "react-bootstrap";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable"; // ✅ Importa correctamente
 
+import { useState } from "react";
+import DetalleCursosModal from "./DetalleCursosModal";
+
+
 function ReporteRendimientoModal({ show, onHide, semestre, tutor, alumnos }) {
   // ✅ Logo institucional (puedes cambiar la URL si usas otro)
   const logoUrl = "https://unj.edu.pe/wp-content/uploads/2022/06/logo-unj.png";
+
+    const [showDetalle, setShowDetalle] = useState(false);
+    const [alumnoDetalle, setAlumnoDetalle] = useState(null);
+
+    const abrirDetalle = (alumno) => {
+      setAlumnoDetalle(alumno);
+      setShowDetalle(true);
+    };
 
 
   const handleExportPDF = async () => {
@@ -91,6 +103,7 @@ doc.text(
 
 
   return (
+  <>
     <Modal show={show} onHide={onHide} size="lg" centered scrollable>
       <Modal.Header closeButton className="bg-success text-white">
         <Modal.Title>Matriz de Rendimiento Académico</Modal.Title>
@@ -102,7 +115,7 @@ doc.text(
             <p><strong>Semestre:</strong> {semestre}</p>
             <p><strong>Tutor:</strong> {tutor}</p>
           </div>
-          {/* 🔹 Botón para exportar PDF */}
+
           <Button variant="outline-danger" size="sm" onClick={handleExportPDF}>
             📄 Exportar PDF
           </Button>
@@ -119,14 +132,33 @@ doc.text(
             </tr>
           </thead>
           <tbody>
-            {alumnos && alumnos.length > 0 ? (
+            {alumnos?.length > 0 ? (
               alumnos.map((a, i) => (
                 <tr key={i}>
                   <td>{i + 1}</td>
                   <td className="text-start">{a.nombrecompleto}</td>
-                  <td>{a.ponderado_semestre || "-"}</td>
-                  <td style={{ whiteSpace: "pre-wrap" }}>{a.comentario || ""}</td>
-                  <td style={{ whiteSpace: "pre-wrap" }}>{a.recomendacion || ""}</td>
+
+                  <td>
+                    {a.ponderado_semestre ? (
+                      <Button
+                        variant="link"
+                        className={`p-0 fw-bold text-decoration-none ${
+                          Number(a.ponderado_semestre) >= 11
+                            ? "text-primary"
+                            : "text-danger"
+                        }`}
+                        onClick={() => abrirDetalle(a)}
+                      >
+                        {a.ponderado_semestre}
+                      </Button>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+
+
+                  <td>{a.comentario || ""}</td>
+                  <td>{a.recomendacion || ""}</td>
                 </tr>
               ))
             ) : (
@@ -138,7 +170,17 @@ doc.text(
         </Table>
       </Modal.Body>
     </Modal>
-  );
+
+    {/* 🔥 MINI MODAL (AHORA SÍ FUNCIONA) */}
+    <DetalleCursosModal
+      show={showDetalle}
+      onHide={() => setShowDetalle(false)}
+      alumno={alumnoDetalle}
+    />
+  </>
+);
+
+      
 }
 
 export default ReporteRendimientoModal;

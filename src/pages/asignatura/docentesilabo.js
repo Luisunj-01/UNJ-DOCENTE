@@ -52,7 +52,11 @@ const Docentesilabo = ({ fila, semestre, escuela, urlPDF, setUrlPDF, renderKey, 
     document.body.appendChild(canvas);
     const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
     myConfetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-    setTimeout(() => document.body.removeChild(canvas), 5000);
+    setTimeout(() => {
+      if (canvas && canvas.parentNode) {
+        canvas.parentNode.removeChild(canvas);
+      }
+    }, 5000);
   }
 
   const handleSubir = async () => {

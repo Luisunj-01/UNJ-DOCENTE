@@ -125,6 +125,75 @@ function Declaracion() {
     setActividades(nuevas);
   };
 
+  const handleArchivoChange = (index, file) => {
+  setActividades(prev =>
+    prev.map((a, i) =>
+      i === index ? { ...a, archivo: file } : a
+    )
+  );
+};
+
+const subirArchivo = async (index) => {
+  const actividad = actividades[index];
+
+  if (!actividad.archivo) {
+    Swal.fire({
+      icon: "warning",
+      title: "Archivo no seleccionado",
+      text: "Por favor selecciona un archivo antes de subirlo.",
+    });
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("archivo", actividad.archivo);
+  formData.append("actividad_id", actividad.actividad);
+
+  try {
+    const resp = await fetch(
+      `${config.apiUrl}api/actividades/subir-archivo`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    const data = await resp.json();
+
+    if (!data.success) {
+      throw new Error(data.message || "Error al subir el archivo");
+    }
+
+    // ✅ ÉXITO
+    Swal.fire({
+      icon: "success",
+      title: "Archivo subido",
+      text: "El archivo se subió correctamente.",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+
+    // Guardar ruta en estado
+    setActividades((prev) =>
+      prev.map((a, i) =>
+        i === index ? { ...a, rutaArchivo: data.ruta } : a
+      )
+    );
+
+  } catch (error) {
+    // ❌ ERROR
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message || "No se pudo subir el archivo.",
+    });
+  }
+};
+
+
   // ✅ Guardar todo
   const handleGuardar = async () => {
     setLoading(true);
@@ -304,18 +373,19 @@ function Declaracion() {
 
 
           {/* Actividades no lectivas */}
-{actividades.length > 0 && (
-  <div className="mb-4">
-    <Accordion defaultActiveKey="0" className="mb-3">
-      <Accordion.Item eventKey="0">
-        <Accordion.Header>📋 2. ACTIVIDADES NO LECTIVAS</Accordion.Header>
-        <Accordion.Body>
+        {actividades.length > 0 && (
+          <div className="mb-4">
+            <Accordion defaultActiveKey="0" className="mb-3">
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>📋 2. ACTIVIDADES NO LECTIVAS</Accordion.Header>
+                <Accordion.Body>
           <table className="table table-sm table-bordered">
             <thead>
               <tr>
                 <th style={{ width: "40%" }}>Actividad</th>
                 <th style={{ width: "45%" }}>Descripción</th>
                 <th style={{ width: "15%" }}>Hrs.</th>
+                <th style={{ width: "15%" }}>Subir Archivo</th> {/* 🆕 */}
               </tr>
             </thead>
             <tbody>
@@ -346,6 +416,40 @@ function Declaracion() {
                         ))}
                       </select>
                     </td>
+
+                    {/* 🆕 ARCHIVO */}
+                  <td className="text-center">
+                  <label className="btn btn-outline-primary btn-sm mb-1">
+                    📎 Seleccionar
+                    <input
+                      type="file"
+                      hidden
+                      onChange={(e) =>
+                        handleArchivoChange(i, e.target.files[0])
+                      }
+                    />
+                  </label>
+
+                  <button
+                    className="btn btn-success btn-sm d-block w-100"
+                    onClick={() => subirArchivo(i)}
+                  >
+                    ⬆ Subir
+                  </button>
+
+                  {a.rutaArchivo && (
+                    <a
+                      href={a.rutaArchivo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="d-block small mt-1"
+                    >
+                      📄 Ver archivo
+                    </a>
+                  )}
+                </td>
+
+
                   </tr>
                 );
               })}

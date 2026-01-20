@@ -170,7 +170,7 @@ function Reportes() {
     const docente = usuario?.docente?.persona;
     const vperfil = usuario?.perfil || "T";
 
-    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}/${docente}/${vperfil}`;
+    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}`;
 
     const resp = await axios.get(url);
 

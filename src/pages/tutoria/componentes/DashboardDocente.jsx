@@ -95,6 +95,15 @@ const [stats, setStats] = useState({
 });
 
 
+// 📌 Citas directas
+const [citasDirectas, setCitasDirectas] = useState({
+  pendiente: 0,
+  programada: 0,
+  atendido: 0,
+  total: 0
+});
+
+
 // 📌 Gráficos
 const [datosRiesgo, setDatosRiesgo] = useState({
   bajo: 0,
@@ -323,7 +332,19 @@ const dDer = await rDer.json();
 setDerivaciones(dDer?.datos || []);
 setTotalDerivaciones(dDer?.total_derivaciones || 0);
 
+// =================================================
+// 6️⃣ CITAS DIRECTAS (Dashboard)
+// =================================================
+const rCitas = await fetch(
+  `${config.apiUrl}api/Tutoria/citas-directas/${semestre}/${persona}`,
+  { headers }
+);
 
+const dCitas = await rCitas.json();
+
+if (dCitas?.success) {
+  setCitasDirectas(dCitas.data);
+}
 
 
 
@@ -432,14 +453,36 @@ setCursosCriticos(listaCursos);
         <Col md={2}><CardMetric title="Sesiones ciclo" value={`${stats.sesionesReal}/${stats.sesionesTotal}`} color="#17a2b8" icon={<FaCheckCircle />} /></Col>
         <Col md={2}><CardMetric title="Sesiones libres" value={`${stats.libresReal}/${stats.libresTotal}`} color="#20c997" icon={<FaUserClock />} /></Col>
         <Col md={2}><CardMetric title="Derivaciones" value={stats.atenciones} color="#ffc107" icon={<FaBook />} /></Col>
-        <Col md={3}>
-            <CardRiesgo 
-            bajo={stats.bajo} 
-            medio={stats.medio} 
-            alto={stats.alto} 
-          />
+        <Col md={3}><CardRiesgo bajo={stats.bajo} medio={stats.medio} alto={stats.alto} /></Col>
 
-            </Col>
+        <Col md={2} className="d-flex">
+  <Card className="shadow-sm h-100 w-100">
+    <Card.Body className="d-flex flex-column justify-content-between">
+      <div>
+        <div className="d-flex align-items-center mb-2">
+          <FaUserClock size={22} color="#6f42c1" className="me-2" />
+          <h6 className="mb-0">Citas directas</h6>
+        </div>
+
+        <div style={{ fontSize: "14px" }}>
+          <div>
+            Pendiente: <strong>{citasDirectas.pendiente}</strong>{" "}
+            Programada: <strong>{citasDirectas.programada}</strong>{" "}
+            Atendido: <strong>{citasDirectas.atendido}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-2">
+        Total: <strong>{citasDirectas.total}</strong>
+      </div>
+    </Card.Body>
+  </Card>
+</Col>
+
+
+
+
         </Row>
 
         {/* =============================== */}

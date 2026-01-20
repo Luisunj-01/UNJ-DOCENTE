@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Table, Button, Spinner } from "react-bootstrap";
+ import { Button, Spinner } from "react-bootstrap";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import { obtenerAlumnosTutor, guardarObservacion } from "./logica/DatosTutoria";
@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import config from "../../config"; // Ajusta la ruta según tu proyecto
 import ReporteRendimientoModal from "./componentes/ReporteRendimientoModal";
 
+import DataTable from "react-data-table-component";
 
 
 function ObsRendimiento({ semestreValue }) {
@@ -21,6 +22,12 @@ function ObsRendimiento({ semestreValue }) {
   const [busquedaInput, setBusquedaInput] = useState("");
   const [busqueda, setBusqueda] = useState("");
 
+// 🔴 CLEANUP OBLIGATORIO PARA SWEETALERT
+useEffect(() => {
+  return () => {
+    Swal.close();
+  };
+}, []);
 
 // ⏳ Debounce: solo filtra cuando dejas de escribir 400ms
 useEffect(() => {
@@ -29,8 +36,143 @@ useEffect(() => {
   }, 400);
 
   return () => clearTimeout(timer);
+
+  
 }, [busquedaInput]);
 
+const columnas = [
+  {
+    name: "N°",
+    selector: (_, index) => index + 1,
+    width: "60px",
+    center: true
+    
+  },
+  {
+    name: "Código",
+    selector: row => row.alumno,
+    sortable: true
+  },
+  {
+   name: "Nombre",
+  sortable: true,
+  grow: 2,
+  cell: row => (
+    <div style={{ lineHeight: "1.2" }}>
+      <div
+        onClick={() => handleVerFichaAlumno(row)}
+        style={{
+          color: "#0d6efd",
+          fontWeight: "600",
+          cursor: "pointer"
+        }}
+      >
+        {row.nombrecompleto}
+      </div>
+
+      <div style={{ fontSize: "0.75em", color: "#6c757d" }}>
+        {row.nombreescuela}
+      </div>
+    </div>
+  )
+  },
+  {
+    name: "Teléfono",
+    selector: row => row.telefono
+  },
+  {
+    name: "Escuela",
+    selector: row => row.estructura
+  },
+  {
+    name: "Segunda",
+    grow: 2,
+    cell: row => (
+      <div style={{ whiteSpace: "pre-wrap", maxWidth: "200px" }}>
+        {row.segunda}
+      </div>
+    )
+  },
+  {
+    name: "Tercera",
+    grow: 2,
+    cell: row => (
+      <div style={{ whiteSpace: "pre-wrap", maxWidth: "200px" }}>
+        {row.tercera}
+      </div>
+    )
+  },
+  {
+    name: "Cuarta",
+    grow: 2,
+    cell: row => (
+      <div style={{ whiteSpace: "pre-wrap", maxWidth: "200px" }}>
+        {row.cuarta}
+      </div>
+    )
+  },
+  {
+  name: "Discapacidad",
+ selector: row => row.discapacidad,
+ sortable: true, 
+sortFunction: (rowA, rowB) => { 
+const aTieneDiscapacidad =
+ rowA.discapacidad && 
+rowA.discapacidad.toUpperCase() !== "SIN DISCAPACIDAD"; 
+const bTieneDiscapacidad = 
+rowB.discapacidad && 
+rowB.discapacidad.toUpperCase() !== "SIN DISCAPACIDAD"; 
+// Si A tiene discapacidad y B no → A primero 
+if (aTieneDiscapacidad && !bTieneDiscapacidad) return -1;
+ // Si B tiene discapacidad y A no → B primero 
+if (!aTieneDiscapacidad && bTieneDiscapacidad) return 1;
+ // Si ambos tienen o ambos no tienen → ordenar alfabéticamente return rowA.discapacidad.localeCompare(rowB.discapacidad);
+ }, 
+center: true, 
+cell: row => 
+row.discapacidad && row.discapacidad.toUpperCase() !== "SIN DISCAPACIDAD" ? ( 
+<> <span title={row.discapacidad} style={{ fontSize: "1.2em" }}> 
+♿
+ </span> 
+<div style={{ fontSize: "0.75em" }}>{row.discapacidad}</div>
+ </>
+ ) : (
+ <span className="text-muted">—</span> 
+)
+  },
+
+
+  {
+    name: "Obs",
+    center: true,
+    cell: row => (
+      <>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={() =>
+            handleObservacion(
+              row,
+              alumnos,
+              setAlumnos,
+              usuario?.codigotokenautenticadorunj
+            )
+          }
+        >
+          📝
+        </Button>
+
+        <span className="ms-2">
+          {row.obs ? (
+            <small className="text-success">✔</small>
+          ) : (
+            <small className="text-muted">Sin obs.</small>
+          )}
+        </span>
+      </>
+    )
+  }
+];
 
 
  // ======================================================
@@ -38,12 +180,16 @@ useEffect(() => {
   // ======================================================
  const handleVerReporte = async () => {
   try {
-    setCargandoReporte(true); // ⏳ inicia carga
+    setCargandoReporte(true);
+
+    // 🔥 PASO CLAVE
+    if (Swal.isVisible()) {
+      Swal.close();
+    }
 
     const token = usuario?.codigotokenautenticadorunj;
     if (!token) {
-      Swal.fire("Error", "Token no disponible. Inicie sesión nuevamente.", "error");
-      setCargandoReporte(false);
+      Swal.fire("Error", "Token no disponible.", "error");
       return;
     }
 
@@ -51,28 +197,33 @@ useEffect(() => {
     const docente = usuario.docente.docente;
     const vperfil = usuario.docente.vperfil || "G";
 
-    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}/${docente}/${vperfil}`;
+    const url = `${config.apiUrl}api/Tutoria/reporte-rendimiento/${semestre}/${persona}`;
 
     const resp = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
     const data = await resp.json();
-  
 
     if (data.success && data.data.length > 0) {
       setDatosReporte(data.data);
-      setMostrarReporte(true);
+
+      // ⏱️ pequeño delay para que el DOM quede limpio
+      setTimeout(() => {
+        setMostrarReporte(true);
+      }, 0);
+
     } else {
-      Swal.fire("Sin datos", "No se encontraron registros del reporte.", "info");
+      Swal.fire("Sin datos", "No se encontraron registros.", "info");
     }
   } catch (error) {
-    console.error("❌ Error en reporte:", error);
+    console.error(error);
     Swal.fire("Error", "No se pudo obtener el reporte.", "error");
   } finally {
-    setCargandoReporte(false); // ✅ termina carga
+    setCargandoReporte(false);
   }
 };
+
 
 
 const alumnosFiltrados = alumnos.filter((a) =>
@@ -287,6 +438,7 @@ const handleVerFichaAlumno = (alumno) => {
   const codSede = alumno.sede?.trim() || "";
 
 
+
  
 // 1. Reportes ANTIGUOS (4 parámetros)
   const codigoBaseFull = `${codAlumno}|${codEscuela}|${codCurricula}|${codSemestre}`;
@@ -400,88 +552,43 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
             <Button 
               variant="outline-success"
               size="sm"
-              disabled={cargandoReporte} // 🚫 desactiva durante carga
+              disabled={cargandoReporte}
               onClick={handleVerReporte}
+              translate="no"                 // 🔒 evita que el traductor modifique el botón
+              aria-label="ver-reporte"       // 🛡️ texto estable para accesibilidad
             >
               {cargandoReporte ? (
                 <>
-                  <Spinner animation="border" size="sm" className="me-2" /> Cargando...
+                  <Spinner
+                    animation="border"
+                    size="sm"
+                    className="me-2"
+                    translate="no"            // 🔒 también aquí
+                  />
+                  <span translate="no">Cargando...</span>
                 </>
               ) : (
-                "🔍 Ver Reporte"
+                <span translate="no">🔍 Ver Reporte</span>
               )}
             </Button>
+
           </div>
 
 
 
-          {/* Tabla de alumnos */}
-          <Table bordered hover size="sm" responsive>
-            <thead>
-              <tr>
-                <th style={{ width: "3%" }}>N°</th>
+                <DataTable
+          columns={columnas}
+          data={alumnosFiltrados}
+          keyField="alumno"   // ✅ SOLUCIÓN CLAVE
+          pagination
+          highlightOnHover
+          striped
+          dense
+          responsive
+          noDataComponent="No hay alumnos"
+        />
 
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Teléfono</th>
-                <th>Escuela</th>
-                <th>Segunda</th>
-                <th>Tercera</th>
-                <th>Cuarta</th>
-                <th>Obs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alumnosFiltrados.map((alumno, index) => (
-                <tr key={index}>
-                  <td className="text-center">{index + 1}</td>
-                  <td>{alumno.alumno}</td>
-                  <td>
-                    <button
-                      onClick={() => handleVerFichaAlumno(alumno)}
-                      className="btn btn-link p-0 text-primary fw-semibold"
-                      style={{ textDecoration: "none", cursor: "pointer" }}
-                    >
-                      {alumno.nombrecompleto}
-                    </button>
-                    <div style={{ fontSize: "0.8em", color: "#0e0f0fff" }}>{alumno.nombreescuela}</div>
-                  </td>
-                  <td>{alumno.telefono}</td>
-                  <td>{alumno.estructura}</td>
 
-                  {/* 👉 Texto largo se adapta al ancho y hace salto de línea */}
-                  <td style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxWidth: "200px" }}>
-                    {alumno.segunda}
-                  </td>
-                  <td style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxWidth: "200px" }}>
-                    {alumno.tercera}
-                  </td>
-                  <td style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxWidth: "200px" }}>
-                    {alumno.cuarta}
-                  </td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() =>
-                        handleObservacion(alumno, alumnos, setAlumnos, usuario?.codigotokenautenticadorunj)
-                      }
-                    >
-                      📝
-                    </Button>
-
-                    <span className="ms-2">
-                      {alumno.obs ? (
-                        <small className="text-success">✔</small>
-                      ) : (
-                        <small className="text-muted">Sin obs.</small>
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
 
           <ReporteRendimientoModal
           show={mostrarReporte}
