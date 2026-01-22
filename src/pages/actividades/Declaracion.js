@@ -4,14 +4,14 @@ import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
 import { obtenerDatosDocente, validarFechas } from "./logica/Actividades";
 import Swal from "sweetalert2";
-import { Accordion, Table } from "react-bootstrap";
+import { Accordion, Table, Modal } from "react-bootstrap";
+
 import config from "../../config";
 import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 
 function Declaracion() {
   const [semestre, setSemestre] = useState("202502");
   const { usuario } = useUsuario();
-
   const [docente, setDocente] = useState(null);
   const [cargaLectiva, setCargaLectiva] = useState([]);
   const [actividades, setActividades] = useState([]); // 👈 estado único
@@ -20,6 +20,8 @@ function Declaracion() {
   const [formHabilitado, setFormHabilitado] = useState(false);
   const [mensajeFecha, setMensajeFecha] = useState("");
   const token = usuario?.codigotokenautenticadorunj;
+  const [mostrarPdf, setMostrarPdf] = useState(false);
+  const [urlPdf, setUrlPdf] = useState("");
 
   const maxHorasPorActividad = {
     "03": 2,
@@ -58,36 +60,70 @@ function Declaracion() {
   validarFecha();
 }, [semestre, usuario]);
 
-  useEffect(() => {
-    if (!usuario) return;
+useEffect(() => {
+  if (!usuario) return;
 
-    const cargarDatos = async () => {
-      setLoading(true);
-      const result = await obtenerDatosDocente("01", semestre, usuario.docente.persona);
-      if (result.datos) {
-        setDocente(result.datos.docente);
-        setCargaLectiva(result.datos.cargaLectiva || []);
+  const cargarDatos = async () => {
+    setLoading(true);
 
-        // 👇 inicializa estado con horas y descripcion ya mezcladas
-        const acts = (result.datos.actividades || []).map((a) => ({
-          ...a,
-          descripcion2: a.descripcion2 || "",
-          horas: a.horas ?? 0,
-        }));
-        setActividades(acts);
+    const result = await obtenerDatosDocente(
+      "01",
+      semestre,
+      usuario.docente.persona
+    );
 
-        setMensaje("");
-      } else {
-        setDocente(null);
-        setCargaLectiva([]);
-        setActividades([]);
-        setMensaje(result.mensaje);
-      }
-      setLoading(false);
-    };
+    if (result.datos) {
+      setDocente(result.datos.docente);
+      setCargaLectiva(result.datos.cargaLectiva || []);
 
-    cargarDatos();
-  }, [semestre, usuario]);
+      // 1️⃣ Inicializa actividades
+      const acts = (result.datos.actividades || []).map(a => ({
+        ...a,
+        descripcion2: a.descripcion2 || "",
+        horas: a.horas ?? 0,
+        rutaArchivo: null, // 👈 IMPORTANTE
+      }));
+
+      // 2️⃣ Verificar archivos EN PARALELO
+     const actsConArchivo = await Promise.all(
+        acts.map(async (act) => {
+          const url = `${config.apiUrl}api/actividades/ver-archivo/${semestre}/${usuario.docente.docente}/${usuario.docente.persona}/${act.actividad}`;
+
+          try {
+            const resp = await fetch(url, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (resp.ok) {
+              return {
+                ...act,
+                rutaArchivo: url, // ✅ existe
+              };
+            }
+
+            return act;
+          } catch {
+            return act;
+          }
+        })
+      );
+      // 3️⃣ SETEAR UNA SOLA VEZ
+      setActividades(actsConArchivo);
+      setMensaje("");
+    } else {
+      setDocente(null);
+      setCargaLectiva([]);
+      setActividades([]);
+      setMensaje(result.mensaje);
+    }
+
+    setLoading(false);
+  };
+
+  cargarDatos();
+}, [semestre, usuario]);
 
   const totalHt = cargaLectiva.reduce((sum, c) => sum + Number(c.horasteoria), 0);
   const totalHp = cargaLectiva.reduce((sum, c) => sum + Number(c.horaspractica), 0);
@@ -140,14 +176,19 @@ const subirArchivo = async (index) => {
     Swal.fire({
       icon: "warning",
       title: "Archivo no seleccionado",
-      text: "Por favor selecciona un archivo antes de subirlo.",
+      text: "Selecciona un archivo primero",
     });
     return;
   }
 
   const formData = new FormData();
   formData.append("archivo", actividad.archivo);
-  formData.append("actividad_id", actividad.actividad);
+
+  // 🔥 CAMPOS QUE FALTABAN
+  formData.append("semestre", semestre);
+  formData.append("docente", usuario.docente.docente);   // ajusta si el nombre es otro
+  formData.append("persona", usuario.docente.persona);
+  formData.append("actividad", actividad.actividad);
 
   try {
     const resp = await fetch(
@@ -156,6 +197,7 @@ const subirArchivo = async (index) => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          // ❌ NO pongas Content-Type
         },
         body: formData,
       }
@@ -164,35 +206,64 @@ const subirArchivo = async (index) => {
     const data = await resp.json();
 
     if (!data.success) {
-      throw new Error(data.message || "Error al subir el archivo");
+      throw new Error(data.message);
     }
 
-    // ✅ ÉXITO
     Swal.fire({
       icon: "success",
       title: "Archivo subido",
-      text: "El archivo se subió correctamente.",
-      timer: 2000,
+      timer: 1500,
       showConfirmButton: false,
     });
 
-    // Guardar ruta en estado
-    setActividades((prev) =>
+    // Guardar la ruta SOLO para mostrar el link
+    setActividades(prev =>
       prev.map((a, i) =>
         i === index ? { ...a, rutaArchivo: data.ruta } : a
       )
     );
 
   } catch (error) {
-    // ❌ ERROR
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: error.message || "No se pudo subir el archivo.",
+      text: error.message || "No se pudo subir el archivo",
     });
   }
 };
+const abrirPdf = async (actividad) => {
+  try {
+    if (!actividad.rutaArchivo) {
+      throw new Error("No se encontró la ruta del archivo");
+    }
 
+    // 🔧 Descargar a través de la API backend (con CORS configurado)
+    const resp = await fetch(
+      `${config.apiUrl}api/actividades/ver-archivo/${semestre}/${usuario.docente.docente}/${usuario.docente.persona}/${actividad.actividad}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!resp.ok) {
+      throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+    }
+
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+
+    setUrlPdf(url);
+    setMostrarPdf(true);
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Error al abrir el archivo",
+      text: error.message || "No se pudo descargar el archivo",
+    });
+  }
+};
 
   // ✅ Guardar todo
   const handleGuardar = async () => {
@@ -380,15 +451,15 @@ const subirArchivo = async (index) => {
                 <Accordion.Header>📋 2. ACTIVIDADES NO LECTIVAS</Accordion.Header>
                 <Accordion.Body>
           <table className="table table-sm table-bordered">
-            <thead>
-              <tr>
-                <th style={{ width: "40%" }}>Actividad</th>
-                <th style={{ width: "45%" }}>Descripción</th>
-                <th style={{ width: "15%" }}>Hrs.</th>
-                <th style={{ width: "15%" }}>Subir Archivo</th> {/* 🆕 */}
-              </tr>
-            </thead>
-            <tbody>
+              <thead>
+                <tr>
+                  <th style={{ width: "35%" }}>Actividad</th>
+                  <th style={{ width: "45%" }}>Descripción</th>
+                  <th style={{ width: "8%" }}>Hrs.</th>
+                  <th style={{ width: "12%" }}>Subir Archivo</th> {/* 🆕 */}
+                </tr>
+              </thead>
+              <tbody>
               {actividades.map((a, i) => {
                 const maxHoras = maxHorasPorActividad[a.actividad] ?? 0;
                 return (
@@ -398,10 +469,10 @@ const subirArchivo = async (index) => {
                       <small className="text-muted">{a.observa}</small>
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={a.descripcion2}
+                      <textarea
+                        className="form-control descripcion-textarea"
+                        rows={2}
+                        value={a.descripcion_tema}
                         onChange={(e) => handleDescripcionChange(i, e.target.value)}
                       />
                     </td>
@@ -418,41 +489,44 @@ const subirArchivo = async (index) => {
                     </td>
 
                     {/* 🆕 ARCHIVO */}
-                  <td className="text-center">
-                  <label className="btn btn-outline-primary btn-sm mb-1">
-                    📎 Seleccionar
-                    <input
-                      type="file"
-                      hidden
-                      onChange={(e) =>
-                        handleArchivoChange(i, e.target.files[0])
-                      }
-                    />
-                  </label>
+                  <td className="text-center align-middle">
+                  <div className="d-flex flex-column gap-1">
 
-                  <button
-                    className="btn btn-success btn-sm d-block w-100"
-                    onClick={() => subirArchivo(i)}
-                  >
-                    ⬆ Subir
-                  </button>
+                    {/* Seleccionar archivo */}
+                    <label className="btn btn-outline-secondary btn-sm">
+                      📎 Seleccionar
+                      <input
+                        type="file"
+                        hidden
+                        onChange={(e) =>
+                          handleArchivoChange(i, e.target.files[0])
+                        }
+                      />
+                    </label>
 
-                  {a.rutaArchivo && (
-                    <a
-                      href={a.rutaArchivo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="d-block small mt-1"
+                    {/* Subir */}
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={() => subirArchivo(i)}
+                      disabled={!a.archivo}
                     >
-                      📄 Ver archivo
-                    </a>
-                  )}
-                </td>
+                      ⬆ Subir
+                    </button>
 
-
-                  </tr>
+                    {/* Ver */}
+                    {a.rutaArchivo && (
+                      <button
+                        className="btn btn-link btn-sm p-0"
+                        onClick={() => abrirPdf(a)}
+                      >
+                        📄 Ver archivo
+                      </button>
+                    )}
+                   </div>
+                   </td>
+                   </tr>
                 );
-              })}
+            })}
 
               <tr>
                 <td colSpan="2" className="text-end fw-bold">TOTAL CARGA NO LECTIVA</td>
@@ -486,17 +560,40 @@ const subirArchivo = async (index) => {
                           {mensajeFecha}
                         </p>
                       )}
+                  </div>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
           </div>
-        </Accordion.Body>
-      </Accordion.Item>
-    </Accordion>
-  </div>
-)}
+        )}
 
 
 
         </div>
       </div>
+
+        <Modal
+          show={mostrarPdf}
+          onHide={() => setMostrarPdf(false)}
+          size="xl"
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>📄 Documento de la actividad</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body style={{ height: "80vh", padding: 0 }}>
+            <iframe
+              src={urlPdf}
+              title="PDF"
+              width="100%"
+              height="100%"
+              style={{ border: "none" }}
+            />
+          </Modal.Body>
+        </Modal>
+
+
     </>
   );
 }

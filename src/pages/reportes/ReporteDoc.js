@@ -6,7 +6,7 @@ import PanelBotones from "../cursos/componentes/PanelBotones";
 import { useUsuario } from "../../context/UserContext";
 
 function ReporteDoc(){
-  const [semestre, setSemestre] = useState('202501');
+  const [semestre, setSemestre] = useState('202502');
 
   const { usuario } = useUsuario();
   const dniusuario = usuario.docente.usuario;
