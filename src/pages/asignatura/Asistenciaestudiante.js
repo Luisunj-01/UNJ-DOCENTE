@@ -4,13 +4,15 @@ import TablaCursos from '../reutilizables/componentes/TablaCursos';
 import { obtenerCursosPrematricula } from '../reutilizables/logica/docente';
 import SemestreSelect from '../reutilizables/componentes/SemestreSelect';
 import { useUsuario } from '../../context/UserContext';
+import { useSemestreActual } from '../../hooks/useSemestreActual';
 
 
 function Asistenciaestudiant() {
+  const { semestre: semestreActual } = useSemestreActual('01');
   const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
-  const [semestre, setSemestre] = useState('202501'); // <- estado dinámico
+  const [semestre, setSemestre] = useState('');
 
 
   const { usuario } = useUsuario();
@@ -24,6 +26,20 @@ function Asistenciaestudiant() {
 
   ///const apiUrl = `http://127.0.0.1:8000/api/prematricula/${codigo}/${escuela}/${nivel}/${semestre}`;
 
+  // Cargar semestre actual de la BD
+  useEffect(() => {
+    if (semestreActual) {
+      setSemestre(semestreActual);
+    }
+  }, [semestreActual]);
+
+  // Callback cuando SemestreSelect carga los semestres disponibles
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Asistenciaestudiante - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
    useEffect(() => {
       async function cargarCursos() {
@@ -124,7 +140,7 @@ function Asistenciaestudiant() {
             <label className="form-label"><strong>Semestre:</strong></label>
           </div>
           <div className="col-md-3">
-            <SemestreSelect value={semestre} onChange={(e) => setSemestre(e.target.value)} />
+            <SemestreSelect value={semestre} onChange={(e) => setSemestre(e.target.value)} name="cboSemestre" onSemestresLoaded={handleSemestresLoaded} />
           </div>
           
         </div>

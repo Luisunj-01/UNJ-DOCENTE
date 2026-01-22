@@ -10,7 +10,14 @@ function Ingresonotasdoc(){
 const [datos, setDatos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
-  const [semestre, setSemestre] = useState('202501'); // <- estado dinámico
+  const [semestre, setSemestre] = useState('');
+
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Ingresonotasdoc - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
 
   const { usuario } = useUsuario();
@@ -81,7 +88,7 @@ const [datos, setDatos] = useState([]);
             <label className="form-label"><strong>Semestre:</strong></label>
           </div>
           <div className="col-md-3">
-            <SemestreSelect value={semestre} onChange={(e) => setSemestre(e.target.value)} />
+            <SemestreSelect value={semestre} onChange={(e) => setSemestre(e.target.value)} name="cboSemestre" onSemestresLoaded={handleSemestresLoaded} />
           </div>
           
         </div>

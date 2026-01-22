@@ -1,17 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BreadcrumbUNJ from "../../cuerpos/BreadcrumbUNJ";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 import PanelBotones from "../cursos/componentes/PanelBotones";
 import { useUsuario } from "../../context/UserContext";
+import { useSemestreActual } from "../../hooks/useSemestreActual";
 
 function ReporteDoc(){
-  const [semestre, setSemestre] = useState('202502');
-
   const { usuario } = useUsuario();
+  const { semestre: semestreActual } = useSemestreActual('01');
+  const [semestre, setSemestre] = useState('');
+
   const dniusuario = usuario.docente.usuario;
   const persona = usuario.docente.persona;
   const sede = '01';
+
+  // Actualizar el semestre cuando se carga desde la BD
+  useEffect(() => {
+    if (semestreActual) {
+      setSemestre(semestreActual);
+    }
+  }, [semestreActual]);
+
+  // Callback cuando SemestreSelect carga los semestres disponibles
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ ReporteDoc - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   return (
     <>
@@ -29,6 +46,7 @@ function ReporteDoc(){
                   value={semestre} 
                   onChange={(e) => setSemestre(e.target.value)} 
                   name="cboSemestre"
+                  onSemestresLoaded={handleSemestresLoaded}
                 />
               </div>
             </div>

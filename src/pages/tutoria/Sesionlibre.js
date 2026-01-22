@@ -124,7 +124,14 @@ const abrirReporteReunionesLibre = async () => {
     cargarSesiones();
   }, [semestre, usuario]);
 
-  const handleChange = (value) => setSemestre(value);
+  const handleChange = (e) => setSemestre(e.target.value);
+
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Sesionlibre - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   // ✅ Normalizar fecha (acepta formatos DD/MM/YYYY o YYYY-MM-DD)
   const normalizarFecha = (fecha) => {
@@ -330,7 +337,8 @@ const abrirReporteReunionesLibre = async () => {
             value={semestre}
             onChange={handleChange}
             name="cboSemestre"
-            style={{ maxWidth: "130px" }}   // 👈 más pequeño
+            style={{ maxWidth: "130px" }}
+            onSemestresLoaded={handleSemestresLoaded}
           />
         </div>
 

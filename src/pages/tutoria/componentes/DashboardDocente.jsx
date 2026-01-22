@@ -76,7 +76,16 @@ function DashboardDocente() {
 
   const persona = usuario?.docente?.persona;
   const docente = usuario?.docente?.numerodocumento;   // ✔ CORRECTO
-  const [semestre, setSemestre] = useState("202502");
+  const [semestre, setSemestre] = useState('');
+
+  const handleChange = (e) => setSemestre(e.target.value);
+  
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ DashboardDocente - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   const headers = { Authorization: `Bearer ${token}` };
   
@@ -438,8 +447,9 @@ setCursosCriticos(listaCursos);
       <div className="col-md-3">
         <SemestreSelect
           value={semestre}
-          onChange={setSemestre}
+          onChange={handleChange}
           name="cboSemestre"
+          onSemestresLoaded={handleSemestresLoaded}
         />
       </div>
 

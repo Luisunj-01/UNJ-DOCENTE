@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import BreadcrumbUNJ from "../../cuerpos/BreadcrumbUNJ";
 import SemestreSelect from "../reutilizables/componentes/SemestreSelect";
 import { useUsuario } from "../../context/UserContext";
+import { useSemestreActual } from "../../hooks/useSemestreActual";
 import { obtenerDatosDocente, validarFechas } from "./logica/Actividades";
 import Swal from "sweetalert2";
 import { Accordion, Table, Modal } from "react-bootstrap";
@@ -10,7 +11,8 @@ import config from "../../config";
 import { TablaSkeleton } from "../reutilizables/componentes/TablaSkeleton";
 
 function Declaracion() {
-  const [semestre, setSemestre] = useState("202502");
+  const { semestre: semestreActual } = useSemestreActual('01');
+  const [semestre, setSemestre] = useState('');
   const { usuario } = useUsuario();
   const [docente, setDocente] = useState(null);
   const [cargaLectiva, setCargaLectiva] = useState([]);
@@ -22,6 +24,21 @@ function Declaracion() {
   const token = usuario?.codigotokenautenticadorunj;
   const [mostrarPdf, setMostrarPdf] = useState(false);
   const [urlPdf, setUrlPdf] = useState("");
+
+  // Cargar semestre actual de la BD
+  useEffect(() => {
+    if (semestreActual) {
+      setSemestre(semestreActual);
+    }
+  }, [semestreActual]);
+
+  // Callback cuando SemestreSelect carga los semestres disponibles
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Declaracion - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   const maxHorasPorActividad = {
     "03": 2,
@@ -36,7 +53,7 @@ function Declaracion() {
   };
   // ✅ Validar fechas para habilitar el botón de Guardar
   useEffect(() => {
-  if (!usuario) return;
+  if (!usuario || !semestre) return;
 
   const validarFecha = async () => {
     try {
@@ -61,7 +78,7 @@ function Declaracion() {
 }, [semestre, usuario]);
 
 useEffect(() => {
-  if (!usuario) return;
+  if (!usuario || !semestre) return;
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -325,8 +342,9 @@ const abrirPdf = async (actividad) => {
               <div className="col-md-3">
                 <SemestreSelect
                   value={semestre}
-                  onChange={setSemestre}   // ✅ recibe directamente el value
+                  onChange={(e) => setSemestre(e.target.value)}
                   name="cboSemestre"
+                  onSemestresLoaded={handleSemestresLoaded}
                 />
               </div>
             </div>

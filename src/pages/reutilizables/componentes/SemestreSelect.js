@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useUsuario } from '../../../context/UserContext';
 import { obtenersemestre, obtenersemana } from '../logica/docente';
 
-function SemestreSelect({ value, onChange, name, className = 'form-select', parametros }) {
+function SemestreSelect({ value, onChange, name, className = 'form-select', parametros, onSemestresLoaded }) {
   const [semestres, setSemestres] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensaje, setMensaje] = useState('');
@@ -11,25 +11,33 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
   const persona = usuario?.docente?.persona;
 
   useEffect(() => {
-    if (name === "cboSemestre") {
-      cargarSemestre();
-    } else if (name === "semana") {
+    if (name === "semana") {
       cargarSemana();
+    } else {
+      // Si no hay name o es "cboSemestre", cargar semestres por defecto
+      cargarSemestre();
     }
-  }, [name]); 
+  }, [name, parametros]); 
 
   async function cargarSemestre() {
     try {
       const resultado = await obtenersemestre(persona);
-      if (resultado && resultado.datos) {
+      if (resultado && resultado.datos && resultado.datos.length > 0) {
         setSemestres(resultado.datos);
+        
+        // 🔔 Notificar al componente padre que cargamos los semestres
+        if (onSemestresLoaded) {
+          const primerSemestre = String(resultado.datos[0].semestre || '').trim();
+          onSemestresLoaded(primerSemestre);
+          console.log('📚 Primer semestre disponible:', primerSemestre);
+        }
       } else {
         setSemestres([]);
-        setMensaje("No hay semestres");
+        setMensaje("No hay semestres disponibles para este docente");
       }
     } catch (error) {
       console.error("Error cargando semestres:", error);
-      setMensaje("Error cargando semestres");
+      setMensaje("Error al cargar semestres");
     } finally {
       setLoading(false);
     }
@@ -63,23 +71,26 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
     <select
       name={name}
       className={className}
-      value={value}
+      value={value || ''}
       onChange={onChange}
       disabled={loading}
     >
-      {loading && <option>Cargando...</option>}
-      {!loading && semestres.length === 0 && <option>{mensaje}</option>}
+      {loading && <option value="">Cargando...</option>}
+      {!loading && semestres.length === 0 && <option value="">{mensaje}</option>}
 
       {/* 👇 Si es semana mostramos opción por defecto */}
       {!loading && name !== "cboSemestre" && (
         <option value="">Seleccione semana</option>
       )}
 
-      {!loading && semestres.map((s, i) => (
-        <option key={i} value={name === "cboSemestre" ? s.semestre : s.semana}>
-          {name === "cboSemestre" ? s.semestre : s.semana}
-        </option>
-      ))}
+      {!loading && semestres.map((s, i) => {
+        const valorSemestre = name === "cboSemestre" ? String(s.semestre || '').trim() : String(s.semana || '').trim();
+        return (
+          <option key={i} value={valorSemestre}>
+            {valorSemestre}
+          </option>
+        );
+      })}
     </select>
   );
 }

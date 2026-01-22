@@ -12,7 +12,7 @@ import DataTable from "react-data-table-component";
 
 function ObsRendimiento({ semestreValue }) {
   const { usuario } = useUsuario();
-  const [semestre, setSemestre] = useState(semestreValue || "202502");
+  const [semestre, setSemestre] = useState('');
   const [alumnos, setAlumnos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
@@ -28,6 +28,14 @@ useEffect(() => {
     Swal.close();
   };
 }, []);
+
+// Callback cuando SemestreSelect carga los semestres
+const handleSemestresLoaded = (primerSemestre) => {
+  if (primerSemestre && !semestre) {
+    setSemestre(primerSemestre);
+    console.log('✅ ObsRendimiento - Semestre inicializado con:', primerSemestre);
+  }
+};
 
 // ⏳ Debounce: solo filtra cuando dejas de escribir 400ms
 useEffect(() => {
@@ -308,7 +316,7 @@ const alumnosFiltrados = alumnos.filter((a) =>
     cargar();
   }, [semestre, usuario]);
 
-  const handleChange = (value) => setSemestre(value);
+  const handleChange = (e) => setSemestre(e.target.value);
 
   const obtenerDetalleObservacion = async (codigo, token) => {
     try {
@@ -519,7 +527,8 @@ const codigoCursosFaltantes = btoa(btoa(`${codAlumno}|${codSede}|${codEscuela}|$
             value={semestre}
             onChange={handleChange}
             name="cboSemestre"
-            style={{ maxWidth: "130px" }}   // 👈 más pequeño
+            style={{ maxWidth: "130px" }}
+            onSemestresLoaded={handleSemestresLoaded}
           />
         </div>
 

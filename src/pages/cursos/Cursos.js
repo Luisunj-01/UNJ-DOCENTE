@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { obtenerCursosPrematricula } from '../reutilizables/logica/docente';
 import { useUsuario } from '../../context/UserContext';
+import { useSemestreActual } from '../../hooks/useSemestreActual';
 import { useTheme } from '../../context/ThemeContext';
 import BreadcrumbUNJ from '../../cuerpos/BreadcrumbUNJ';
 import SemestreSelect from '../reutilizables/componentes/SemestreSelect';
@@ -18,13 +19,29 @@ const colores = [
 ];
 
 function Cursos() {
+  const { semestre: semestreActual } = useSemestreActual('01');
   const [cursos, setCursos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mensajeApi, setMensajeApi] = useState('');
-  const [semestre, setSemestre] = useState('202501');
+  const [semestre, setSemestre] = useState('');
 
   const { usuario } = useUsuario();
   const { darkMode } = useTheme();
+
+  // Cargar semestre actual de la BD
+  useEffect(() => {
+    if (semestreActual) {
+      setSemestre(semestreActual);
+    }
+  }, [semestreActual]);
+
+  // Callback cuando SemestreSelect carga los semestres disponibles
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Cursos - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   const logo = darkMode
     ? '/image/logo/logo-unj-blanco.svg'
@@ -73,8 +90,9 @@ function Cursos() {
               <div className="col-md-3">
                 <SemestreSelect 
   value={semestre} 
-  onChange={setSemestre} 
-  name="cboSemestre" 
+  onChange={(e) => setSemestre(e.target.value)} 
+  name="cboSemestre"
+  onSemestresLoaded={handleSemestresLoaded}
 />
               </div>
             </div>

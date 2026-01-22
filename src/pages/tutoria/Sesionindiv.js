@@ -167,7 +167,15 @@ function SesionesIndividuales({ semestreValue }) {
   };
 
 
-  const handleChange = (value) => setSemestre(value);
+  const handleChange = (e) => setSemestre(e.target.value);
+
+  // Callback cuando SemestreSelect carga los semestres disponibles
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Sesionindiv - Semestre inicializado con:', primerSemestre);
+    }
+  };
   // =====================================================
   // Utilidad: cargar historial de atenciones del alumno
   // =====================================================
@@ -801,7 +809,8 @@ function SesionesIndividuales({ semestreValue }) {
             value={semestre}
             onChange={handleChange}
             name="cboSemestre"
-            style={{ maxWidth: "130px" }}   // 👈 más pequeño
+            style={{ maxWidth: "130px" }}
+            onSemestresLoaded={handleSemestresLoaded}
           />
         </div>
 

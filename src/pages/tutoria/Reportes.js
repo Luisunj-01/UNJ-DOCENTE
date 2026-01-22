@@ -21,8 +21,16 @@ import ReporteRendimientoModal from "./componentes/ReporteRendimientoModal";
 function Reportes() {
   const { usuario } = useUsuario();
 
-  const [semestre, setSemestre] = useState("202502");
-  const handleChange = (value) => setSemestre(value);
+  const [semestre, setSemestre] = useState("");
+  const handleChange = (e) => setSemestre(e.target.value);
+
+  // Callback cuando SemestreSelect carga los semestres
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   const [escuelas, setEscuelas] = useState([]);
   const [cargandoRend, setCargandoRend] = useState(false);
@@ -41,7 +49,7 @@ function Reportes() {
   // Cargar escuelas asignadas al tutor
   // ---------------------------------------------
   useEffect(() => {
-    if (!usuario || !usuario.docente) return;
+    if (!usuario || !usuario.docente || !semestre) return;
 
     const cargar = async () => {
       const resp = await obtenerEscuelasTutor(semestre, token);
@@ -261,7 +269,12 @@ const abrirConsolidado = async (estructura) => {
 
       <div className="mb-4" style={{ width: "260px" }}>
         <label className="form-label"><strong>Semestre:</strong></label>
-        <SemestreSelect value={semestre} onChange={handleChange} name="cboSemestre" />
+        <SemestreSelect 
+          value={semestre} 
+          onChange={handleChange} 
+          name="cboSemestre"
+          onSemestresLoaded={handleSemestresLoaded}
+        />
       </div>
 
       <div

@@ -145,3 +145,42 @@ export const obtenerConfiguracion = async (tipo, parametros = {}) => {
     return null; // o podrías devolver un valor predeterminado como ""
   }
 };
+
+// Función para obtener el periodo académico actual desde aca_parametrosgenerales
+export const obtenerPeriodoAcademicoActual = async (sede = '01') => {
+  try {
+    const url = `${config.apiUrl}api/parametrosgenerales/${sede}`;
+    console.log('🔄 Consultando:', url);
+    
+    const res = await axios.get(url);
+    console.log('📦 Respuesta del servidor:', res.data);
+    
+    if (res.data && res.data.periodoacademico) {
+      return {
+        periodoacademico: res.data.periodoacademico,
+        sem: res.data.sem || res.data.periodoacademico,
+        sem_cp: res.data.sem_cp,
+        mensaje: ''
+      };
+    } else {
+      return {
+        periodoacademico: null,
+        sem: null,
+        mensaje: res.data?.mensaje || 'Respuesta inválida del servidor'
+      };
+    }
+  } catch (error) {
+    console.error('❌ Error en obtenerPeriodoAcademicoActual:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+    
+    return {
+      periodoacademico: null,
+      sem: null,
+      mensaje: `Error: ${error.response?.status || 'Sin conexión'} - ${error.message}`
+    };
+  }
+};

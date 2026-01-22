@@ -202,7 +202,14 @@ function SesionesCiclo({ semestreValue }) {
     return { total, concluidas, porcentaje, cumple75 };
   }, [sesiones]);
 
-  const handleChange = (value) => setSemestre(value);
+  const handleChange = (e) => setSemestre(e.target.value);
+
+  const handleSemestresLoaded = (primerSemestre) => {
+    if (primerSemestre && !semestre) {
+      setSemestre(primerSemestre);
+      console.log('✅ Sesionciclo - Semestre inicializado con:', primerSemestre);
+    }
+  };
 
   const handleAccion = async (tipo, sesion) => {
     const acciones = {
@@ -376,7 +383,8 @@ if (data.fecha) {
             value={semestre}
             onChange={handleChange}
             name="cboSemestre"
-            style={{ maxWidth: "130px"}}   // 👈 más pequeño
+            style={{ maxWidth: "130px"}}
+            onSemestresLoaded={handleSemestresLoaded}
           />
         </div>
 
