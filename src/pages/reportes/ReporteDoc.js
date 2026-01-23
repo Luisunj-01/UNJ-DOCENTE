@@ -26,7 +26,7 @@ function ReporteDoc(){
   const handleSemestresLoaded = (primerSemestre) => {
     if (primerSemestre && !semestre) {
       setSemestre(primerSemestre);
-      console.log('✅ ReporteDoc - Semestre inicializado con:', primerSemestre);
+     
     }
   };
 

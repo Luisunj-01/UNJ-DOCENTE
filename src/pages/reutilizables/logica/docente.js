@@ -46,9 +46,6 @@ export const obtenersemana = async (sede, semestre, escuela, curricula, curso, s
   }
 };
 
-
-
-
 // Función para obtener los cursos de prematrícula
 export const obtenerCursosPrematricula = async (semestre, persona, usuario, tipo) => {
 
@@ -97,7 +94,7 @@ export const obtenerReza = async (semestre, persona, dni, codigotokenautenticado
 
     const res = await axios.get(`${config.apiUrl}api/Notas/registrezag/${semestre}/${persona}/${dni}`);
 
-    console.log(res);
+   
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -117,7 +114,7 @@ export const obtenerAplaz = async (semestre, persona, dni, codigotokenautenticad
 
     const res = await axios.get(`${config.apiUrl}api/Notas/registaplaz/${semestre}/${persona}/${dni}`);
 
-    console.log(res);
+  
     if (Array.isArray(res.data) && res.data.length > 0) {
       return { datos: res.data, mensaje: '' };
     } else {
@@ -150,10 +147,10 @@ export const obtenerConfiguracion = async (tipo, parametros = {}) => {
 export const obtenerPeriodoAcademicoActual = async (sede = '01') => {
   try {
     const url = `${config.apiUrl}api/parametrosgenerales/${sede}`;
-    console.log('🔄 Consultando:', url);
+   
     
     const res = await axios.get(url);
-    console.log('📦 Respuesta del servidor:', res.data);
+  
     
     if (res.data && res.data.periodoacademico) {
       return {
