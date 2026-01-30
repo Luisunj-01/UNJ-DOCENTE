@@ -109,3 +109,157 @@
   color: rgb(200, 0, 0) !important;
   font-weight: bold;
 }
+
+
+/* ======================================================
+   IMPRESIÓN – ACTA DE EVALUACIÓN
+   (SOLO corrige impresión, no afecta pantalla)
+====================================================== */
+@media print {
+
+  /* ===============================
+     CONFIGURACIÓN DE PÁGINA
+  =============================== */
+  @page {
+    margin: 5mm;
+  }
+
+  html, body {
+    height: auto !important;
+    overflow: hidden !important;
+  }
+
+  .table-responsive {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  * {
+    margin-bottom: 0 !important;
+  }
+
+  /* ===============================
+     TABLA BASE
+  =============================== */
+  .tabla-acta-nota {
+    width: 100%;
+    page-break-after: avoid !important;
+  }
+
+  .tabla-acta-nota table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse;
+  }
+
+  .tabla-acta-nota th,
+  .tabla-acta-nota td {
+    font-size: 8px !important;
+    padding: 2px !important;
+    line-height: 1.15;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  /* ===============================
+     1️⃣ No
+  =============================== */
+  .tabla-acta-nota th:nth-child(1),
+  .tabla-acta-nota td:nth-child(1) {
+    width: 2.5%;
+  }
+
+  /* ===============================
+     2️⃣ CÓDIGO (🔽 MÁS ANGOSTO)
+  =============================== */
+  .tabla-acta-nota th:nth-child(2),
+  .tabla-acta-nota td:nth-child(2) {
+    width: 5% !important;
+    font-family: monospace;
+    font-size: 7.5px !important;
+  }
+
+  /* ===============================
+     3️⃣ APELLIDOS Y NOMBRES
+  =============================== */
+  .tabla-acta-nota th:nth-child(3),
+  .tabla-acta-nota td:nth-child(3) {
+    width: 20%;
+    white-space: normal !important;
+    word-break: break-word;
+    text-align: left;
+    padding-left: 4px;
+  }
+
+  /* ===============================
+     4️⃣–15️⃣ EC / EP / EA / PROM
+     (🔼 UN POCO MÁS ANCHAS)
+  =============================== */
+  .tabla-acta-nota th:nth-child(n+4):nth-child(-n+15),
+  .tabla-acta-nota td:nth-child(n+4):nth-child(-n+15) {
+    width: 8%;
+    font-family: monospace;
+    font-size: 7.8px !important;
+  }
+
+  /* Promedios */
+  .tabla-acta-nota th:nth-child(7),
+  .tabla-acta-nota td:nth-child(7),
+  .tabla-acta-nota th:nth-child(11),
+  .tabla-acta-nota td:nth-child(11),
+  .tabla-acta-nota th:nth-child(15),
+  .tabla-acta-nota td:nth-child(15) {
+    font-weight: bold;
+    color: #000;
+  }
+
+  /* ===============================
+     16️⃣–19️⃣ NF / SUS / APLA / PF
+     (🔽 MÁS ANGOSTAS)
+  =============================== */
+  .tabla-acta-nota th:nth-child(16),
+  .tabla-acta-nota td:nth-child(16),
+  .tabla-acta-nota th:nth-child(17),
+  .tabla-acta-nota td:nth-child(17),
+  .tabla-acta-nota th:nth-child(18),
+  .tabla-acta-nota td:nth-child(18),
+  .tabla-acta-nota th:nth-child(19),
+  .tabla-acta-nota td:nth-child(19) {
+    width: 3.5% !important;
+    font-weight: bold;
+  }
+
+  /* ===============================
+     SEPARADOR VISUAL
+  =============================== */
+  .tabla-acta-nota th:nth-child(4),
+  .tabla-acta-nota td:nth-child(4) {
+    border-left: 2px solid #000;
+  }
+
+  /* ===============================
+     COLORES DE NOTAS
+  =============================== */
+  .nota-aprobada {
+    color: #035aa6 !important;
+    font-weight: bold;
+  }
+
+  .nota-desaprobada {
+    color: rgb(200, 0, 0) !important;
+    font-weight: bold;
+  }
+
+  /* ===============================
+     EVITAR HOJAS EN BLANCO
+  =============================== */
+  .tabla-acta-nota tr {
+    page-break-inside: avoid;
+  }
+
+  .tabla-acta-nota:last-child {
+    page-break-after: avoid !important;
+  }
+}
+

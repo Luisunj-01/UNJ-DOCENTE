@@ -39,37 +39,108 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
 
   const [habilitado, setHabilitado] = useState(false);
   const [mensajeFecha, setMensajeFecha] = useState("");
-  const validarRango = async () => {
+ const [estadoFecha, setEstadoFecha] = useState(null);
+
+
+
+const validarRangoMensaje = async () => {
   const mapa = {
     "01": 27,
     "02": 28,
     "03": 29,
     "04": 32,
-    "05": 33,
-    
+    "05": 33
   };
 
   const actividad = mapa[unidad];
 
   try {
-   const res = await fetch(
-  `${config.apiUrl}api/curso/notasvalidarfecha/${semestre}/${escuela}/${actividad}`,
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json'
-    }
-  }
-);
+    const res = await fetch(
+      `${config.apiUrl}api/curso/notasvalidarfecha/${semestre}/${escuela}/${actividad}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json"
+        }
+      }
+    );
 
     const data = await res.json();
 
     if (data.success) {
-      setHabilitado(data.habilitado);
       setMensajeFecha(data.mensaje);
+       setEstadoFecha(data.estado); // 👈 CLAVE
+
     }
   } catch (error) {
-    console.error("Error validando rango de notas:", error);
+    console.error("Error validando mensaje de fechas:", error);
+    setMensajeFecha("No se pudo validar el rango de fechas");
+  }
+};
+
+
+const renderMensajeEstado = () => {
+  switch (estadoFecha) {
+    case "programadas":
+      return (
+        <span className="badge bg-warning text-dark ms-3">
+          ⏳ Regrese en la fecha indicada
+        </span>
+      );
+
+    case "validas":
+      return (
+        <span className="badge bg-success ms-3">
+          ✅ Ya puede registrar notas
+        </span>
+      );
+
+    case "vencidas":
+      return (
+        <span className="badge bg-danger ms-3">
+          ❌ Lo sentimos, el plazo ha vencido
+        </span>
+      );
+
+    default:
+      return null;
+  }
+};
+
+
+
+const validarRangoUnidad = async () => {
+  const mapa = {
+    "01": 27,
+    "02": 28,
+    "03": 29,
+    "04": 32,
+    "05": 33
+  };
+
+  const actividad = mapa[unidad];
+
+  try {
+    const res = await fetch(
+      `${config.apiUrl}api/curso/notasvalidarfecha/${semestre}/${escuela}/${actividad}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json"
+        }
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.success) {
+      setHabilitado(data.pasa === "Si");
+    } else {
+      setHabilitado(false);
+    }
+  } catch (error) {
+    console.error("Error validando unidad:", error);
+    setHabilitado(false);
   }
 };
 
@@ -97,10 +168,21 @@ const CalificacionesDocente = ({ datosprincipal, cerrado }) => {
   }, [unidad, sede, semestre, escuela, curricula, curso, seccion]);
  
 
+
 // ⬇️ ⬇️ ⬇️ ESTE VA AQUÍ, DEBAJO del anterior
+// 🔹 Mensaje (solo una vez)
 useEffect(() => {
-  validarRango();
-}, [unidad, semestre]);
+  validarRangoMensaje();
+}, [unidad, semestre, escuela]);
+
+
+// 🔹 Habilitado (cada vez que cambia unidad)
+useEffect(() => {
+  validarRangoUnidad();
+}, [unidad, semestre, escuela]);
+
+
+
 
 const cerrar = () => {
   // Aquí la lógica que necesites al “cerrar”
@@ -245,36 +327,6 @@ const guardarCalificaciones = async () => {
     }
   }, 5000);
 }
-
-const validarRango = async () => {
-  const mapa = {
-    "01": 27, // PRIMER PROMEDIO
-    "02": 28, // SEGUNDO PROMEDIO
-    "03": 29, // TERCER PROMEDIO
-    "04": 32, // SUSTITUTORIO
-    "05": 33, // APLAZADOS
-    "06": 34  // SEGUNDO APLAZADO (si usan)
-  };
-
-  const actividad = mapa[unidad];
-
-  try {
-    const res = await fetch(
-      `${config.apiUrl}api/notas/validar-fecha/${semestre}/${actividad}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    const data = await res.json();
-
-    if (data.success) {
-      setHabilitado(data.habilitado);
-      setMensajeFecha(data.mensaje);
-    }
-  } catch (error) {
-    console.error("Error validando rango de notas:", error);
-  }
-};
-
 
 
   const payload = {
@@ -587,9 +639,19 @@ const validarRango = async () => {
         </div>
       </div>
 
-      <div className={`alert ${habilitado ? "alert-info" : "alert-danger"} mt-3`}>
-      <strong>Aviso:</strong> {mensajeFecha}
-    </div>
+     <div
+  className={`alert ${
+    estadoFecha === "validas"
+      ? "alert-info"
+      : estadoFecha === "programadas"
+      ? "alert-warning"
+      : "alert-danger"
+  } mt-3 d-flex align-items-center`}
+>
+  <strong>Aviso:</strong>&nbsp;{mensajeFecha}
+  {renderMensajeEstado()}
+</div>
+
 
 
 

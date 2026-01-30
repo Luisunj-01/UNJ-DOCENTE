@@ -146,7 +146,7 @@ const totalHorasTotales = datos.reduce((sum, fila) => sum + Number(fila.ht || 0)
       <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Gru</th>
       <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Ht</th>
       <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Hp</th>
-      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">Ht</th>
+      <th style={{ background: "#004080", color: 'white', textAlign: 'center' }} className="text-center">H.total</th>
     </tr>
   </thead>
   <tbody>

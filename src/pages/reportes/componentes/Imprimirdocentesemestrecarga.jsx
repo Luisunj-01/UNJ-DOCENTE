@@ -95,11 +95,12 @@ const Imprimirdocentesemestrecarga = () => {
         { clave: 'practica', titulo: 'Gru' },
         { clave: 'horasteoria', titulo: 'Ht' },
         { clave: 'horaspractica', titulo: 'Hp' },
-        { clave: 'horasteoria', titulo: 'HT' }
+        { clave: 'ht', titulo: 'H.Total' }
     ];
 
     const totalHorasTeoria = datos.reduce((sum, fila) => sum + Number(fila.horasteoria || 0), 0);
     const totalHorasPractica = datos.reduce((sum, fila) => sum + Number(fila.horaspractica || 0), 0);
+    const totalHorasTotales = datos.reduce((sum, fila) => sum + Number(fila.ht || 0),0);
 
     return (
         <>
@@ -150,7 +151,7 @@ const Imprimirdocentesemestrecarga = () => {
                                                     <td></td><td></td>
                                                     <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
                                                     <td style={{ textAlign: 'center' }}><strong>{totalHorasPractica}</strong></td>
-                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasTeoria}</strong></td>
+                                                    <td style={{ textAlign: 'center' }}><strong>{totalHorasTotales}</strong></td>
                                                 </tr>
                                             </tbody>
                                         </table>

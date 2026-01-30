@@ -278,6 +278,7 @@ const ImprimirReporteNota = () => {
                   datos={datos}
                   columnasEncabezado={columnasEncabezado}
                   columnas={columnas}
+                   modo="acta-nota"
                 />
               </table>
             )}

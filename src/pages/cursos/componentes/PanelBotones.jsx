@@ -26,8 +26,6 @@ const ventanaSecundaria = (url) => {
   window.open(url, 'Certificado', 'width=1200,height=700,scrollbars=yes');
 };
 
-
-
 // const abrirInformeAcademico = async (semestre, persona, setLoading) => {
 //   // abrir ventana inmediatamente para evitar bloqueo de popup
 //   const nuevaVentana = window.open("", "InformeAcademico", "width=1200,height=700,scrollbars=yes");
@@ -77,8 +75,6 @@ const abrirInformeAcademico = (semestre, persona, setLoading) => {
     setLoading(false);
   }
 };
-
-
 
 
 

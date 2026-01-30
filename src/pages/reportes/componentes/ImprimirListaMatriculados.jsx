@@ -164,7 +164,7 @@ const ImprimirListaMatriculados = () => {
       { titulo: 'CODIGO.', rowSpan: 2 },
       { titulo: 'NOMBRE Y APELLIDO', rowSpan: 2 },
       { titulo: 'IMAIL PERSONAL', rowSpan: 2 },
-      { titulo: 'IMAIL INSTITUCIONAL', colSpan: 1 },
+      { titulo: 'IMAIL INST.', colSpan: 1 },
       { titulo: 'DNI', colSpan: 1 },
       { titulo: 'CELULAR', colSpan: 1 },
       { titulo: 'PROCEDENCIA', colSpan: 1 },

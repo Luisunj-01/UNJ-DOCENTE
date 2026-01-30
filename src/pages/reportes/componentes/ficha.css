@@ -1,13 +1,11 @@
 /* ==========================
-   TABLA ACTA DE ACTIVIDADES
+   TABLA ACTA – VISTA
 ========================== */
 .tabla-acta table {
-  border: 2px solid #000;
-  border-collapse: collapse;
   width: 100%;
-  table-layout: fixed;   /* fuerza respetar anchos */
-  word-wrap: break-word;
-  white-space: normal;
+  border-collapse: collapse;
+  table-layout: fixed;   /* clave */
+  border: 2px solid #000;
   font-size: 13px;
 }
 
@@ -15,62 +13,70 @@
    ENCABEZADOS
 ========================== */
 .tabla-acta th {
-  background-color: #f4f4f4;
+  background: #f4f4f4;
   font-weight: bold;
-  font-size: 12px;
   text-transform: uppercase;
   text-align: center;
   padding: 6px;
+  border: 1px solid #000;
 }
 
 /* ==========================
-   ANCHO DE COLUMNAS
+   CELDAS
 ========================== */
-
-/* Nro. → mínimo ancho posible */
-.tabla-acta th:nth-child(1),
-.tabla-acta td:nth-child(1) {
-  width: 30px;          /* ancho fijo pequeño */
-  white-space: nowrap;
-  text-align: center;
-  font-size: 12px;
-  padding: 2px 4px;
+.tabla-acta td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: middle;
 }
 
-/* Código */
+/* ==========================
+   COLUMNAS
+========================== */
+
+/* 1️⃣ No */
+.tabla-acta th:nth-child(1),
+.tabla-acta td:nth-child(1) {
+  width: 5%;
+  text-align: center;
+}
+
+/* 2️⃣ Código */
 .tabla-acta th:nth-child(2),
 .tabla-acta td:nth-child(2) {
   width: 90px;
   text-align: center;
+  font-family: monospace;
 }
 
-/* Nombre y Apellidos */
+/* 3️⃣ Nombre */
 .tabla-acta th:nth-child(3),
 .tabla-acta td:nth-child(3) {
-  width: 180px;
+  width: 190px;
   text-align: left;
+  white-space: normal;
 }
 
-/* Teléfono */
+/* 4️⃣ Teléfono */
 .tabla-acta th:nth-child(4),
 .tabla-acta td:nth-child(4) {
-  width: 90px;
+  width: 95px;
   text-align: center;
 }
 
-/* Correo institucional */
+/* 5️⃣ Email */
 .tabla-acta th:nth-child(5),
 .tabla-acta td:nth-child(5) {
-  width: 260px;           /* un poco menos para no invadir */
-  min-width: 220px;       /* asegura espacio */
+  width: 240px;
   text-align: left;
-  font-size: 11px;
-  word-break: break-word; /* 👈 mejor que break-all */
-  white-space: normal;    /* permite saltos */
-  padding-right: 8px;     /* espacio extra antes de col 6 */
+  font-size: 12px;
+  word-break: break-word;
+  white-space: normal;
 }
 
-/* Confirmo, Cumplió, Evidencia, etc. (6–9) */
+/* ==========================
+   COLUMNAS SI / NO (ANGOSTAS)
+========================== */
 .tabla-acta th:nth-child(6),
 .tabla-acta td:nth-child(6),
 .tabla-acta th:nth-child(7),
@@ -78,19 +84,17 @@
 .tabla-acta th:nth-child(8),
 .tabla-acta td:nth-child(8),
 .tabla-acta th:nth-child(9),
-.tabla-acta td:nth-child(9) {
-  width: 65px;
-  text-align: center;
-  padding: 2px 6px;       /* 👈 más espacio a los lados */
-}
-
-
-/* Participó */
+.tabla-acta td:nth-child(9),
 .tabla-acta th:nth-child(10),
 .tabla-acta td:nth-child(10) {
-  width: 70px;
+  width: 60px;
   text-align: center;
+  white-space: nowrap;
 }
+
+/* ==========================
+   RETROALIMENTACIÓN
+========================== */
 
 /* Fecha */
 .tabla-acta th:nth-child(11),
@@ -102,28 +106,17 @@
 /* Tema */
 .tabla-acta th:nth-child(12),
 .tabla-acta td:nth-child(12) {
-  width: 150px;
+  width: 160px;
   text-align: left;
-}
-
-/* Observación */
-.tabla-acta th:nth-child(13),
-.tabla-acta td:nth-child(13) {
-  width: 200px;
-  text-align: left;
+  white-space: normal;
 }
 
 /* ==========================
-   ESTILOS VISUALES
+   OBSERVACIÓN (LA MÁS ANCHA)
 ========================== */
-.tabla-acta tr:nth-child(even) {
-  background-color: #fafafa; /* filas alternas */
+.tabla-acta th:nth-child(13),
+.tabla-acta td:nth-child(13) {
+  width: auto;           /* 🔑 clave */
+  text-align: left;
+  white-space: normal;
 }
-
-.tabla-acta td {
-  font-size: 12px;
-  line-height: 1.4;
-  padding: 4px 6px;
-}
-
-

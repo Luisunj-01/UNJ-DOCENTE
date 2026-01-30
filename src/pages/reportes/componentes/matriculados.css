@@ -1,10 +1,95 @@
-/* ===========================
-   AJUSTE DE ANCHO DE COLUMNAS
-=========================== */
+@media print {
 
-/* Columna 1 = NRO (número de orden) */
-.tabla-acta table td:nth-child(1),
-.tabla-acta table th:nth-child(1) {
-  width: 20px;   /* bien angosta */
-  text-align: center;
+  /* ===============================
+     TABLA BASE
+  ===============================*/
+  .tabla-acta table {
+    width: 100%;
+    table-layout: fixed;          /* CLAVE */
+    border-collapse: collapse;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;               /* tamaño base único */
+  }
+
+  .tabla-acta th,
+  .tabla-acta td {
+    font-size: 9px;
+    line-height: 1.25;            /* uniforma altura visual */
+    padding: 3px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    border: 1px solid #000;
+  }
+
+  /* Números alineados SIN cambiar fuente */
+  .tabla-acta td {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ===============================
+     AJUSTE FINO DE COLUMNAS
+  ===============================*/
+
+  /* 1️⃣ N° */
+  .tabla-acta table th:nth-child(1),
+  .tabla-acta table td:nth-child(1) {
+    width: 3%;
+    text-align: center;
+  }
+
+  /* 2️⃣ CÓDIGO */
+  .tabla-acta table th:nth-child(2),
+  .tabla-acta table td:nth-child(2) {
+    width: 10%;
+    text-align: center;
+    white-space: nowrap;          /* no se parte */
+  }
+
+  /* 3️⃣ NOMBRE Y APELLIDO */
+  .tabla-acta table th:nth-child(3),
+  .tabla-acta table td:nth-child(3) {
+    width: 20%;
+  }
+
+  /* 4️⃣ EMAIL PERSONAL */
+  .tabla-acta table th:nth-child(4),
+  .tabla-acta table td:nth-child(4) {
+    width: 15%;
+    word-break: break-all;        /* rompe sin achicar letra */
+  }
+
+  /* 5️⃣ EMAIL INSTITUCIONAL */
+  .tabla-acta table th:nth-child(5),
+  .tabla-acta table td:nth-child(5) {
+    width: 15%;
+    word-break: break-all;
+  }
+
+  /* 6️⃣ DNI */
+  .tabla-acta table th:nth-child(6),
+  .tabla-acta table td:nth-child(6) {
+    width: 3%;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* 7️⃣ CELULAR */
+  .tabla-acta table th:nth-child(7),
+  .tabla-acta table td:nth-child(7) {
+    width: 3%;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* 8️⃣ PROCEDENCIA */
+  .tabla-acta table th:nth-child(8),
+  .tabla-acta table td:nth-child(8) {
+    width: 17.5%;
+  }
+
+  /* Evitar que una fila se parta entre páginas */
+  .tabla-acta tr {
+    page-break-inside: avoid;
+  }
 }

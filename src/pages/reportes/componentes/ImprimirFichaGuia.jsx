@@ -159,25 +159,32 @@ const ImprimirFichaGuia = () => {
   console.log(datos);
 
   const columnasEncabezado = [
-    [
-      { titulo: 'No.', rowSpan: 2 },
-      { titulo: 'DATOS DEL ESTUDIANTE', colSpan: 4 },
-      { titulo: 'ACTIVIDADES REALIZADAS POR EL ESTUDIANTE', colSpan: 4 },
-      { titulo: 'RETROALIMENTACION', colSpan: 3 },
-      { titulo: 'OBSERVACION', rowSpan: 2 },
+  [
+    { titulo: 'No.', rowSpan: 2 },
+    { titulo: 'DATOS DEL ESTUDIANTE', colSpan: 4 },
+    { titulo: 'ACTIVIDADES REALIZADAS POR EL ESTUDIANTE', colSpan: 4 },
+    { titulo: 'RETROALIMENTACIÓN', colSpan: 3 },
+    { titulo: 'OBSERVACIÓN', rowSpan: 2 },
+  ],
+  [
+    { titulo: 'CÓDIGO' },
+    { titulo: 'NOMBRE Y APELLIDO' },
+    { titulo: 'TELÉFONO' },
+    { titulo: <span>EMAIL<br />INSTITUCIONAL</span> },
 
+    { titulo: <span>CONFIRMO<br />RECEPCIÓN<br />DE GUÍA</span> },
+    { titulo: <span>CUMPLIÓ<br />ACTIVIDAD</span> },
+    { titulo: <span>CUMPLIÓ<br />EVALUACIÓN</span> },
+    { titulo: <span>EVIDENCIA<br />EVALUACIÓN</span> },
 
-    ],
-    [
-      { titulo: 'CODIGO' }, { titulo: 'NOMBRE Y APELLIDO' }, { titulo: 'TELEFONO' }, { titulo: 'EMAIL INSTITUCIONAL' },
-      { titulo: 'CONFIRMO RECEPCION DE GUIA' }, { titulo: 'CUMPLIO ACTIVIDAD' }, { titulo: 'CUMPLIO EVALUACION' }, { titulo: 'EVIDENCIA EVALUACION' },
-      { titulo: 'PARTICIPO SI / NO' }, { titulo: 'FECHA' }, { titulo: 'TEMA' },
-
-      
-    ],
+    { titulo: <span>PARTICIPÓ<br />SI / NO</span> },
+    { titulo: 'FECHA' },
+    { titulo: 'TEMA' },
+  ],
+];
 
     
-  ];
+ 
 
   const columnas = [
     
@@ -227,6 +234,7 @@ const ImprimirFichaGuia = () => {
                   datos={datos}
                   columnasEncabezado={columnasEncabezado}
                   columnas={columnas}
+                   modo="ficha"
                 />
               </div>
             )}
