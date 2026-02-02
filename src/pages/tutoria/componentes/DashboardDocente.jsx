@@ -83,7 +83,7 @@ function DashboardDocente() {
   const handleSemestresLoaded = (primerSemestre) => {
     if (primerSemestre && !semestre) {
       setSemestre(primerSemestre);
-      console.log('✅ DashboardDocente - Semestre inicializado con:', primerSemestre);
+     
     }
   };
 

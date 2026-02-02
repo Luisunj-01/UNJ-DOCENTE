@@ -29,7 +29,7 @@ function SemestreSelect({ value, onChange, name, className = 'form-select', para
         if (onSemestresLoaded) {
           const primerSemestre = String(resultado.datos[0].semestre || '').trim();
           onSemestresLoaded(primerSemestre);
-          console.log('📚 Primer semestre disponible:', primerSemestre);
+        
         }
       } else {
         setSemestres([]);

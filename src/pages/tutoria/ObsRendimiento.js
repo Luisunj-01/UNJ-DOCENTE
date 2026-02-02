@@ -33,7 +33,7 @@ useEffect(() => {
 const handleSemestresLoaded = (primerSemestre) => {
   if (primerSemestre && !semestre) {
     setSemestre(primerSemestre);
-    console.log('✅ ObsRendimiento - Semestre inicializado con:', primerSemestre);
+    
   }
 };
 
