@@ -163,11 +163,24 @@ const [riesgoComparativo, setRiesgoComparativo] = useState({
 });
 
 
-  useEffect(() => {
-    if (persona && docente) {
-      cargarDashboard();
-    }
-  }, [semestre]);
+const fetchJSON = async (url, headers) => {
+  const r = await fetch(url, { headers });
+
+  if (!r.ok) {
+    console.warn("API falló:", r.status, url);
+    return null;
+  }
+
+  return await r.json();
+};
+
+
+
+useEffect(() => {
+  if (!persona || !docente || !semestre) return;
+  cargarDashboard();
+}, [semestre, persona, docente]);
+
 
   // ⭐ Función de categorización oficial
   function obtenerCategoriaRiesgo(a) {
@@ -197,26 +210,27 @@ const [riesgoComparativo, setRiesgoComparativo] = useState({
     // =================================================
     // 1️⃣ RENDIMIENTO - TUTORADOS + RIESGO (TM/G)
     // =================================================
-    const rRend = await fetch(
-      `${config.apiUrl}api/Tutoria/rendimiento/${semestre}/${persona}/${docente}/TM/G`,
-      { headers }
-    );
+ const dRend = await fetchJSON(
+  `${config.apiUrl}api/Tutoria/rendimiento/${semestre}/${persona}/${docente}/TM/G`,
+  headers
+);
 
-    const dRend = await rRend.json();
+if (!Array.isArray(dRend)) return;
 
-    const tutorados = Array.isArray(dRend) ? dRend.length : 0;
+
+
+const tutorados = Array.isArray(dRend) ? dRend.length : 0;
 
     // ================================
 // 🔁 RIESGO SEMESTRE ANTERIOR
 // ================================
 const semestreAnterior = obtenerSemestreAnterior(semestre);
 
-const rAnterior = await fetch(
+const dAnterior = await fetchJSON(
   `${config.apiUrl}api/Tutoria/rendimiento/${semestreAnterior}/${persona}/${docente}/TM/G`,
-  { headers }
-);
+  headers
+) || [];
 
-const dAnterior = await rAnterior.json();
 
 const bajoAnt = [];
 const medioAnt = [];
@@ -289,11 +303,11 @@ if (Array.isArray(dAnterior)) {
     // =================================================
     // 2️⃣ SESIONES DEL CICLO
     // =================================================
-    const rCiclo = await fetch(
-      `${config.apiUrl}api/Tutoria/sesCiclo/${persona}/${semestre}`,
-      { headers }
-    );
-    const dCiclo = await rCiclo.json();
+  const dCiclo = await fetchJSON(
+  `${config.apiUrl}api/Tutoria/sesCiclo/${persona}/${semestre}`,
+  headers
+) || {};
+
 
     const sesionesTotal = dCiclo?.sesiones?.length || 0;
     const sesionesReal =
@@ -307,14 +321,19 @@ if (Array.isArray(dAnterior)) {
     // =================================================
     // 3️⃣ SESIONES LIBRES
     // =================================================
-    const rLibres = await fetch(
-      `${config.apiUrl}api/Tutoria/sesiones-libres/${persona}/${semestre}`,
-      { headers }
-    );
-    const libresData = await rLibres.json();
-    const totalLibres = libresData.length;
-    const libresReal = libresData.filter(s => s.activo === 1).length;
-    const libresPend = totalLibres - libresReal;
+const libresData = await fetchJSON(
+  `${config.apiUrl}api/Tutoria/sesiones-libres/${persona}/${semestre}`,
+  headers
+) || [];
+;
+
+// 🧮 cálculos seguros
+const totalLibres = Array.isArray(libresData) ? libresData.length : 0;
+const libresReal = Array.isArray(libresData)
+  ? libresData.filter(s => s.activo === 1).length
+  : 0;
+const libresPend = totalLibres - libresReal;
+
 
 
 setDatosSesiones({
@@ -331,26 +350,35 @@ setDatosSesiones({
    // =================================================
 // 4️⃣ DERIVACIONES (Dashboard)
 // =================================================
-const rDer = await fetch(
+const dDer = await fetchJSON(
   `${config.apiUrl}api/Tutoria/dashboard-derivaciones/${semestre}/${persona}`,
-  { headers }
-);
+  headers
+) || [];
 
-const dDer = await rDer.json();
 
 setDerivaciones(dDer?.datos || []);
 setTotalDerivaciones(dDer?.total_derivaciones || 0);
 
 // =================================================
 // 6️⃣ CITAS DIRECTAS (Dashboard)
-// =================================================
 const rCitas = await fetch(
   `${config.apiUrl}api/Tutoria/citas-directas/${semestre}/${persona}`,
   { headers }
 );
 
+// 🔒 BLOQUE DE SEGURIDAD
+if (!rCitas.ok) {
+  console.warn(
+    "API citas-directas falló:",
+    rCitas.status,
+    rCitas.statusText
+  );
+  return; // ⛔ salir de cargarDashboard
+}
+
 const dCitas = await rCitas.json();
 
+// Uso seguro
 if (dCitas?.success) {
   setCitasDirectas(dCitas.data);
 }
@@ -370,12 +398,12 @@ if (dCitas?.success) {
 // 🔥 5️⃣ CURSOS CRÍTICOS DESDE OBS. RENDIMIENTO
 // =================================================
 
-const rObs = await fetch(
+const dObs = await fetchJSON(
   `${config.apiUrl}api/Tutoria/rendimiento/${semestre}/${persona}/${docente}/xx/G`,
-  { headers }
-);
+  headers
+) || [];
 
-const dObs = await rObs.json();
+
 
 // Diccionario para contar repitencias
 let conteo = {};

@@ -245,7 +245,8 @@ const alumnosFiltrados = alumnos.filter((a) =>
   useEffect(() => {
 
     
-    if (!usuario || !usuario.docente) return;
+   if (!usuario || !usuario.docente || !semestre) return;
+
     //console.log("Usuario contexto:", usuario);
 
     const cargar = async () => {
