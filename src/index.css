@@ -112,3 +112,25 @@ body.dark-mode .salir-btn {
     background-color: hsl(203deg 18% 18%) !important;
     color: white;
 }
+
+/* Ocultar skeleton loading animations globalmente */
+.react-loading-skeleton {
+    display: none !important;
+    background: transparent !important;
+    background-image: none !important;
+    animation: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+/* Desactivar animaciones de shimmer del skeleton CSS */
+@keyframes react-loading-skeleton {
+    100% { background-position: 100% 0; }
+}
+
+/* Ocultar el pseudo-elemento de shimmer si existe */
+.react-loading-skeleton::before,
+.react-loading-skeleton::after {
+    display: none !important;
+}

@@ -102,13 +102,13 @@ function ModalEditarGuia({ show, onClose, fila, datoscursos, onUpdated }) {
       curso: datoscursos.curso,
       seccion: datoscursos.seccion,
       semana: formData.semana,
-      observacion: formData.observacion,
+      observacion: formData.observacion || "",
       contenido: formData.contenido,
-      clasegrabada: formData.claseGrabada,
+      clasegrabada: formData.claseGrabada || "",
       // 🔹 Fecha principal independiente
       fecha: formData.fecha,
-      horaentrada: formData.horaEntrada,
-      horasalida: formData.horaSalida,
+     horaentrada: formData.horaEntrada || "",
+  horasalida: formData.horaSalida || "",
       // 🔹 Estado concluido
       concluido: formData.concluida ? "1" : "0",
       // 🔹 Fechas adicionales

@@ -10,6 +10,8 @@ import initializeAxios from "./interceptor.js";
 import Login from './pages/login/login.js';
 import Layout from './cuerpos/Layout';
 import Inicio from './pages/Inicio/Inicio';
+//Import del componente ModuloLayout
+import ModuloLayout from "./pages/apps/ModuloLayout.jsx";
 
 import DatosDocente from './pages/administracion/DatosDocente.js';
 import Silabus from './pages/asignatura/Silabus';
@@ -73,31 +75,28 @@ import ImprimirAsistenciaGuia from './pages/reportes/componentes/ImprimirAsisten
 import ImprimirAsistenciaPorcentaje from './pages/reportes/componentes/ImprimirAsistenciaPorcentaje.jsx';
 import ImprimirAsistenciaSesiones from './pages/reportes/componentes/ImprimirAsistenciaSesiones.jsx';
 
+//---- GESTION DE AUTENTICACION GOOGLE Y CAMBIO DE CONTRASEÑA---
 import GoogleCallback from './pages/login/AuthCallback.js'; // agrega este archivo
 import RecuperarPassword from "./pages/login/RecuperarPassword.jsx";
-import NuevaPassword from "./pages/login/NuevaPassword.jsx"; 
+import NuevaPassword from "./pages/login/NuevaPassword.jsx";
+import CambiarContrasena from "./pages/login/CambiarContrasena.jsx";// para cambiar la contraseña
 
-
-
+import LoadingSession from "./componentes/LoadingSession";
+//-- MODULO EVALUACION DOCENTE
+import EvDocente from './pages/evdocente/EvDocente.jsx';
 
 
 function AppRoutes() {
 
-  const { usuario } = useUsuario();
-
-
- 
-   const [showAlert, setShowAlert] = useState(false);
+  const { usuario, loading, error, refreshUser } = useUsuario();
   initializeAxios();
-  
-  // useInactividad(() => {
-//   if (usuario) {
-//     setShowAlert(true); 
-//     logout();// Mostrar alerta
-//   }
-// }, 1800000);
+  // Mostrar mensaje de error con opción de reintentar
+  if (loading) {
+    return (
+      <LoadingSession error={error} refreshUser={refreshUser} />
+    );
+  }
 
- 
 
   return (
     <Routes>
@@ -107,15 +106,21 @@ function AppRoutes() {
       <Route path="/auth/callback" element={<GoogleCallback />} />
       <Route path="/recuperar" element={<RecuperarPassword />} />
       <Route path="/nueva-password" element={<NuevaPassword />} />
+      <Route path="/cambiar-contrasena" element={<CambiarContrasena />} />
 
 
       {/* Rutas privadas dentro de Layout */}
       {usuario ? (
         <>
           <Route path="/" element={<Layout />}>
+
             <Route index element={<Inicio />} />
 
-            <Route path="/docente/datos" element={<RutaPrivada permisoRequerido="001-020"><DatosDocente /></RutaPrivada>} />
+            <Route path="/apps/MOD01/*" element={<ModuloLayout dominio="MOD01" />}>
+
+              <Route path="principal" element={<RutaPrivada permisoRequerido="01-001-001"><Inicio /></RutaPrivada>} />
+              <Route path="docente/datos" element={<RutaPrivada permisoRequerido="01-001-020"><DatosDocente /></RutaPrivada>} />
+            </Route>
 
             <Route path="silabus" element={<Silabus />} />
             <Route path="detalle-silabo" element={<DetalleSilabo />} />
@@ -126,54 +131,68 @@ function AppRoutes() {
 
             {/* <Route path="ReporteDoc" element={<ReporteDoc />} />
             <Route path="Reportecurricular" element={<Reportecurricular />} /> */}
-            <Route path="ReporteDoc" element={<RutaPrivada permisoRequerido="005-012"><ReporteDoc /></RutaPrivada>} />
-            <Route path="Reportecurricular" element={<RutaPrivada permisoRequerido="005-008"><Reportecurricular /></RutaPrivada>} />
+            <Route path="/apps/MOD01/*" element={<ModuloLayout dominio="MOD01" />}>
+              <Route path="ReporteDoc" element={<RutaPrivada permisoRequerido="01-005-012"><ReporteDoc /></RutaPrivada>} />
+              <Route path="Reportecurricular" element={<RutaPrivada permisoRequerido="01-005-008"><Reportecurricular /></RutaPrivada>} />
+            </Route>
+            <Route path="/apps/MOD01/*" element={<ModuloLayout dominio="MOD01" />}>
+              <Route path="tuto/micalendario" element={<TutoriaCalendario />} />
+            </Route>
+            <Route path="/apps/MOD01/*" element={<ModuloLayout dominio="MOD01" />}>
+              {/* <Route path="tutoria/obs" element={<ObsRendimiento />} /> */}
+              <Route path="tutoria/obs" element={<RutaPrivada permisoRequerido="01-009-001"><ObsRendimiento /></RutaPrivada>} />
 
-            <Route path="tuto/micalendario" element={<TutoriaCalendario />} />
+              {/* <Route path="tutoria/ciclo" element={<Sesionciclo />} /> */}
+              <Route path="tutoria/ciclo" element={<RutaPrivada permisoRequerido="01-009-002"><Sesionciclo /></RutaPrivada>} />
 
-            {/* <Route path="tutoria/obs" element={<ObsRendimiento />} /> */}
-            <Route path="tutoria/obs" element={<RutaPrivada permisoRequerido="009-001"><ObsRendimiento /></RutaPrivada>} />
+              {/* <Route path="tutoria/libre" element={<Sesionlibre />} /> */}
+              <Route path="tutoria/libre" element={<RutaPrivada permisoRequerido="01-009-005"><Sesionlibre /></RutaPrivada>} />
+              {/* <Route path="tutoria/individual" element={<SesionIndiv />} /> */}
+              <Route path="tutoria/individual" element={<RutaPrivada permisoRequerido="01-009-003"><SesionIndiv /></RutaPrivada>} />
 
-            {/* <Route path="tutoria/ciclo" element={<Sesionciclo />} /> */}
-            <Route path="tutoria/ciclo" element={<RutaPrivada permisoRequerido="009-002"><Sesionciclo /></RutaPrivada>} />
+              {/* <Route path="Reportes" element={<Reportes />} /> */}
 
-            {/* <Route path="tutoria/libre" element={<Sesionlibre />} /> */}
-            <Route path="tutoria/libre" element={<RutaPrivada permisoRequerido="009-005"><Sesionlibre /></RutaPrivada>} />
-            {/* <Route path="tutoria/individual" element={<SesionIndiv />} /> */}
-            <Route path="tutoria/individual" element={<RutaPrivada permisoRequerido="009-003"><SesionIndiv /></RutaPrivada>} />
-
-            {/* <Route path="Reportes" element={<Reportes />} /> */}
-
-            <Route path="Reportes" element={<RutaPrivada permisoRequerido="009-004"><Reportes /></RutaPrivada>} />
+              <Route path="Reportes" element={<RutaPrivada permisoRequerido="01-009-004"><Reportes /></RutaPrivada>} />
 
 
-            <Route path="Dashboard" element={<RutaPrivada permisoRequerido="009-008"><DashboardDocente /></RutaPrivada>} />
+              <Route path="Dashboard" element={<RutaPrivada permisoRequerido="01-009-008"><DashboardDocente /></RutaPrivada>} />
 
 
 
-            {/* <Route path="Curso" element={<Cursos />} /> */}
-            <Route path="Curso" element={<RutaPrivada permisoRequerido="002-040"><Cursos /></RutaPrivada>} />
-           
+              {/* <Route path="Curso" element={<Cursos />} /> */}
+              <Route path="Curso" element={<RutaPrivada permisoRequerido="01-002-040"><Cursos /></RutaPrivada>} />
+
+            </Route>
+
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
             <Route path="participantes/:id" element={<ParticipantesGuias />} />
 
 
-          
+
             {/* <RUTA DE MODULO CARGA NO LECTIVAS/>} /> */}
-           <Route path="Declaracion" element={<RutaPrivada permisoRequerido="001-004"><Declaracion /></RutaPrivada>} />
-            <Route path="Horarios" element={<RutaPrivada permisoRequerido="001-005"><Horarios /></RutaPrivada>} />
-       
+            <Route path="/apps/MOD09/*" element={<ModuloLayout dominio="MOD09" />}>
+              <Route path="Declaracion" element={<RutaPrivada permisoRequerido="09-001-004"><Declaracion /></RutaPrivada>} />
+              <Route path="Horarios" element={<RutaPrivada permisoRequerido="09-001-005"><Horarios /></RutaPrivada>} />
+            </Route>
 
-
-           
 
             <Route path="Curso" element={<Cursos />} />
             <Route path="curso/detalle_curso/:id" element={<Detallecursos />} />
-            <Route path="participantes/:id" element={<ParticipantesGuias />}/>
+            <Route path="participantes/:id" element={<ParticipantesGuias />} />
             <Route path="tutoria" element={<Tutoria />} />
             <Route path="Declaracion" element={<Declaracion />} />
             <Route path="Horarios" element={<Horarios />} />
-      
+
+            {/*-- MODULO EVALUACION DOCENTE --*/}
+            <Route path="/apps/MOD03/*" element={<ModuloLayout dominio="MOD03" />}>
+              <Route path="EvaluacionDocente" element={<RutaPrivada permisoRequerido="3-13-91"><EvDocente /></RutaPrivada>} />
+            </Route>
+
+            {/*-- MODULO DOCUMENTOS NORMATIVOS--*/}
+            <Route path="/apps/MOD10/*" element={<ModuloLayout dominio="MOD10" />}>
+
+            </Route>
+
 
           </Route>
 
@@ -193,10 +212,10 @@ function AppRoutes() {
           <Route path="/ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
           <Route path="/ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
 
-          <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />}  />
-          <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />}  />
-          <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />}   />
-          <Route path='ImprimirAsistenciaSemana' element={<ImprimirAsistenciaSemana />}   />
+          {/* <Route path='Imprimirdocentesemestrecarga' element={<Imprimirdocentesemestrecarga />} />
+          <Route path='Imprimirhorariodocente' element={<Imprimirhorariodocente />} />
+          <Route path='Imprimirguiasemana' element={<Imprimirguiasemana />} />
+          <Route path='ImprimirAsistenciaSemana' element={<ImprimirAsistenciaSemana />} />
           <Route path="ImprimirActaDetalle" element={<ImprimirActaDetalle />} />
           <Route path="ImprimirReporteNota" element={<ImprimirReporteNota />} />
           <Route path="ImprimirListaMatriculados" element={<ImprimirListaMatriculados />} />
@@ -204,24 +223,23 @@ function AppRoutes() {
           <Route path="ImprimirReporteSesiones" element={<ImprimirReporteSesiones />} />
           <Route path="ImprimirAsistenciaGuia" element={<ImprimirAsistenciaGuia />} />
           <Route path="ImprimirAsistenciaPorcentaje" element={<ImprimirAsistenciaPorcentaje />} />
-          <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} />
+          <Route path="ImprimirAsistenciaSesiones" element={<ImprimirAsistenciaSesiones />} /> */}
 
           <Route path="/tutoria/fichaMatricula" element={<ImprimirFichaMatricula />} />
-          <Route path="/tutoria/imprimir-avance" element={<ImprimirAvanceAcademico />}/>
-          <Route path="/tutoria/imprimir-constancia" element={<ImprimirConstanciaNotas />}/>
-          <Route path="/tutoria/horario" element={<ImprimirHorarioAlumno />}/>
-          <Route path="/tutoria/asistenciaestudiante" element={<ImprimirAsistenciaAlumno />}/>
+          <Route path="/tutoria/imprimir-avance" element={<ImprimirAvanceAcademico />} />
+          <Route path="/tutoria/imprimir-constancia" element={<ImprimirConstanciaNotas />} />
+          <Route path="/tutoria/horario" element={<ImprimirHorarioAlumno />} />
+          <Route path="/tutoria/asistenciaestudiante" element={<ImprimirAsistenciaAlumno />} />
 
-          <Route path="/tutoria/record" element={<ImprimirRecordNotas />}/>
-          <Route path="/tutoria/plancurricular" element={<ImprimirPlanCurricular />}/>
-           <Route path="/tutoria/recordcurricular" element={<ImprimirRecordCurricular />}/>
-           <Route path="/tutoria/recordetallado" element={<ImprimirRecordDetallado />}/>
-           <Route path="/tutoria/cursosfaltantes" element={<ImprimirCursosFaltantes />}/>
-            <Route path="/tutoria/cursosdisponible" element={<ImprimirCursosDisponibles />}/>
-     
+          <Route path="/tutoria/record" element={<ImprimirRecordNotas />} />
+          <Route path="/tutoria/plancurricular" element={<ImprimirPlanCurricular />} />
+          <Route path="/tutoria/recordcurricular" element={<ImprimirRecordCurricular />} />
+          <Route path="/tutoria/recordetallado" element={<ImprimirRecordDetallado />} />
+          <Route path="/tutoria/cursosfaltantes" element={<ImprimirCursosFaltantes />} />
+          <Route path="/tutoria/cursosdisponible" element={<ImprimirCursosDisponibles />} />
 
-     
-       
+
+
 
 
           {/* Fallback autenticado */}

@@ -77,7 +77,6 @@ const abrirInformeAcademico = (semestre, persona, setLoading) => {
 };
 
 
-
 const PanelBotones = ({ dniusuario, persona, semestre, sede }) => {
   const { usuario } = useUsuario();
   const { id } = useParams();
@@ -89,11 +88,11 @@ const PanelBotones = ({ dniusuario, persona, semestre, sede }) => {
   const enlaces = [
     {
       texto: 'Reporte carga académica',
-      url: `Imprimirdocentesemestrecarga?codigo=${code_zet}`,
+      url: `/Imprimirdocentesemestrecarga?codigo=${code_zet}`,
     },
     {
       texto: 'Horario docente',
-      url: `Imprimirhorariodocente?codigo=${code_zet}`,
+      url: `/Imprimirhorariodocente?codigo=${code_zet}`,
     },
     {
       texto: 'Informe Académico',

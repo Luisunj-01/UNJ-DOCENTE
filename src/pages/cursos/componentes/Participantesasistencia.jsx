@@ -24,7 +24,6 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   const { usuario } = useUsuario();
   const token = usuario?.codigotokenautenticadorunj;
   const { mostrarToast } = useContext(ToastContext);
-
   const [showModalJustificacion, setShowModalJustificacion] = useState(false);
   const [justificacion, setJustificacion] = useState({ archivo: null, observacion: "", alumno: null, nombrecompleto: "" });
   const [showModalConfirmar, setShowModalConfirmar] = useState(false);
@@ -35,12 +34,16 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
   const { id } = useParams();
   const decoded = atob(atob(id));
   const [sede, semestre, escuela, curricula, curso, seccion] = decoded.split("|");
+const [sesionitemSeleccionado, setSesionitemSeleccionado] = useState("");
 
   const parametrosaenviar = { sede, semestre, escuela, curricula, curso, seccion, sesion: datoscurso.sesion };
 
   // 🔹 límite de faltas = 30% del total de sesiones
   const maxFaltasPermitidas = Math.round((totalFechas || 0) * 0.3);
   //console.log();
+
+
+
 
   // Función para mostrar el PDF en modal usando token (descarga como blob)
   const mostrarPDFJustificacion = async (alumno) => {
@@ -64,11 +67,21 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
     }
   };
   // --- Cargar datos ---
-  const cargarDatos = async (fecha = null) => {
-    setLoading(true);
-    try {
-      const resAsistencia = await obtenerDatosAsistencia(parametrosaenviar, fecha);      // histórico
-      const resAsistNuevo = await obtenerDatosAsistencianuevo(parametrosaenviar, fecha); // lista de alumnos
+ const cargarDatos = async (sesionitem) => {
+  if (!sesionitem) {
+    setDatos([]);
+    setDatosFiltrados([]);
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const resAsistencia = await obtenerDatosAsistencia({
+      ...parametrosaenviar,
+      sesionitem
+    });
+     const resAsistNuevo = await obtenerDatosAsistencianuevo(parametrosaenviar);
+
 
       if (!resAsistencia?.datos || !resAsistNuevo?.datos) {
         setDatos([]); setDatosFiltrados([]); setPracticasDisponibles([]); setLoading(false);
@@ -113,64 +126,73 @@ function ParticipantesCurso({ datoscurso, totalFechas, todasLasAsistencias }) {
     setLoading(false);
   };
 
-  useEffect(() => { cargarDatos(); }, []);
 
-  //console.log(datos);
-  // --- Filtrar por práctica ---
-  const filtrarPorPractica = (practica) => {
-    setPracticaSeleccionada(practica);
-    const filtrados = datos.filter(a => a.practica === practica);
-    setDatosFiltrados(filtrados);
-  };
 
-  // --- Marcar todos como Asistencia (excepto los que superaron el límite) ---
-  const marcarTodosComoAsistencia = () => {
-    setDatosFiltrados(prev => {
-      const nuevos = prev.map(d => {
-        if (d.totalFaltas >= maxFaltasPermitidas) return d; // 🔴 no marcar inhabilitados
-        actualizarAsistenciaLocal(
-          d.alumno,
-          d.persona,
-          d.nombrecompleto,
-          "A",
-          d.observacion || ""
-        );
-        return { ...d, asistencia: "A" };
-      });
-      return nuevos;
-    });
-    mostrarToast(
-      "Todos los alumnos fueron marcados como Asistencia (excepto los inhabilitados).",
-      "success"
-    );
-  };
 
-  // --- Actualizar asistencia local ---
-  const actualizarAsistenciaLocal = (alumno, persona, nombrecompleto, asistencia, observacion = "", archivo = null) => {
-    const clave = "asistenciasSeleccionadas";
-    let asistencias = JSON.parse(localStorage.getItem(clave)) || [];
 
-    if (asistencia === "0") {
-      asistencias = asistencias.filter(a => a.alumno !== alumno);
-    } else {
-      const index = asistencias.findIndex(a => a.alumno === alumno);
-      if (index !== -1) {
-        asistencias[index] = { ...asistencias[index], asistencia, observacion, archivo };
-      } else {
-        asistencias.push({ alumno, persona, nombrecompleto, asistencia, observacion, archivo });
-      }
-    }
-    localStorage.setItem(clave, JSON.stringify(asistencias));
+  useEffect(() => {
+  if (sesionitemSeleccionado) {
+    cargarDatos(sesionitemSeleccionado);
+  }
+}, [sesionitemSeleccionado]);
+
+
+        //console.log(datos);
+        // --- Filtrar por práctica ---
+        const filtrarPorPractica = (practica) => {
+          setPracticaSeleccionada(practica);
+          const filtrados = datos.filter(a => a.practica === practica);
+          setDatosFiltrados(filtrados);
+        };
+
+        // --- Marcar todos como Asistencia (excepto los que superaron el límite) ---
+        const marcarTodosComoAsistencia = () => {
+          setDatosFiltrados(prev => {
+            const nuevos = prev.map(d => {
+              if (d.totalFaltas >= maxFaltasPermitidas) return d; // 🔴 no marcar inhabilitados
+              actualizarAsistenciaLocal(
+                d.alumno,
+                d.persona,
+                d.nombrecompleto,
+                "A",
+                d.observacion || ""
+              );
+              return { ...d, asistencia: "A" };
+            });
+            return nuevos;
+          });
+          mostrarToast(
+            "Todos los alumnos fueron marcados como Asistencia (excepto los inhabilitados).",
+            "success"
+          );
+        };
+
+      // --- Actualizar asistencia local ---
+      const actualizarAsistenciaLocal = (alumno, persona, nombrecompleto, asistencia, observacion = "", archivo = null) => {
+        const clave = "asistenciasSeleccionadas";
+        let asistencias = JSON.parse(localStorage.getItem(clave)) || [];
+
+        if (asistencia === "0") {
+          asistencias = asistencias.filter(a => a.alumno !== alumno);
+        } else {
+          const index = asistencias.findIndex(a => a.alumno === alumno);
+          if (index !== -1) {
+            asistencias[index] = { ...asistencias[index], asistencia, observacion, archivo };
+          } else {
+            asistencias.push({ alumno, persona, nombrecompleto, asistencia, observacion, archivo });
+          }
+        }
+        localStorage.setItem(clave, JSON.stringify(asistencias));
 
     setDatos(prev => prev.map(d => d.alumno === alumno ? { ...d, asistencia, observacion } : d));
     setDatosFiltrados(prev => prev.map(d => d.alumno === alumno ? { ...d, asistencia, observacion } : d));
-  };
+      };
 
-  // --- Abrir modal justificación ---
-  const handleAbrirModal = (alumno, nombrecompleto) => {
-    setJustificacion({ alumno, nombrecompleto, observacion: "", archivo: null });
-    setShowModalJustificacion(true);
-  };
+      // --- Abrir modal justificación ---
+      const handleAbrirModal = (alumno, nombrecompleto) => {
+        setJustificacion({ alumno, nombrecompleto, observacion: "", archivo: null });
+        setShowModalJustificacion(true);
+      };
 
   const handleGuardarJustificacion = () => {
     const tieneArchivoLocal = !!archivosAsistencia[justificacion.alumno];
@@ -209,7 +231,8 @@ const guardarAsistenciaFinal = async () => {
 
     // 👉 1. Armamos el payload SIN archivos (se mandan todas)
     const payload = {
-      clave: "01",
+      sesionitem: sesionitemSeleccionado,
+
       txtFecha: fechaSeleccionada,
       sede,
       semestre,
@@ -517,19 +540,38 @@ const guardarAsistenciaFinal = async () => {
         <div className="col-lg-4">
           <label><strong>Seleccionar fecha:</strong></label>
           <Form.Select
-            value={fechaSeleccionada}
-            onChange={(e) => {
-              const nuevaFecha = e.target.value;
-              setFechaSeleccionada(nuevaFecha);
-              setPracticaSeleccionada("");
-              cargarDatos(nuevaFecha);
-            }}
-          >
-            <option value="">Seleccione una fecha</option>
-            {datoscurso?.fechasGuia?.map((f, i) => (
-              <option key={i} value={f}>{f}</option>
-            ))}
-          </Form.Select>
+          value={
+            sesionitemSeleccionado && fechaSeleccionada
+              ? `${sesionitemSeleccionado}|${fechaSeleccionada}`
+              : ""
+          }
+          onChange={(e) => {
+            const [item, fecha] = e.target.value.split("|");
+
+            setSesionitemSeleccionado(item);   // 👈 CLASE (01,02,03…)
+            setFechaSeleccionada(fecha);       // 👈 FECHA REAL
+
+            setPracticaSeleccionada("");
+              cargarDatos(item);                 // ✅
+          }}
+        >
+          <option value="">Seleccione una fecha</option>
+
+          {datoscurso?.fechasGuia?.map((fecha, index) => {
+            const sesionitem = String(index + 1).padStart(2, "0");
+
+            return (
+              <option
+                key={sesionitem}
+                value={`${sesionitem}|${fecha}`}
+              >
+                {fecha}
+              </option>
+            );
+          })}
+        </Form.Select>
+
+
         </div>
 
         <div className="col-lg-4">
@@ -544,6 +586,7 @@ const guardarAsistenciaFinal = async () => {
               <option key={i} value={p}>{p}</option>
             ))}
           </Form.Select>
+
         </div>
 
          <div className="col-lg-4 d-flex align-items-end justify-content-end gap-2">

@@ -142,9 +142,10 @@ const NuevoGuia = ({ datoscurso, semana, onUpdated }) => {
           
           <SemestreSelect
             value={formulario.semana}
-            onChange={(valor) =>
-              setFormulario((prev) => ({ ...prev, semana: valor }))
-            }
+           onChange={(e) =>
+            setFormulario((prev) => ({ ...prev, semana: e.target.value }))
+          }
+
             name="semana"
             parametros={datoscurso}
           />

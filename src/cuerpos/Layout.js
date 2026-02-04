@@ -6,9 +6,8 @@ import '../resource/Layout.css';
 import CerrarSesionModal from '../componentes/modales/CerrarSesionModal';
 import { useEffect, useState, createContext } from 'react';
 import { Toast, ToastContainer } from "react-bootstrap";
-import axios from "axios";
-import config from "../config";
 import { useUsuario } from "../context/UserContext";
+import { useModulo } from "../context/ModuloContext";
 
 export const ToastContext = createContext();
 
@@ -16,6 +15,7 @@ function Layout() {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const { usuario, loading } = useUsuario(); // ⬅️ usa el mismo contexto que Admin
+  const { moduloActual, setModuloActual } = useModulo(); // ⬅️ obtén el módulo actual
 
   const [toast, setToast] = useState({ show: false, message: "", bg: "success" });
 
@@ -32,6 +32,25 @@ function Layout() {
 
   const location = useLocation();
   const isAppsRoute = location.pathname === "/apps";
+  
+  // Detectar módulo desde la URL y actualizar contexto
+  useEffect(() => {
+    const match = location.pathname.match(/\/apps\/(MOD\d+)/);
+    if (match) {
+      setModuloActual(match[1]);
+    } else if (!moduloActual) {
+      // Si no hay módulo en la URL y no hay uno seteado, usa el primer módulo disponible
+      const primerModulo = usuario?.opciones?.[0]?.modulo_codigo;
+      if (primerModulo) {
+        const formatted = primerModulo.startsWith('MOD')
+          ? primerModulo
+          : `MOD${String(primerModulo).padStart(2, '0')}`;
+        setModuloActual(formatted);
+      } else {
+        setModuloActual(null);
+      }
+    }
+  }, [location.pathname, setModuloActual, usuario, moduloActual]);
 
   const mostrarToast = (message, bg = "success") => setToast({ show: true, message, bg });
 
@@ -45,6 +64,7 @@ function Layout() {
             loadingOpciones={loading}               // ⬅️ pasa loading
             abrirModal={abrirModalCerrarSesion}
             toggleSidebar={toggleSidebar}
+            moduloActual={moduloActual}             // ⬅️ pasa módulo actual
           />
         </div>
 

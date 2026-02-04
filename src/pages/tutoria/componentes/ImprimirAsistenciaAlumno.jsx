@@ -154,7 +154,10 @@ try {
           marginTop: "50px"
         }}>
           <p className="mb-1"><strong>Impreso por:</strong> {usuario?.nombre || "DOCENTE TUTOR"}</p>
-          <p className="mb-1"><strong>DNI:</strong> {usuario?.dni || "------"}</p>
+          <p className="mb-1">
+            <strong>DNI:</strong>{" "}
+            {usuario?.docente?.numerodocumento || usuario?.dni || "------"}
+          </p>
           <p style={{ fontSize: "9px", marginTop: "6px", color: "#777" }}>Universidad Nacional de Jaén</p>
         </div>
       </div>

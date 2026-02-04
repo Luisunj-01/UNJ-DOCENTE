@@ -38,6 +38,17 @@
     padding: 7px 21px!important;
   }
 
+  /* Ocultar completamente cualquier animación de skeleton loading */
+  .react-loading-skeleton {
+    display: none !important;
+    background: transparent !important;
+    background-image: none !important;
+    animation: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+  }
+
   .header_top_bar.d-flex.justify-content-between.align-items-center.px-3.py-2.bg-light.border-bottom.with-sidebar {
       background: white !important;
   }

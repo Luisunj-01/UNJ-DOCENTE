@@ -11,10 +11,23 @@ export default function RutaPrivada({ permisoRequerido, children }) {
   if (!usuario) return <Navigate to="/" replace />;
 
   if (permisoRequerido && !hasPermiso(usuario, permisoRequerido)) {
+    // Debug info: mostrar permisos y ruta
+    console.warn('Acceso denegado:', {
+      permisoRequerido,
+      usuarioOpciones: (usuario?.opciones || []).map(o => ({
+        opcion_permiso: o.opcion_permiso,
+        opcion_nombre: o.opcion_nombre,
+        menu_nombre: o.menu_nombre,
+        modulo_codigo: o.modulo_codigo,
+      })),
+      verificacion: {
+        mensaje: `Se busca permiso "${permisoRequerido}" pero el usuario no lo tiene`,
+      }
+    });
     Swal.fire({
       icon: 'error',
       title: 'Acceso denegado',
-      text: 'No tienes permisos para entrar a esta sección.',
+      text: `No tienes permisos para entrar a esta sección. (Permiso requerido: ${permisoRequerido})`,
       confirmButtonText: 'Volver',
     });
     return <Navigate to="/principal" replace />;

@@ -144,16 +144,13 @@ const validarRangoUnidad = async () => {
   }
 };
 
-
-
-  useEffect(() => {
-    const cargarDatos = async () => {
+const cargarDatos = async () => {
       setLoading(true);
       
       const response = await obtenerDetalleActa(sede, semestre, escuela, curricula, curso, seccion, unidad);
-      //console.log(response);
+      
       if (!response || !response.datos) {
-        setMensajeApi('No se pudo obtener los trabajos.');
+        setMensajeApi('No se pudo obtener las notas.');
         setLoading(false);
         return;
       }
@@ -164,6 +161,7 @@ const validarRangoUnidad = async () => {
       setLoading(false);
     };
 
+  useEffect(() => {
     cargarDatos();
   }, [unidad, sede, semestre, escuela, curricula, curso, seccion]);
  
@@ -365,14 +363,6 @@ const guardarCalificaciones = async () => {
 
       if (!response.data.error) {
 
-        /*setTimeout(() => {
-          confetti({
-            particleCount: 200,
-            spread: 120,
-            origin: { y: 0.6 }
-          });
-        }, 300);*/
-
         Swal.fire({
           title: "¡Grandioso!",
           text: response.data.mensaje,
@@ -381,13 +371,10 @@ const guardarCalificaciones = async () => {
           timer: 2000
         });
         lanzarConfetti();
-        /*Swal.fire("✅ Éxito", response.data.mensaje, "success");
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          origin: { y: 0.6 } // altura de inicio
-        });*/
+       
         setCambios({});
+        await cargarDatos(); // 🔥 vuelve a traer EC, EP, EA y PU recalculado
+
       } else {
         Swal.fire("⚠️ Error", response.data.mensaje, "error");
       }
@@ -397,11 +384,6 @@ const guardarCalificaciones = async () => {
     }
   });
 };
-
-
-
-
-
 
   const columnas = [
     { clave: 'alumno', titulo: 'Código' },

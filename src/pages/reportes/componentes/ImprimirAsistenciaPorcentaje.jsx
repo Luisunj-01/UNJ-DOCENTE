@@ -181,9 +181,6 @@ const ImprimirAsistenciaPorcentaje = () => {
   
 
   
-
-  
-
   // 🔹 Transformar datos en estructura de tabla dinámica
   const { alumnos, fechasUnicas } = transformarDatos(datos);
 

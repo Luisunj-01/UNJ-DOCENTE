@@ -23,7 +23,7 @@ export const UserProvider = ({ children }) => {
 
     try {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      const { data } = await axios.get(`${config.apiUrl}api/me`);
+      const { data } = await axios.get(`${config.apiUrl}api/me2`);
 
       if (data.success) {
         // 🧩 Estructura unificada (igual que login)

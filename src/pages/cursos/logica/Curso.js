@@ -92,28 +92,33 @@ export const obtenerRevisionTrabajo = async (sede, semestre, escuela, curricula,
 
 
 
-export const obtenerDatosAsistencia = async (objeto, fecha) => {
-  const codigo  = 'T1';
-  const tipo = codigo.slice(-2, -1); // penúltimo caracter → 'T'
+export const obtenerDatosAsistencia = async (objeto) => {
+  const codigo = 'T1';
+  const tipo = codigo.slice(-2, -1);
   const grupo = codigo.slice(-1);
-  const clave = '01';
-  const tipozet = 'M';
-  
-  try {
-    //const usuario = JSON.parse(localStorage.getItem('usuario'));
-    //const token = usuario?.token;
 
-    const res = await axios.get(`${config.apiUrl}api/curso/partcipantesAsistencia/${objeto.sede}/${objeto.semestre}/${objeto.escuela}/${objeto.curricula}/${objeto.curso}/${objeto.seccion}/${tipo}/${grupo}/${objeto.sesion}/${clave}/${fecha}`);
-    //console.log(`${config.apiUrl}api/curso/partcipantesAsistencia/${objeto.sede}/${objeto.semestre}/${objeto.escuela}/${objeto.curricula}/${objeto.curso}/${objeto.seccion}/${tipo}/${grupo}/${objeto.sesion}/${clave}/${fecha}/${objeto.usuario}/${tipozet}`);
-    
-    if (Array.isArray(res.data) && res.data.length > 0) {
-      return { datos: res.data, mensaje: '' };
-    } else {
-      return { datos: [], mensaje: res.data.mensaje || 'No se encontraron cursos.' };
-    }
+  try {
+    const res = await axios.get(
+      `${config.apiUrl}api/curso/partcipantesAsistencia/` +
+      `${objeto.sede}/` +
+      `${objeto.semestre}/` +
+      `${objeto.escuela}/` +
+      `${objeto.curricula}/` +
+      `${objeto.curso}/` +
+      `${objeto.seccion}/` +
+      `${tipo}/` +
+      `${grupo}/` +
+      `${objeto.sesion}/` +
+      `${objeto.sesionitem}`   // 👈 CLAVE REAL
+    );
+
+    return Array.isArray(res.data)
+      ? { datos: res.data, mensaje: '' }
+      : { datos: [], mensaje: 'Sin datos' };
+
   } catch (error) {
-    console.error('Error al obtener cursos:', error);
-    return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
+    console.error('Error al obtener asistencia:', error);
+    return { datos: [], mensaje: 'Error al conectar con el servidor.' };
   }
 };
 
