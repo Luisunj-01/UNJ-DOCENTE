@@ -169,11 +169,21 @@ const ImprimirReporteSesiones = () => {
    
   ];
 
-  const columnas = [
-    { clave: 'contenido' },
-    { clave: 'fecha' },
-    { clave: 'concluido' }, 
-  ];
+const columnas = [
+  { clave: 'contenido' },
+  {
+    clave: 'fechas',
+    render: (row) =>
+      row.fechas
+        ? row.fechas.split('\n').map((f, i) => (
+            <div key={i}>{f}</div>
+          ))
+        : ''
+  },
+  { clave: 'concluido' }
+];
+
+
 
   return (
     <>

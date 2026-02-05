@@ -123,7 +123,9 @@ const Imprimirguiasemana = () => {
       
     ],
     [
-      { titulo: 'Actividad' }, { titulo: 'Evidencia' }, { titulo: 'Participo' }, { titulo: 'Minutos' }, { titulo: 'Observación' },
+      { titulo: 'Actividad' }, { titulo: 'Evidencia' }, { titulo: 'Participo' }, 
+      
+      // {titulo: 'Minutos' }, { titulo: 'Observación' },
       
     ]
   ];
@@ -133,7 +135,8 @@ const Imprimirguiasemana = () => {
     { clave: 'nombrecompleto' },
     { clave: 'celular' },
     { clave: 'email_institucional' },
-    { clave: 'actividad' }, { clave: 'evidencia' }, { clave: 'participo' }, { clave: 'minutos' }, { clave: 'tema' },
+    { clave: 'actividad' }, { clave: 'evidencia' }, { clave: 'participo' }, 
+    // { clave: 'minutos' }, { clave: 'tema' },
     
   ];
 

@@ -276,7 +276,7 @@ const ParticipantesGuias = ({ datoscurso, semana }) => {
   return (
     <div>
       <div className="alert alert-info text-center">
-        <strong style={{ color: '#085a9b' }}>PARTICIPANTESs</strong>
+        <strong style={{ color: '#085a9b' }}>PARTICIPANTES</strong>
       </div>
 
       <div className="mb-3">
