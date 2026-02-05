@@ -23,13 +23,23 @@ function Asistenciadocente() {
   const { mostrarToast } = useContext(ToastContext);
 
   useEffect(() => {
-    cargarDatos();
-    const interval = setInterval(cargarDatos, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
-  const cargarDatos = async () => {
-    try {
+  cargarDatos(true); // 👈 SOLO primera vez con loader
+
+  const interval = setInterval(() => {
+    cargarDatos(false); // 👈 refrescos sin loader
+  }, 20000);
+
+  return () => clearInterval(interval);
+
+}, []);
+
+
+  const cargarDatos = async (mostrarLoader = false) => {
+
+  if (mostrarLoader) setCargandoPantalla(true);
+
+  try {
       const respuestaAsistencia = await obtenerdatosasistencia(sede, semestre, escuela, curricula, curso, seccion);
       if (!respuestaAsistencia || !respuestaAsistencia.datos) {
         setMensajeApi('No se pudo obtener el detalle de asistencia.');
@@ -43,7 +53,14 @@ function Asistenciadocente() {
       setMensajeApi('Ocurrió un error al obtener los datos.');
     }
     setLoading(false);
+     setCargandoPantalla(false);
+
+
   };
+
+const [cargandoPantalla, setCargandoPantalla] = useState(true);
+
+
 
   const normalizarFecha = (fechaStr) => {
     if (!fechaStr) return null;
@@ -209,6 +226,33 @@ function Asistenciadocente() {
     setMostrarParticipantes(false);
     setDatosCursoSeleccionado(null);
   };
+
+  if (cargandoPantalla) {
+  return (
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(255,255,255,0.8)",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999
+    }}>
+      <div
+        className="spinner-border text-primary"
+        style={{ width: "4rem", height: "4rem" }}
+      />
+      <div style={{ marginTop: "15px", fontWeight: "600", color: "#0d6efd" }}>
+        Cargando información....
+      </div>
+    </div>
+  );
+}
+
 
   return mostrarParticipantes && datosCursoSeleccionado ? (
     <>
