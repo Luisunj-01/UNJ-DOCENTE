@@ -10,6 +10,13 @@ import { IconButton } from '@mui/material';
 import ParticipantesCurso from './Participantesasistencia';
 import { ToastContext } from '../../../cuerpos/Layout';
 import { TablaSkeleton } from '../../reutilizables/componentes/TablaSkeleton';
+import config from '../../../config';
+import axios from "axios";
+import { useUsuario } from '../../../context/UserContext';
+
+
+
+
 
 function Asistenciadocente() {
   const [datos, setDatos] = useState([]);
@@ -21,6 +28,31 @@ function Asistenciadocente() {
   const [mostrarParticipantes, setMostrarParticipantes] = useState(false);
   const [datosCursoSeleccionado, setDatosCursoSeleccionado] = useState(null);
   const { mostrarToast } = useContext(ToastContext);
+  const { usuario } = useUsuario();
+
+
+const abrirReporteAsistencia = (sesionFila) => {
+
+ const url = `${config.apiUrl}api/repasistenciasemana/${
+  sede
+ }/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${
+  tipo || "T"
+ }/${grupo || "1"}/${sesionFila}`;
+
+ console.log("URL FINAL:", url);
+
+ window.open(
+  url,
+  "ReportePDF",
+  "width=900,height=700,top=100,left=200,scrollbars=yes,resizable=yes"
+ );
+
+};
+
+
+
+
+
 
   useEffect(() => {
 
@@ -163,21 +195,10 @@ const [cargandoPantalla, setCargandoPantalla] = useState(true);
       ),
       render: (fila) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <IconButton
-            title={`Imprimir Asistencia: ${nombrecurso}`}
-            onClick={() => {
-              const cadena = `${sede}|${semestre}|${escuela}|${curricula}|${curso}|${seccion}|${tipo}|${grupo}|${sesion}|${clave}`;
-              const codigo = btoa(btoa(cadena));
-              window.open(
-                `/ImprimirAsistenciaSemana?codigo=${codigo}`,
-                'popupImpresion',
-                'width=1000,height=700,scrollbars=yes,resizable=yes'
-              );
-            }}
-            color="primary"
-            size="small"
-          >
-            <PrintIcon />
+
+
+     <IconButton onClick={() => abrirReporteAsistencia(fila.sesion)}>
+            <PrintIcon titleAccess={`Imprimir Asistencia: ${nombrecurso}`} color="primary" />
           </IconButton>
 
           <IconButton

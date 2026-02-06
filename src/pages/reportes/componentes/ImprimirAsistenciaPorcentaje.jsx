@@ -226,6 +226,30 @@ const ImprimirAsistenciaPorcentaje = () => {
         <FaPrint />
       </button>
 
+{loading && (
+  <div className="overlay-institucional">
+    <div className="box-loader-institucional">
+      
+      <div className="spinner-institucional"></div>
+
+      <h5 className="titulo-loader">
+        Procesando información
+      </h5>
+
+      <p className="subtitulo-loader">
+        Consultando registros de asistencia del servidor institucional.
+      </p>
+
+      <p className="subtitulo-loader2">
+        Este proceso puede tardar unos segundos.
+      </p>
+
+    </div>
+  </div>
+)}
+
+
+
       <div className="container mt-4">
         <div className="row">
           <div className="col-12">

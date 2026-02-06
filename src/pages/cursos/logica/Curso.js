@@ -87,11 +87,6 @@ export const obtenerRevisionTrabajo = async (sede, semestre, escuela, curricula,
   }
 };
 
-
-
-
-
-
 export const obtenerDatosAsistencia = async (objeto) => {
   const codigo = 'T1';
   const tipo = codigo.slice(-2, -1);
@@ -148,11 +143,6 @@ export const obtenerDatosAsistencianuevo = async (objeto, fecha) => {
     return { datos: [], mensaje: 'Error al conectar con el servidor o acceso no autorizado.' };
   }
 };
-
-
-
-
-
 
 
 export const obtenerdatosasistencia = async (sede, semestre, escuela, curricula, curso, seccion) => {
@@ -227,4 +217,38 @@ export const obtenerMoficarasist = async (sede, semestre, escuela, curricula, cu
   }
 };
 
+
+// export const descargarPdfAsistencia = async (
+//  sede,
+//  semestre,
+//  escuela,
+//  curricula,
+//  curso,
+//  seccion,
+//  tipo,
+//  grupo,
+//  sesion,
+//  token
+// ) => {
+
+//  try {
+
+//   const res = await axios.get(
+//    `${config.apiUrl}api/reportes/pdf/asistencia/${sede}/${semestre}/${escuela}/${curricula}/${curso}/${seccion}/${tipo}/${grupo}/${sesion}`,
+//    {
+//     responseType: "blob", // ⭐ CLAVE
+//     headers: {
+//      Authorization: `Bearer ${token}`
+//     }
+//    }
+//   );
+
+//   return res.data;
+
+//  } catch (error) {
+//   console.error("Error descargando PDF:", error);
+//   return null;
+//  }
+
+// };
 

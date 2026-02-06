@@ -7,6 +7,7 @@ import { FaPrint } from 'react-icons/fa';
 import Cabecerareporte from './Cabecerareporte';
 import { obtenerAsistenciasesiones, obtenerNombreConfiguracion } from '../logica/Reportes';
 import TablaCursoSub from '../../reutilizables/componentes/TablaCursoSub';
+import './asistenciaporcentaje.css';
 
 const fecha = new Date();
 const fechaFormateada = `${String(fecha.getDate()).padStart(2, '0')}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${fecha.getFullYear()}`;
@@ -215,6 +216,32 @@ const ImprimirAsistenciaSesiones = () => {
       <button className="print-button" onClick={() => window.print()}>
         <FaPrint />
       </button>
+
+      {loading && (
+  <div className="overlay-institucional">
+    <div className="box-loader-institucional">
+      
+      <div className="spinner-institucional"></div>
+
+      <h5 className="titulo-loader">
+        Procesando información
+      </h5>
+
+      <p className="subtitulo-loader">
+        Consultando registros de asistencia del servidor institucional.
+      </p>
+
+      <p className="subtitulo-loader2">
+        Este proceso puede tardar unos segundos.
+      </p>
+
+    </div>
+  </div>
+)}
+
+
+
+
 
       <div className="container mt-4">
         <div className="row">

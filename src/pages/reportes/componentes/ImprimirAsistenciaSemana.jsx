@@ -123,24 +123,49 @@ const ImprimirAsistenciaSemana = () => {
   const queryParams = new URLSearchParams(search);
   const codigoParam = queryParams.get('codigo');
 
+  console.log("codigoParam:", codigoParam);
+
+
   // 🔹 Decodificación de parámetros
   let sede = '', semestre = '', escuela = '', curricula = '', curso = '', seccion = '', tipo = '', grupo = '', sesion = '', clave = '';
   try {
     if (codigoParam) {
       const decoded = atob(atob(codigoParam));
+
+      console.log("DECODED STRING:", decoded);
+
       [sede, semestre, escuela, curricula, curso, seccion, tipo, grupo, sesion, clave] = decoded.split('|');
+
+      console.log("PARAMETROS SPLIT:");
+console.log("sede:", sede);
+console.log("semestre:", semestre);
+console.log("escuela:", escuela);
+console.log("curso:", curso);
+console.log("seccion:", seccion);
+console.log("tipo:", tipo);
+console.log("grupo:", grupo);
+console.log("sesion:", sesion);
+
     }
-    console.log(codigoParam);
+    
   } catch (error) {
     console.error("❌ Error decodificando parámetros:", error);
   }
+
+   const tipoFinal = tipo || 'T';
+const grupoFinal = grupo || '1';
+
+console.log("tipoFinal:", tipoFinal);
+console.log("grupoFinal:", grupoFinal);
+
 
   const nombredocente = usuario?.docente?.nombrecompleto || '';
   const departamentoacademico = usuario?.docente?.departamentoacademico || '';
   const objetos = { sede, semestre, escuela, curricula, curso, seccion };
 
   useEffect(() => {
-    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion || !tipo || !grupo || !sesion || !clave) {
+    if (!sede || !semestre || !escuela || !curricula || !curso || !seccion || !tipo || !grupo || !sesion)
+ {
       setLoading(false);
       return;
     } 
@@ -149,15 +174,44 @@ const ImprimirAsistenciaSemana = () => {
 
     const fetchDatos = async () => {
       try {
-        const resultado = await obtenerAsistenciasemana(sede, semestre, escuela, curricula, curso, seccion, 'T', '1', '01', '01', token);
-        setDatos(resultado?.datos || []);
-        console.log(resultado);
+  const resultado = await obtenerAsistenciasemana(
+ sede,
+ semestre,
+ escuela,
+ curricula,
+ curso,
+ seccion,
+ tipo || 'T',
+ grupo || '1',
+ sesion || '17',
+ token
+);
+console.log("PARAMETROS QUE VAN A API:");
+console.log({
+ sede,
+ semestre,
+ escuela,
+ curricula,
+ curso,
+ seccion,
+ tipoFinal,
+ grupoFinal,
+ sesionFinal: sesion || '17'
+});
 
 
-        if (resultado?.datos?.length > 0) {
-          setUsuarioRegistro(resultado.datos[0].ur || '');
-          setFechaRegistro(resultado.datos[0].fr || '');
-        }
+
+            console.log("RESULTADO API:", resultado);
+
+       setDatos(resultado?.datos || []);
+
+if (resultado?.datos?.length > 0)
+{
+  setUsuarioRegistro(resultado.datos[0].ur || '');
+  setFechaRegistro(resultado.datos[0].fr || '');
+}
+
+
 
         const nombresedeResp = await obtenerNombreConfiguracion('nombresede', { sede });
         setNombresede(typeof nombresedeResp === 'object' ? nombresedeResp?.valor || sede : nombresedeResp || sede);
