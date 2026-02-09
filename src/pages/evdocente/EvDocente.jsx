@@ -377,7 +377,7 @@ const encuestaDesc =
                 }}>
                 <img src="/image/logo/logo-sigaunj.svg" style={{height:"40px"}}/>
                 <div style={{fontWeight:"bold"}}>
-                Universidad Nacional de Jaén
+                Universidad Nacional de Jaénn
                 </div>
                 </div>
 
@@ -415,12 +415,12 @@ const encuestaDesc =
                 <tr>
                 <th>N°</th>
                 <th>Pregunta</th>
-                <th>Total</th>
-                <th>TD</th>
-                <th>D</th>
-                <th>N</th>
-                <th>A</th>
-                <th>TA</th>
+                <th>Total Alumno</th>
+                <th>Totalmente Desacuerdo</th>
+                <th>En Desacuerdo</th>
+                <th>Ni de acuerdo ni en desacuerdo</th>
+                <th>De acuerdo</th>
+                <th>Totalmente de acuerdo</th>
                 <th>Resultado</th>
                 <th>Escala 4</th>
                 </tr>
@@ -429,7 +429,7 @@ const encuestaDesc =
                 <tbody>
 
                 {reportePreguntas.map((r,i)=>(
-                <tr key={i}>
+                <tr key={i} style={{ textAlign: "center" }}>
                 <td>{i+1}</td>
                 <td>{r.descripcionpregunta}</td>
                 <td>{r.totalalumnos}</td>
